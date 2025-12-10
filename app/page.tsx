@@ -1,5 +1,6 @@
 import PlantCard from  "../components/plantcard"
 import { supabase } from "./lib/supabase"; 
+import Link from "next/link";
 
 // Hacemos el componente async para poder pedir datos al servidor
 export default async function Home() {
@@ -22,9 +23,12 @@ export default async function Home() {
             <h1 className="text-3xl font-bold text-emerald-500">MiCultivo 🌿</h1>
             <p className="text-slate-400">Resumen del Ciclo: Invierno 2024</p>
         </div>
-        <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-            + Nueva Planta
-        </button>
+        <Link 
+        href="/new" 
+        className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+        + Nueva Planta
+        </Link>
       </header>
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
