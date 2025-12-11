@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation"; // <--- 1. Importamos el Router
+import LogModal from "./LogModal";
+import Image from "next/image";
 
 interface PlantCardProps {
   id: number;
@@ -10,10 +12,10 @@ interface PlantCardProps {
   stage: string;
   days: number;
   lastWater: string;
+  imageUrl?: string | null;
 }
 
-export default function PlantCard({ id, name, stage, days, lastWater }: PlantCardProps) {
-  const router = useRouter(); // <--- 2. Inicializamos el GPS
+export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }: PlantCardProps) {  const router = useRouter(); // <--- 2. Inicializamos el GPS
   const [isWatered, setIsWatered] = useState(lastWater === "Hoy");
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false); // Estado para el borrado
@@ -70,38 +72,63 @@ export default function PlantCard({ id, name, stage, days, lastWater }: PlantCar
 
   return (
     <div className={`relative group rounded-xl overflow-hidden border w-full max-w-sm transition-all duration-300 ${
-        isWatered ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-slate-700 bg-slate-800'
+        isWatered 
+        ? 'border-brand-primary shadow-[0_0_15px_rgba(0,165,153,0.3)]' // Borde Turquesa si está regada
+        : 'border-[#333333] bg-brand-card' // <--- Fondo Gris #292929
     }`}>
       
-      {/* 4. BOTÓN DE BORRAR (Solo visible al pasar el mouse - group-hover) */}
+      {/* Botón Borrar */}
       <button 
         onClick={handleDelete}
-        className="absolute top-2 right-2 z-10 bg-slate-900/80 hover:bg-red-500 text-slate-400 hover:text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+        className="absolute top-2 right-2 z-10 bg-black/60 hover:bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all"
         title="Eliminar planta"
       >
         🗑️
       </button>
 
-      {/* Imagen */}
-      <div className="h-48 w-full bg-slate-700 relative">
-        <div className="flex items-center justify-center h-full text-slate-500 text-4xl">
-            {isWatered ? '💧' : '🌿'} 
-        </div>
+      {/* 3. ZONA DE IMAGEN MODIFICADA */}
+      <div className="h-64 w-full bg-[#1a1a1a] relative overflow-hidden"> 
+        {imageUrl ? (
+            // SI HAY FOTO REAL:
+            <Image 
+              src={imageUrl} 
+              alt={name}
+              fill
+              // 1. ELIMINA EL ERROR AMARILLO:
+              // Le decimos: "En celular ocupa el 100%, en tablet el 50%, en PC el 33%"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={true}
+              // 2. ESTILO VISUAL:
+              // object-cover: Recorta para llenar (se ve lindo en grilla)
+              // object-center: Intenta centrar la parte importante
+              className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+            />
+        ) : (
+            // SI NO HAY FOTO (Placeholder Original):
+            <div className="flex items-center justify-center h-full text-gray-600 text-4xl">
+                {isWatered ? '💧' : '🌿'} 
+            </div>
+        )}
+        
+        {/* Gradiente sutil para que el texto se lea mejor si la foto es clara */}
+        <div className="absolute inset-0 bg-linear-to-t from-brand-card via-transparent to-transparent opacity-60"></div>
       </div>
 
-      <div className="p-4 bg-slate-800">
+      <div className="p-4 bg-brand-card"> {/* <--- Fondo Gris #292929 */}
         <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-bold text-slate-100">{name}</h3>
-            <span className={`text-xs px-2 py-1 rounded-full font-medium border ${
+        <div className="flex flex-col">
+            <h3 className="text-xl font-subtitle text-white">{name}</h3>
+            <LogModal plantId={id} plantName={name} />
+            <span className={`text-xs px-2 py-1 rounded-full font-bold border ${
                 stage === 'Floración' 
                 ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
-                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                : 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' // <--- Turquesa
             }`}>
                 {stage}
             </span>
         </div>
-
-        <div className="text-sm text-slate-400 space-y-1">
+        </div>
+        <div className="text-sm text-brand-muted space-y-1 font-body">
             <p>🗓️ Día {days}</p>
             <p>💧 Riego: {isWatered ? 'Hoy' : lastWater}</p>
         </div>
@@ -109,13 +136,13 @@ export default function PlantCard({ id, name, stage, days, lastWater }: PlantCar
         <button 
             onClick={handleWater}
             disabled={isWatered || loading}
-            className={`w-full mt-4 py-2 rounded-lg text-sm font-medium transition-all flex justify-center items-center ${
+            className={`w-full mt-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all flex justify-center items-center font-title ${
                 isWatered 
-                ? 'bg-blue-600 text-white cursor-default'
-                : 'bg-slate-700 hover:bg-emerald-600 hover:text-white text-slate-200'
+                ? 'bg-brand-primary text-brand-bg cursor-default' // Turquesa con texto oscuro
+                : 'bg-brand-primary hover:bg-brand-primary-hover text-brand-bg' // <--- Turquesa oficial
             }`}
         >
-            {loading ? 'Guardando...' : (isWatered ? '✅ Listo por hoy' : 'Regar ahora 💧')}
+            {loading ? 'GUARDANDO...' : (isWatered ? 'LISTO POR HOY' : 'REGAR AHORA')}
         </button>
       </div>
     </div>
