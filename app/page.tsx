@@ -1,6 +1,8 @@
 import { supabase } from "./lib/supabase";
 import PlantCard from "@/components/plantcard";
 import AddPlantModal from "@/components/AddPlantModal";
+import CycleStatusCard from "@/components/CycleStatusCard";
+import TasksCard from "@/components/TasksCard";
 import Link from "next/link";
 import { Plant } from "./lib/types";
 
@@ -57,6 +59,43 @@ export default async function Home() {
         </div>
       </header>
 
+      {/* TARJETAS PRINCIPALES: Estado de Ciclo + Tareas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+        {/* Tarjeta Estado de Ciclo */}
+        {activeCycles.length > 0 ? (
+          <CycleStatusCard cycles={activeCycles} />
+        ) : (
+          <div className="bg-brand-card border border-[#333] rounded-xl overflow-hidden">
+            <div className="bg-[#1a1a1a] px-6 py-4 border-b border-[#333]">
+              <h2 className="text-xl font-subtitle text-white">Estado de Ciclo</h2>
+              <p className="text-sm text-brand-muted mt-1">¿En qué punto estamos?</p>
+            </div>
+            <div className="bg-[#222] p-12 text-center">
+              <div className="mb-6">
+                <div className="w-20 h-20 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-4xl">🌱</span>
+                </div>
+                <h3 className="text-2xl font-subtitle text-white mb-2">¡Bienvenido!</h3>
+                <p className="text-brand-muted mb-6 max-w-md mx-auto">
+                  Configura tu primer espacio de cultivo para empezar
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <Link 
+                  href="/cycles" 
+                  className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-6 py-3 rounded-lg font-title tracking-wide transition-colors"
+                >
+                  CREAR PRIMER CICLO
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tarjeta de Tareas */}
+        <TasksCard />
+      </div>
+
       {/* RENDERIZADO DE CICLOS */}
       {activeCycles.length > 0 ? (
         <div className="space-y-12"> {/* Espacio entre ciclos distintos */}
@@ -69,10 +108,10 @@ export default async function Home() {
               <section key={cycle.id} className="border-t border-[#333] pt-6 first:border-0 first:pt-0">
                 
                 {/* CABECERA DEL CICLO (Hero Mini) */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-2xl font-subtitle text-white">{cycle.name}</h2>
+                <div className="flex flex-row items-center justify-between gap-4 mb-6">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h2 className="text-xl md:text-2xl font-subtitle text-white">{cycle.name}</h2>
                       <span className="text-xs font-bold bg-brand-primary/20 text-brand-primary px-2 py-1 rounded border border-brand-primary/20">
                         Día {daysDiff}
                       </span>
