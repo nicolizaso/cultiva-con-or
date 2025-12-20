@@ -1,40 +1,66 @@
-import { supabase } from "./lib/supabase";
-import PlantCard from "@/components/plantcard";
+import { createClient } from "@/app/lib/supabase-server"; // ✅ Este lee cookiesimport PlantCard from "@/components/plantcard";
 import AddPlantModal from "@/components/AddPlantModal";
 import CycleStatusCard from "@/components/CycleStatusCard";
-import TasksCard from "@/components/TasksCard";
+import UserMenu from "@/components/UserMenu"; // <--- NUEVO IMPORT
 import Link from "next/link";
 import { Plant } from "./lib/types";
+import PlantCard from "@/components/plantcard";
 
-// Definimos un tipo extendido para incluir las plantas dentro del ciclo
-interface CycleWithPlants {
-  id: number;
-  name: string;
-  start_date: string;
-  space_id: number;
-  plants: Plant[]; // <--- El array de plantas viene anidado
-}
+// ... (Interfaces SpaceInfo y CycleWithPlantsAndSpace siguen igual) ...
+interface SpaceInfo {
+    id: number;
+    name: string;
+    type: string;
+  }
+  
+  interface CycleWithPlantsAndSpace {
+    id: number;
+    name: string;
+    start_date: string;
+    space_id: number;
+    plants: Plant[];
+    spaces: SpaceInfo;
+  }
 
 export default async function Home() {
-  // 1. LA CONSULTA MAESTRA (JOIN)
-  // "Dame todos los ciclos activos, y para cada uno, dame todas sus plantas (ordenadas por fecha)"
-  const { data: cycles } = await supabase
+  const supabase = await createClient();
+  // 1. OBTENER USUARIO ACTUAL (Para el menú)
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 2. CONSULTA DE DATOS (Igual que antes)
+  const { data: cyclesData } = await supabase
     .from('cycles')
     .select(`
       *,
+      spaces (id, name, type),
       plants (*)
     `)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
-  // Forzamos el tipado porque Supabase a veces retorna tipos complejos en Joins
-  const activeCycles = (cycles || []) as unknown as CycleWithPlants[];
+  const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
+
+  const spacesMap = new Map<number, { info: SpaceInfo; cycles: CycleWithPlantsAndSpace[] }>();
+
+  activeCycles.forEach((cycle) => {
+    if (!cycle.spaces) return; 
+
+    if (!spacesMap.has(cycle.space_id)) {
+      spacesMap.set(cycle.space_id, {
+        info: cycle.spaces,
+        cycles: [],
+      });
+    }
+    spacesMap.get(cycle.space_id)?.cycles.push(cycle);
+  });
+
+  const spacesGroups = Array.from(spacesMap.values());
 
   return (
     <main className="min-h-screen bg-brand-bg p-6 text-brand-text pb-24">
       
-      {/* HEADER */}
-      <header className="mb-8 flex justify-between items-center relative z-20">
+      {/* HEADER PRINCIPAL */}
+      <header className="mb-10 flex justify-between items-center relative z-20">
         <div>
             <h1 className="text-3xl font-title text-brand-primary uppercase tracking-wider">
               Ojitos Rojos <span className="text-white">Tracker</span>
@@ -54,128 +80,105 @@ export default async function Home() {
                 </Link>
             </div>
         </div>
-        <div className="w-10 h-10 rounded-full bg-brand-card border border-brand-primary flex items-center justify-center text-brand-primary font-bold shrink-0">
-          U
-        </div>
+        
+        {/* AQUÍ ESTÁ EL CAMBIO: MENÚ DE USUARIO */}
+        <UserMenu email={user?.email} />
+
       </header>
 
-      {/* TARJETAS PRINCIPALES: Estado de Ciclo + Tareas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {/* Tarjeta Estado de Ciclo */}
-        {activeCycles.length > 0 ? (
-          <CycleStatusCard cycles={activeCycles} />
-        ) : (
-          <div className="bg-brand-card border border-[#333] rounded-xl overflow-hidden">
-            <div className="bg-[#1a1a1a] px-6 py-4 border-b border-[#333]">
-              <h2 className="text-xl font-subtitle text-white">Estado de Ciclo</h2>
-              <p className="text-sm text-brand-muted mt-1">¿En qué punto estamos?</p>
-            </div>
-            <div className="bg-[#222] p-12 text-center">
-              <div className="mb-6">
-                <div className="w-20 h-20 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-4xl">🌱</span>
-                </div>
-                <h3 className="text-2xl font-subtitle text-white mb-2">¡Bienvenido!</h3>
-                <p className="text-brand-muted mb-6 max-w-md mx-auto">
-                  Configura tu primer espacio de cultivo para empezar
-                </p>
+      {/* RENDERIZADO POR ESPACIOS (El resto sigue igual...) */}
+      {spacesGroups.length > 0 ? (
+        <div className="space-y-16">
+          {spacesGroups.map((group) => (
+            <section key={group.info.id} className="relative">
+              
+              <div className="flex items-center gap-3 mb-6 border-l-4 border-brand-primary pl-4">
+                <h2 className="text-3xl font-title text-white uppercase">
+                  {group.info.name}
+                </h2>
+                <span className="text-xs font-bold bg-[#222] text-brand-muted px-2 py-1 rounded border border-[#333] uppercase">
+                  {group.info.type}
+                </span>
               </div>
-              <div className="flex justify-center">
-                <Link 
-                  href="/cycles" 
-                  className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-6 py-3 rounded-lg font-title tracking-wide transition-colors"
-                >
-                  CREAR PRIMER CICLO
-                </Link>
+
+              <CycleStatusCard cycles={group.cycles} />
+
+              <div className="mt-8 space-y-10 pl-0 md:pl-4 border-l-0 md:border-l border-[#222]">
+                {group.cycles.map((cycle) => {
+                  const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <div key={cycle.id}>
+                      <div className="flex flex-row items-center justify-between gap-4 mb-6">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="text-xl font-subtitle text-white">{cycle.name}</h3>
+                            <span className="text-xs font-bold text-brand-primary/80">
+                              Día {daysDiff}
+                            </span>
+                          </div>
+                          <p className="text-xs text-brand-muted mt-1">
+                            {cycle.plants.length} plantas
+                          </p>
+                        </div>
+
+                        <div className="shrink-0">
+                          <AddPlantModal 
+                            cycleId={cycle.id} 
+                            cycleName={cycle.name} 
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {cycle.plants && cycle.plants.length > 0 ? (
+                          cycle.plants
+                            .sort((a, b) => b.id - a.id)
+                            .map((planta) => (
+                              <PlantCard 
+                                key={planta.id} 
+                                id={planta.id}
+                                name={planta.name}
+                                stage={planta.stage}
+                                days={planta.days}
+                                lastWater={planta.last_water}
+                                imageUrl={(planta as any).image_url} 
+                              />
+                          ))
+                        ) : (
+                          <div className="col-span-full py-6 text-center border border-dashed border-[#333] rounded-lg bg-brand-card/10">
+                            <p className="text-xs text-brand-muted">🌱 No hay plantas registradas aún.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Tarjeta de Tareas */}
-        <TasksCard />
-      </div>
-
-      {/* RENDERIZADO DE CICLOS */}
-      {activeCycles.length > 0 ? (
-        <div className="space-y-12"> {/* Espacio entre ciclos distintos */}
-          
-          {activeCycles.map((cycle) => {
-            // Calculamos días para ESTE ciclo específico
-            const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
-            
-            return (
-              <section key={cycle.id} className="border-t border-[#333] pt-6 first:border-0 first:pt-0">
-                
-                {/* CABECERA DEL CICLO (Hero Mini) */}
-                <div className="flex flex-row items-center justify-between gap-4 mb-6">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h2 className="text-xl md:text-2xl font-subtitle text-white">{cycle.name}</h2>
-                      <span className="text-xs font-bold bg-brand-primary/20 text-brand-primary px-2 py-1 rounded border border-brand-primary/20">
-                        Día {daysDiff}
-                      </span>
-                    </div>
-                    <p className="text-xs text-brand-muted mt-1">
-                      {cycle.plants.length} plantas en seguimiento
-                    </p>
-                  </div>
-
-                  {/* Botón de Agregar específico para ESTE ciclo */}
-                  <div className="shrink-0">
-                    <AddPlantModal 
-                      cycleId={cycle.id} 
-                      cycleName={cycle.name} 
-                    />
-                  </div>
-                </div>
-
-                {/* GRILLA DE PLANTAS DE ESTE CICLO */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {cycle.plants && cycle.plants.length > 0 ? (
-                    // Ordenamos las plantas en JS para asegurar que las nuevas salgan primero
-                    cycle.plants
-                      .sort((a, b) => b.id - a.id) 
-                      .map((planta) => (
-                        <PlantCard 
-                          key={planta.id} 
-                          id={planta.id}
-                          name={planta.name}
-                          stage={planta.stage}
-                          days={planta.days}
-                          lastWater={planta.last_water}
-                          imageUrl={(planta as any).image_url} // Cast rápido por si types no está 100% sync
-                        />
-                    ))
-                  ) : (
-                    // EMPTY STATE LOCAL (Solo para este ciclo)
-                    <div className="col-span-full py-8 text-center border border-dashed border-[#333] rounded-lg bg-brand-card/20">
-                      <p className="text-sm text-brand-muted">🌱 No hay plantas en este ciclo todavía.</p>
-                    </div>
-                  )}
-                </div>
-
-              </section>
-            );
-          })}
-
+            </section>
+          ))}
         </div>
       ) : (
-        /* EMPTY STATE GLOBAL (Sin ningún ciclo) */
-        <div className="text-center py-20 animate-in fade-in zoom-in duration-500">
-          <div className="w-20 h-20 bg-[#222] rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
-            🍂
+        <div className="text-center py-24 animate-in fade-in zoom-in duration-500">
+            {/* Empty state igual que antes... */}
+             <div className="w-24 h-24 bg-[#1a1a1a] rounded-full flex items-center justify-center mx-auto mb-6 text-5xl border border-[#333]">
+            🪐
           </div>
-          <h2 className="text-2xl font-subtitle text-white mb-2">Todo está muy tranquilo...</h2>
-          <p className="text-brand-muted mb-6 max-w-md mx-auto">
-            No tienes ningún ciclo activo. Ve a la sección de Ciclos para comenzar una nueva temporada o reactivar una anterior.
+          <h2 className="text-2xl font-subtitle text-white mb-2">Tu universo está vacío</h2>
+          <p className="text-brand-muted mb-8 max-w-md mx-auto">
+            Para ver el panel de control, necesitas tener al menos un Espacio con un Ciclo activo.
           </p>
-          <Link href="/cycles" className="inline-block bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-8 py-3 rounded-lg font-title tracking-wide transition-colors">
-            COMENZAR CULTIVO
-          </Link>
+          <div className="flex justify-center gap-4">
+            <Link href="/spaces" className="bg-brand-card hover:bg-[#333] text-white border border-[#444] px-6 py-3 rounded-lg font-title tracking-wide transition-colors">
+              1. CREAR ESPACIO
+            </Link>
+            <Link href="/cycles" className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-6 py-3 rounded-lg font-title tracking-wide transition-colors">
+              2. INICIAR CICLO
+            </Link>
+          </div>
         </div>
       )}
-
     </main>
   );
 }

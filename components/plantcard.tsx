@@ -139,7 +139,7 @@ export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }
             className={`w-full mt-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all flex justify-center items-center font-title ${
                 isWatered 
                 ? 'bg-brand-primary text-brand-bg cursor-default' // Turquesa con texto oscuro
-                : 'bg-brand-primary hover:bg-brand-primary-hover text-brand-bg' // <--- Turquesa oficial
+                : 'bg-brand-primary hover:bg-brand-primary-hover text-brand-bg' // <--- Turquesa oficiala
             }`}
         >
             {loading ? 'GUARDANDO...' : (isWatered ? 'LISTO POR HOY' : 'REGAR AHORA')}
