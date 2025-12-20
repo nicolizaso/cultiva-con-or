@@ -1,11 +1,17 @@
+import { createClient } from "@/app/lib/supabase-server"; // <--- Cliente seguro
 import Link from "next/link";
-import { supabase } from "@/app/lib/supabase";
 import SpaceCard from "@/components/SpaceCard";
 import AddSpaceModal from "@/components/AddSpaceModal";
+import UserMenu from "@/components/UserMenu"; // <--- El menú interactivo
 import { Space } from "@/app/lib/types";
 
 export default async function SpacesPage() {
-  // Traemos todos los espacios ordenados por los más nuevos
+  const supabase = await createClient();
+
+  // 1. OBTENER USUARIO (Para el menú)
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 2. OBTENER ESPACIOS (Ahora filtrados por RLS automáticamente)
   const { data: spaces } = await supabase
     .from('spaces')
     .select('*')
@@ -14,14 +20,18 @@ export default async function SpacesPage() {
   return (
     <main className="min-h-screen bg-brand-bg p-6 text-brand-text pb-24">
       
-      {/* HEADER con Navegación */}
-      <header className="mb-8 flex justify-between items-center">
+      {/* HEADER BLINDADO */}
+      <header className="mb-8 flex justify-between items-center relative z-20">
         <div>
-            <div className="flex items-center gap-2 mb-1">
-                <Link href="/" className="text-brand-muted hover:text-brand-primary transition-colors text-sm">
-                    ← Volver al Inicio
+            <div className="mb-2">
+                <Link 
+                  href="/" 
+                  className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-primary transition-colors text-sm py-2 pr-4 font-bold"
+                >
+                    <span>←</span> VOLVER AL INICIO
                 </Link>
             </div>
+            
             <h1 className="text-3xl font-title text-white uppercase tracking-wider">
               Mis Espacios
             </h1>
@@ -29,9 +39,10 @@ export default async function SpacesPage() {
               Administra tus armarios y patios
             </p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-brand-card border border-brand-primary flex items-center justify-center text-brand-primary font-bold">
-          U
-        </div>
+
+        {/* REEMPLAZAMOS EL DIV "U" POR EL COMPONENTE REAL */}
+        <UserMenu email={user?.email} />
+        
       </header>
 
       {/* BARRA DE ACCIÓN */}

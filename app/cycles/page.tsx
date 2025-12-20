@@ -1,43 +1,53 @@
+import { createClient } from "@/app/lib/supabase-server"; // <--- Cliente seguro
 import Link from "next/link";
-import { supabase } from "@/app/lib/supabase";
 import AddCycleModal from "@/components/AddCycleModal";
 import CycleCard from "@/components/CycleCard";
+import UserMenu from "@/components/UserMenu"; // <--- Importar
 
 export default async function CyclesPage() {
-  // JOIN: Traemos ciclos y el nombre del espacio asociado
-  // Sintaxis: select('*, spaces(name)')
+  const supabase = await createClient();
+
+  // 1. USUARIO
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 2. CICLOS (Join)
   const { data: cycles } = await supabase
     .from('cycles')
     .select('*, spaces(name)')
-    .order('is_active', { ascending: false }) // Activos primero
+    .order('is_active', { ascending: false })
     .order('created_at', { ascending: false });
 
   return (
     <main className="min-h-screen bg-brand-bg p-6 text-brand-text pb-24">
       
       {/* HEADER */}
-      <header className="mb-8">
-        <div className="flex items-center gap-2 mb-2">
-        <a 
-  href="/" 
-  className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-primary transition-colors text-sm py-2 pr-4 font-bold cursor-pointer relative z-50"
->
-    <span>←</span> VOLVER AL INICIO
-</a>
-        </div>
-        <div className="flex justify-between items-end">
-            <div>
-                <h1 className="text-3xl font-title text-white uppercase tracking-wider">
-                Mis Ciclos
-                </h1>
-                <p className="text-brand-muted font-body text-sm">
-                Historial de temporadas y cultivos
-                </p>
+      <header className="mb-8 flex justify-between items-center relative z-20">
+        <div>
+            <div className="mb-2">
+                <Link 
+                  href="/" 
+                  className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-primary transition-colors text-sm py-2 pr-4 font-bold"
+                >
+                    <span>←</span> VOLVER AL INICIO
+                </Link>
             </div>
-            {/* Modal de Crear */}
-            <AddCycleModal />
+            <h1 className="text-3xl font-title text-white uppercase tracking-wider">
+              Mis Ciclos
+            </h1>
+            <p className="text-brand-muted font-body text-sm">
+              Historial de temporadas y cultivos
+            </p>
         </div>
+
+        {/* MENU DE USUARIO ACTIVO */}
+        <UserMenu email={user?.email} />
+
       </header>
+      
+      {/* BARRA DE ACCIÓN */}
+      <div className="flex justify-end mb-6">
+          <AddCycleModal />
+      </div>
 
       {/* LISTA DE CICLOS */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

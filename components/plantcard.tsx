@@ -5,6 +5,9 @@ import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation"; // <--- 1. Importamos el Router
 import LogModal from "./LogModal";
 import Image from "next/image";
+import Link from "next/link"; // <--- AGREGA ESTO
+
+
 
 interface PlantCardProps {
   id: number;
@@ -71,79 +74,81 @@ export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }
   }
 
   return (
-    <div className={`relative group rounded-xl overflow-hidden border w-full max-w-sm transition-all duration-300 ${
-        isWatered 
-        ? 'border-brand-primary shadow-[0_0_15px_rgba(0,165,153,0.3)]' // Borde Turquesa si está regada
-        : 'border-[#333333] bg-brand-card' // <--- Fondo Gris #292929
-    }`}>
+    <div className="bg-brand-card border border-[#333] rounded-xl overflow-hidden group hover:border-brand-primary/50 transition-colors relative">
       
-      {/* Botón Borrar */}
+      {/* 1. BOTÓN DE BORRAR 
+          IMPORTANTE: Está "suelto" (fuera de cualquier Link) y con z-20 para estar encima de todo.
+          Así, si le das clic, borras la planta en lugar de entrar al detalle.
+      */}
       <button 
         onClick={handleDelete}
-        className="absolute top-2 right-2 z-10 bg-black/60 hover:bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-        title="Eliminar planta"
+        className="absolute top-2 right-2 z-20 bg-black/50 hover:bg-red-500/80 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+        title="Eliminar Planta"
       >
         🗑️
       </button>
 
-      {/* 3. ZONA DE IMAGEN MODIFICADA */}
-      <div className="h-64 w-full bg-[#1a1a1a] relative overflow-hidden"> 
+      {/* 2. ZONA DE IMAGEN (Envuelto en LINK) 
+          Si tocas la foto, vas al detalle.
+      */}
+      <Link href={`/plants/${id}`} className="block h-48 w-full bg-[#1a1a1a] relative overflow-hidden">
         {imageUrl ? (
-            // SI HAY FOTO REAL:
             <Image 
               src={imageUrl} 
               alt={name}
               fill
-              // 1. ELIMINA EL ERROR AMARILLO:
-              // Le decimos: "En celular ocupa el 100%, en tablet el 50%, en PC el 33%"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority={true}
-              // 2. ESTILO VISUAL:
-              // object-cover: Recorta para llenar (se ve lindo en grilla)
-              // object-center: Intenta centrar la parte importante
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
             />
         ) : (
-            // SI NO HAY FOTO (Placeholder Original):
             <div className="flex items-center justify-center h-full text-gray-600 text-4xl">
                 {isWatered ? '💧' : '🌿'} 
             </div>
         )}
         
-        {/* Gradiente sutil para que el texto se lea mejor si la foto es clara */}
+        {/* Gradiente sutil */}
         <div className="absolute inset-0 bg-linear-to-t from-brand-card via-transparent to-transparent opacity-60"></div>
-      </div>
+      </Link>
 
-      <div className="p-4 bg-brand-card"> {/* <--- Fondo Gris #292929 */}
+      {/* 3. ZONA DE TEXTO */}
+      <div className="p-4 bg-brand-card relative">
         <div className="flex justify-between items-start mb-2">
-        <div className="flex flex-col">
-            <h3 className="text-xl font-subtitle text-white">{name}</h3>
-            <LogModal plantId={id} plantName={name} />
-            <span className={`text-xs px-2 py-1 rounded-full font-bold border ${
-                stage === 'Floración' 
-                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
-                : 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' // <--- Turquesa
-            }`}>
+            
+            {/* Título (Envuelto en LINK) 
+                Si tocas el nombre, también vas al detalle.
+            */}
+            <div className="flex flex-col">
+              <Link href={`/plants/${id}`} className="hover:text-brand-primary transition-colors">
+                <h3 className="text-xl font-subtitle text-white">{name}</h3>
+              </Link>
+              
+              <span className={`text-xs font-bold px-2 py-0.5 rounded w-fit mt-1 ${
+                stage === 'Floración' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
+                stage === 'Vegetación' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                stage === 'Plántula' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+              }`}>
                 {stage}
-            </span>
+              </span>
+            </div>
+            
+            {/* Modal de Log (Cámara) */}
+            <LogModal plantId={id} plantName={name} />
         </div>
+        
+        <div className="flex justify-between items-end mt-4 text-sm text-brand-muted font-body border-t border-[#333] pt-3">
+            <div>
+                <p className="text-[10px] uppercase font-bold text-gray-500">Edad</p>
+                <p className="text-white font-bold">{days} días</p>
+            </div>
+            <div className="text-right">
+                <p className="text-[10px] uppercase font-bold text-gray-500">Riego</p>
+                <p className={isWatered ? "text-brand-primary font-bold" : "text-white"}>
+                    {lastWater}
+                </p>
+            </div>
         </div>
-        <div className="text-sm text-brand-muted space-y-1 font-body">
-            <p>🗓️ Día {days}</p>
-            <p>💧 Riego: {isWatered ? 'Hoy' : lastWater}</p>
-        </div>
-
-        <button 
-            onClick={handleWater}
-            disabled={isWatered || loading}
-            className={`w-full mt-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all flex justify-center items-center font-title ${
-                isWatered 
-                ? 'bg-brand-primary text-brand-bg cursor-default' // Turquesa con texto oscuro
-                : 'bg-brand-primary hover:bg-brand-primary-hover text-brand-bg' // <--- Turquesa oficiala
-            }`}
-        >
-            {loading ? 'GUARDANDO...' : (isWatered ? 'LISTO POR HOY' : 'REGAR AHORA')}
-        </button>
       </div>
     </div>
   );

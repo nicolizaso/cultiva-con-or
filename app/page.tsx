@@ -63,7 +63,7 @@ export default async function Home() {
       <header className="mb-10 flex justify-between items-center relative z-20">
         <div>
             <h1 className="text-3xl font-title text-brand-primary uppercase tracking-wider">
-              Ojitos Rojos <span className="text-white">Tracker</span>
+              Cultiva Con <span className="text-white">Ojitos</span>
             </h1>
             <div className="flex gap-2 mt-2">
                 <Link 
