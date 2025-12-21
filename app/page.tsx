@@ -78,6 +78,12 @@ export default async function Home() {
                 >
                   🔄 CICLOS
                 </Link>
+                <Link 
+                  href="/calendar" 
+                  className="text-[10px] font-bold text-brand-muted border border-[#333] px-3 py-1 rounded-full hover:border-brand-primary hover:text-brand-primary transition-colors"
+                >
+                  📅 CALENDARIO
+                </Link>
             </div>
         </div>
         

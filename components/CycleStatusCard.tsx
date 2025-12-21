@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plant } from "@/app/lib/types";
 import AddCycleModal from "./AddCycleModal";
+import Link from "next/link";
 
 interface CycleWithPlants {
   id: number;
@@ -188,9 +189,13 @@ export default function CycleStatusCard({ cycles }: CycleStatusCardProps) {
               {/* Header: Título y Badge en dos columnas */}
               <div className="flex flex-row items-center justify-between gap-4">
                 {/* Columna Izquierda: Título */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-subtitle text-white">{cycle.name}</h3>
-                </div>
+              <div className="flex-1 min-w-0">
+                <Link href={`/cycles/${cycle.id}`} className="hover:text-brand-primary transition-colors">
+                    <h3 className="text-lg font-subtitle text-white underline decoration-dashed underline-offset-4 decoration-gray-600 hover:decoration-brand-primary">
+                      {cycle.name}
+                    </h3>
+                </Link>
+              </div>
 
                 {/* Columna Derecha: Badge de Estado */}
                 <div className="flex justify-end shrink-0">
