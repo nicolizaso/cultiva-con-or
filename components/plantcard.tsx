@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { supabase } from "@/app/lib/supabase";
-import { useRouter } from "next/navigation"; // <--- 1. Importamos el Router
+import { useRouter } from "next/navigation";
 import LogModal from "./LogModal";
 import Image from "next/image";
-import Link from "next/link"; // <--- AGREGA ESTO
-
-
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PlantCardProps {
   id: number;
@@ -18,12 +17,14 @@ interface PlantCardProps {
   imageUrl?: string | null;
 }
 
-export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }: PlantCardProps) {  const router = useRouter(); // <--- 2. Inicializamos el GPS
+export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }: PlantCardProps) {
+  const router = useRouter();
   const [isWatered, setIsWatered] = useState(lastWater === "Hoy");
   const [loading, setLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false); // Estado para el borrado
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
 
-  // Lógica de Riego (Ya la tenías)
+  // Lógica de Riego
   const handleWater = async () => {
     if (loading) return;
     setLoading(true);
@@ -34,6 +35,9 @@ export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }
         .eq('id', id);
       if (error) throw error;
       setIsWatered(true);
+      
+      // Resetear estado visual después de 2 segundos
+      setTimeout(() => setIsWatered(false), 2000);
     } catch (error) {
       console.error("Error al regar:", error);
       alert("Hubo un error al guardar el riego");
@@ -42,114 +46,213 @@ export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }
     }
   };
 
-  // 3. NUEVA LÓGICA: Borrar Planta
+  // Borrar Planta
   const handleDelete = async () => {
-    // Confirmación simple del navegador
     const confirm = window.confirm(`¿Seguro que quieres eliminar a ${name}? Esta acción no se puede deshacer.`);
     
     if (!confirm) return;
 
     setIsDeleting(true);
     try {
-      // Borramos de Supabase
       const { error } = await supabase
         .from('plants')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-
-      // Refrescamos la página para que desaparezca la tarjeta
       router.refresh(); 
-
     } catch (error) {
       alert("Error al eliminar");
       setIsDeleting(false);
     }
   };
 
-  // Si se está borrando, ocultamos la tarjeta visualmente para dar feedback rápido
+  // Si se está borrando, ocultamos la tarjeta visualmente
   if (isDeleting) {
     return null; 
   }
 
-  return (
-    <div className="bg-brand-card border border-[#333] rounded-xl overflow-hidden group hover:border-brand-primary/50 transition-colors relative">
-      
-      {/* 1. BOTÓN DE BORRAR 
-          IMPORTANTE: Está "suelto" (fuera de cualquier Link) y con z-20 para estar encima de todo.
-          Así, si le das clic, borras la planta en lugar de entrar al detalle.
-      */}
-      <button 
-        onClick={handleDelete}
-        className="absolute top-2 right-2 z-20 bg-black/50 hover:bg-red-500/80 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
-        title="Eliminar Planta"
-      >
-        🗑️
-      </button>
+  // Configuración de etapas con colores
+  const stageConfig = {
+    'Floración': { 
+      bgColor: 'bg-purple-500/10', 
+      textColor: 'text-purple-400', 
+      borderColor: 'border-purple-500/30',
+      icon: '🌸'
+    },
+    'Vegetación': { 
+      bgColor: 'bg-green-500/10', 
+      textColor: 'text-green-400', 
+      borderColor: 'border-green-500/30',
+      icon: '🌿'
+    },
+    'Plántula': { 
+      bgColor: 'bg-yellow-500/10', 
+      textColor: 'text-yellow-400', 
+      borderColor: 'border-yellow-500/30',
+      icon: '🌱'
+    },
+    'Germinación': { 
+      bgColor: 'bg-blue-500/10', 
+      textColor: 'text-blue-400', 
+      borderColor: 'border-blue-500/30',
+      icon: '💧'
+    },
+    'Secado': { 
+      bgColor: 'bg-amber-700/10', 
+      textColor: 'text-amber-600', 
+      borderColor: 'border-amber-700/30',
+      icon: '🍂'
+    },
+    'Esqueje': { 
+      bgColor: 'bg-emerald-500/10', 
+      textColor: 'text-emerald-400', 
+      borderColor: 'border-emerald-500/30',
+      icon: '✂️'
+    }
+  };
 
-      {/* 2. ZONA DE IMAGEN (Envuelto en LINK) 
-          Si tocas la foto, vas al detalle.
-      */}
-      <Link href={`/plants/${id}`} className="block h-48 w-full bg-[#1a1a1a] relative overflow-hidden">
-        {imageUrl ? (
+  const stageInfo = stageConfig[stage as keyof typeof stageConfig] || stageConfig['Vegetación'];
+
+  return (
+    <motion.div 
+      className="card-enhanced group relative overflow-hidden"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ y: -5 }}
+      onMouseEnter={() => setShowDeleteButton(true)}
+      onMouseLeave={() => setShowDeleteButton(false)}
+    >
+      {/* Botón de eliminar con animación */}
+      <AnimatePresence>
+        {showDeleteButton && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={handleDelete}
+            className="absolute top-3 right-3 z-20 bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2 rounded-full backdrop-blur-sm border border-red-500/30 transition-all duration-300 flex items-center justify-center"
+            title="Eliminar Planta"
+          >
+            <span className="text-lg">🗑</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Zona de imagen con efecto de zoom */}
+      <div className="relative overflow-hidden rounded-t-2xl">
+        <Link href={`/plants/${id}`} className="block h-48 w-full relative">
+          {imageUrl ? (
             <Image 
               src={imageUrl} 
               alt={name}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority={true}
-              className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-110"
             />
-        ) : (
-            <div className="flex items-center justify-center h-full text-gray-600 text-4xl">
-                {isWatered ? '💧' : '🌿'} 
+          ) : (
+            <div className="flex items-center justify-center h-full bg-linear-to-br from-brand-card to-[#1a1a1a]">
+              <motion.div 
+                className="text-5xl"
+                animate={{ 
+                  scale: isWatered ? [1, 1.3, 1] : 1,
+                  rotate: isWatered ? [0, 10, -10, 0] : 0
+                }}
+                transition={{ duration: 0.5 }}
+              >
+                {isWatered ? '💧' : stageInfo.icon}
+              </motion.div>
             </div>
-        )}
-        
-        {/* Gradiente sutil */}
-        <div className="absolute inset-0 bg-linear-to-t from-brand-card via-transparent to-transparent opacity-60"></div>
-      </Link>
+          )}
+          
+          {/* Overlay con gradiente */}
+          <div className="absolute inset-0 bg-linear-to-t from-brand-card via-transparent to-transparent opacity-70"></div>
+        </Link>
+      </div>
 
-      {/* 3. ZONA DE TEXTO */}
-      <div className="p-4 bg-brand-card relative">
-        <div className="flex justify-between items-start mb-2">
+      {/* Zona de contenido */}
+      <div className="p-5 bg-brand-card relative">
+        <div className="flex justify-between items-start mb-4">
+          {/* Información principal */}
+          <div className="flex flex-col flex-1 min-w-0">
+            <Link href={`/plants/${id}`} className="hover:text-brand-primary transition-colors duration-300 block">
+              <h3 className="text-xl font-subtitle text-white truncate">{name}</h3>
+            </Link>
             
-            {/* Título (Envuelto en LINK) 
-                Si tocas el nombre, también vas al detalle.
-            */}
-            <div className="flex flex-col">
-              <Link href={`/plants/${id}`} className="hover:text-brand-primary transition-colors">
-                <h3 className="text-xl font-subtitle text-white">{name}</h3>
-              </Link>
-              
-              <span className={`text-xs font-bold px-2 py-0.5 rounded w-fit mt-1 ${
-                stage === 'Floración' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
-                stage === 'Vegetación' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                stage === 'Plántula' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-              }`}>
-                {stage}
-              </span>
-            </div>
-            
-            {/* Modal de Log (Cámara) */}
-            <LogModal plantId={id} plantName={name} />
+            {/* Etiqueta de etapa con animación */}
+            <motion.span 
+              className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full w-fit mt-2 border ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>{stageInfo.icon}</span>
+              <span>{stage}</span>
+            </motion.span>
+          </div>
+          
+          {/* Botón de riego con animación */}
+          <motion.button
+            onClick={handleWater}
+            disabled={loading}
+            className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+              isWatered 
+                ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                : 'bg-brand-card border-[#333] text-brand-muted hover:border-brand-primary hover:text-brand-primary'
+            }`}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            title={isWatered ? "¡Regada hoy!" : "Regar planta"}
+          >
+            {loading ? (
+              <span className="animate-spin text-lg">🌀</span>
+            ) : isWatered ? (
+              <motion.span 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="text-lg"
+              >
+                💧
+              </motion.span>
+            ) : (
+              <span className="text-lg">🚰</span>
+            )}
+          </motion.button>
         </div>
         
-        <div className="flex justify-between items-end mt-4 text-sm text-brand-muted font-body border-t border-[#333] pt-3">
-            <div>
-                <p className="text-[10px] uppercase font-bold text-gray-500">Edad</p>
-                <p className="text-white font-bold">{days} días</p>
-            </div>
-            <div className="text-right">
-                <p className="text-[10px] uppercase font-bold text-gray-500">Riego</p>
-                <p className={isWatered ? "text-brand-primary font-bold" : "text-white"}>
-                    {lastWater}
-                </p>
-            </div>
+        {/* Información secundaria */}
+        <div className="flex justify-between items-end pt-4 border-t border-[#333]">
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Edad</p>
+            <p className="text-white font-bold text-lg">{days} <span className="text-sm text-brand-muted">días</span></p>
+          </div>
+          
+          <div className="text-right">
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Riego</p>
+            <p className={`font-bold text-lg ${isWatered ? "text-brand-primary" : "text-white"}`}>
+              {lastWater === "Hoy" ? (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center gap-1"
+                >
+                  <span>Hoy</span>
+                  <motion.span
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                  >
+                    💧
+                  </motion.span>
+                </motion.span>
+              ) : (
+                lastWater
+              )}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

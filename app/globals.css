@@ -12,14 +12,23 @@
   /* El Celeste de la marca #00a599 */
   --color-brand-primary: #00a599; 
   --color-brand-primary-hover: #00857b; /* Un poco más oscuro para el efecto hover */
+  --color-brand-primary-glow: rgba(0, 165, 153, 0.5);
   
   /* Fondos Oscuros */
   --color-brand-bg: #121212;   /* Fondo principal (Gris muy oscuro) */
-  --color-brand-card: #292929; /* Fondo de tarjetas (Gris medio) */
+  --color-brand-card: #1e1e1e; /*
+
+ Fondo de tarjetas (Gris medio) */
+  --color-brand-card-hover: #252525;
   
   /* Texto */
   --color-brand-text: #e2e8f0; /* Blanco hueso para leer bien */
   --color-brand-muted: #94a3b8; /* Gris claro para textos secundarios */
+  
+  /* Sombras y bordes mejorados */
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 15px 10px -6px rgba(0, 0, 0, 0.35);
+  --border-gradient: linear-gradient(90deg, rgba(0,165,153,0.2) 0%, rgba(0,165,153,0.05) 100%);
 }
 
 /* Aplicamos los básicos al cuerpo */
@@ -27,14 +36,117 @@ body {
   font-family: var(--font-body);
   background-color: var(--color-brand-bg);
   color: var(--color-brand-text);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(0, 165, 153, 0.05) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(0, 165, 153, 0.03) 0%, transparent 20%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 /* Clases de utilidad para fuentes */
-h1, h2, .font-title {
+h1, h2, .font-title
+
+ {
   font-family: var(--font-title);
   letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 h3, h4, .font-subtitle {
   font-family: var(--font-subtitle);
+}
+
+/* Animaciones personalizadas */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 165, 153, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 165, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 165, 153, 0);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Gradientes de fondo */
+.gradient-brand {
+  background: linear-gradient(135deg, #00a599 0%, #007a70 100%);
+}
+
+/* Efectos
+
+ de overlay */
+.overlay-dark {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-primary-hover);
+}
+
+/* Efectos de carga */
+.skeleton-loader {
+  background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
