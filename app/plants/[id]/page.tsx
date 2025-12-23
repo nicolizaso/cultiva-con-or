@@ -1,148 +1,124 @@
 import { createClient } from "@/app/lib/supabase-server";
-import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import GlobalHeader from "@/components/GlobalHeader";
 import LogModal from "@/components/LogModal";
 import EditPlantModal from "@/components/EditPlantModal";
-import GlobalHeader from "@/components/GlobalHeader";
+import { Calendar, Droplets, Ruler, History, Sprout } from "lucide-react";
 
-// 1. CAMBIO AQUÍ: Definimos params como una Promise
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
-  
-  // 2. CAMBIO AQUÍ: Esperamos (await) a que los parámetros lleguen
   const { id } = await params;
-  const plantId = id; // Ahora sí podemos usarlo
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // 1. OBTENER DATOS DE LA PLANTA
   const { data: plant, error } = await supabase
     .from('plants')
-    .select(`
-      *,
-      cycles ( name )
-    `)
-    .eq('id', plantId)
+    .select(`*, cycles ( name )`)
+    .eq('id', id)
     .single();
 
-  if (error || !plant) {
-    return notFound();
-  }
+  if (error || !plant) return notFound();
 
-  // 2. OBTENER LOS LOGS
   const { data: logs } = await supabase
     .from('logs')
     .select('*')
-    .eq('plant_id', plantId)
+    .eq('plant_id', id)
     .order('created_at', { ascending: false });
 
   return (
-    <main className="min-h-screen bg-brand-bg pb-20">
-
-      <div className="absolute top-0 left-0 w-full z-20 p-4">
-         <GlobalHeader title="Ficha Técnica" />
-      </div>
+    <main className="min-h-screen bg-[#0B0C10] pb-24 text-slate-200 p-4 md:p-8 font-body">
       
-      {/* --- HERO SECTION (Portada) --- */}
-      <div className="relative h-64 md:h-80 w-full bg-[#111]">
-        {plant.image_url ? (
-          <Image 
-            src={plant.image_url} 
-            alt={plant.name}
-            fill
-            className="object-cover opacity-80"
-            priority
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-brand-muted text-6xl">
-            🌿
+      <GlobalHeader userEmail={user?.email} title="Ficha Técnica" subtitle={plant.name} />
+
+      {/* --- HERO SECTION --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Foto Principal */}
+        <div className="relative aspect-square md:aspect-video rounded-3xl overflow-hidden border border-white/5 bg-[#12141C] group">
+          {plant.image_url ? (
+            <Image src={plant.image_url} alt={plant.name} fill className="object-cover" />
+          ) : (
+            <div className="flex items-center justify-center h-full text-brand-primary opacity-20">
+                <Sprout size={64} />
+            </div>
+          )}
+          <div className="absolute top-4 right-4">
+            <EditPlantModal plant={plant} />
           </div>
-        )}
-        
-        <div className="absolute inset-0 bg-linear-to-t from-brand-bg via-transparent to-transparent"></div>
+        </div>
 
-        <Link href="/" className="absolute top-4 left-4 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full backdrop-blur-sm transition-all text-sm font-bold z-10">
-          ← Volver
-        </Link>
-
-        <div className="absolute bottom-0 left-0 w-full p-6">
-          <div className="flex justify-between items-end">
+        {/* Datos Técnicos */}
+        <div className="flex flex-col justify-center space-y-6">
             <div>
-              <span className="text-brand-primary text-xs font-bold uppercase tracking-widest bg-brand-primary/10 border border-brand-primary/20 px-2 py-1 rounded mb-2 inline-block">
-                {plant.stage}
-              </span>
-              <h1 className="text-4xl md:text-5xl font-title text-white uppercase shadow-black drop-shadow-lg">
-                {plant.name}
-              </h1>
-              <p className="text-gray-300 text-sm mt-1">
-                Ciclo: <span className="text-white font-bold">{plant.cycles?.name}</span>
-              </p>
+                <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${
+                        plant.stage === 'Floración' 
+                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                        : 'bg-brand-primary/10 text-brand-primary border-brand-primary/20'
+                    }`}>
+                        {plant.stage}
+                    </span>
+                    <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">
+                        {plant.cycles?.name}
+                    </span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-title font-light text-white mb-4">{plant.name}</h1>
             </div>
-            
-            <div className="mb-1 flex gap-2">
-               <LogModal plantId={plant.id} plantName={plant.name} />
-               <EditPlantModal plant={plant} />
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-2 mb-1 text-slate-500">
+                        <Calendar size={14} />
+                        <span className="text-[10px] uppercase font-bold tracking-widest">Edad</span>
+                    </div>
+                    <p className="text-2xl font-light text-white">{plant.days} <span className="text-sm text-slate-500">días</span></p>
+                </div>
+                <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-2 mb-1 text-slate-500">
+                        <Droplets size={14} />
+                        <span className="text-[10px] uppercase font-bold tracking-widest">Riego</span>
+                    </div>
+                    <p className="text-xl font-light text-white truncate">{plant.last_water || '-'}</p>
+                </div>
             </div>
-          </div>
+
+            <div className="flex gap-3">
+                <LogModal plantId={plant.id} plantName={plant.name} />
+            </div>
         </div>
       </div>
 
-      {/* --- CONTENIDO PRINCIPAL --- */}
-      <div className="max-w-3xl mx-auto p-6">
-        
-        <div className="grid grid-cols-3 gap-4 mb-10">
-          <div className="bg-brand-card border border-[#333] p-4 rounded-xl text-center">
-            <p className="text-xs text-brand-muted uppercase">Edad</p>
-            <p className="text-2xl font-title text-white">{plant.days} <span className="text-sm text-gray-500">días</span></p>
-          </div>
-          <div className="bg-brand-card border border-[#333] p-4 rounded-xl text-center">
-            <p className="text-xs text-brand-muted uppercase">Riegos</p>
-            <p className="text-2xl font-title text-white">--</p>
-          </div>
-          <div className="bg-brand-card border border-[#333] p-4 rounded-xl text-center">
-            <p className="text-xs text-brand-muted uppercase">Salud</p>
-            <p className="text-2xl font-title text-green-400">100%</p>
-          </div>
+      {/* --- BITÁCORA (Timeline) --- */}
+      <section className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+            <History className="text-brand-primary" size={20} />
+            <h2 className="text-lg font-title text-white">Bitácora de Seguimiento</h2>
         </div>
 
-        <h2 className="text-xl font-subtitle text-white mb-6 flex items-center gap-2">
-          📜 Bitácora de Cultivo
-        </h2>
-
-        <div className="space-y-8 relative border-l-2 border-[#333] ml-3 pl-8">
+        <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-white/10 before:to-transparent">
           {logs && logs.length > 0 ? (
             logs.map((log) => (
-              <div key={log.id} className="relative group">
-                <div className="absolute -left-[39px] top-1 w-5 h-5 rounded-full bg-brand-card border-2 border-brand-primary z-10 group-hover:scale-125 transition-transform"></div>
-
-                <div className="bg-brand-card border border-[#333] rounded-xl p-5 hover:border-brand-primary/30 transition-colors">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                        <span className="text-xs font-bold text-brand-primary uppercase tracking-wider block mb-1">
-                            {new Date(log.created_at).toLocaleDateString()}
-                        </span>
-                        <h3 className="text-lg font-bold text-white">{log.title}</h3>
-                    </div>
-                    <span className="text-2xl">
-                        {log.type === 'Foto' ? '📸' : log.type === 'Riego' ? '💧' : '📝'}
-                    </span>
+              <div key={log.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                
+                {/* Icono Central */}
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-[#333] bg-[#0B0C10] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 text-brand-primary">
+                  {log.type === 'Riego' ? <Droplets size={16} /> : <Sprout size={16} />}
+                </div>
+                
+                {/* Tarjeta */}
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors shadow-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-bold text-white text-sm">{log.title}</span>
+                    <time className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                        {new Date(log.created_at).toLocaleDateString()}
+                    </time>
                   </div>
+                  {log.notes && <p className="text-slate-400 text-xs leading-relaxed mb-3">"{log.notes}"</p>}
                   
-                  {log.notes && (
-                    <p className="text-gray-400 text-sm mb-4 leading-relaxed whitespace-pre-wrap">
-                        {log.notes}
-                    </p>
-                  )}
-
                   {log.media_url && log.media_url.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                        {log.media_url.map((url: string, index: number) => (
-                            <div key={index} className="relative h-40 w-full rounded-lg overflow-hidden border border-[#444]">
-                                <Image 
-                                    src={url} 
-                                    alt="Evidencia" 
-                                    fill 
-                                    className="object-cover"
-                                />
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        {log.media_url.map((url: string, i: number) => (
+                            <div key={i} className="relative h-24 rounded-lg overflow-hidden border border-white/5">
+                                <Image src={url} alt="Log" fill className="object-cover" />
                             </div>
                         ))}
                     </div>
@@ -151,14 +127,12 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
               </div>
             ))
           ) : (
-            <div className="bg-[#1a1a1a] p-8 rounded-xl text-center border border-dashed border-[#333]">
-                <p className="text-brand-muted">No hay registros en la bitácora aún.</p>
-                <p className="text-xs text-gray-500 mt-2">¡Sube la primera foto para inaugurar el diario!</p>
+            <div className="text-center py-10">
+                <p className="text-slate-500 text-sm">Sin registros aún.</p>
             </div>
           )}
         </div>
-          
-      </div>
+      </section>
     </main>
   );
 }

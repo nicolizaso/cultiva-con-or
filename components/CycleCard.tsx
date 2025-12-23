@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
-import Link
-
- from "next/link";
+import { PlayCircle, StopCircle, Trash2, MapPin, Calendar, ArrowRight } from "lucide-react";
 
 interface CycleWithSpace {
   id: number;
@@ -18,141 +16,80 @@ interface CycleWithSpace {
 export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) { 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
-  // Toggle Activo/Archivado
-  const toggleStatus = async () => {
+  const handleCardClick = () => {
+    router.push(`/cycles/${cycle.id}`);
+  };
+
+  const toggleStatus = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que entre al ciclo al hacer click
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('cycles')
-        .update({ is_active: !cycle.is_active })
-        .eq('id', cycle.id);
-
-      if (error) throw error;
+      await supabase.from('cycles').update({ is_active: !cycle.is_active }).eq('id', cycle.id);
       router.refresh();
-    } catch (error) {
-      alert("Error al actualizar estado");
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { alert("Error al actualizar estado"); } finally { setLoading(false); }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("¿Eliminar este ciclo y todo su historial? ⚠️ Es mejor archivarlo.")) return;
-    
-    try {
-      await supabase.from('cycles').delete().eq('id', cycle.id);
-      router.refresh();
-    }
-
- catch (e) { alert("Error al eliminar"); }
-  };
-
-  // Determinar ícono según el estado
-  const getStatusIcon = () => {
-    if (cycle.is_active) {
-      return "🌱";
-    } else {
-      return "📦";
-    }
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que entre al ciclo
+    if (!confirm("¿Eliminar ciclo?")) return;
+    try { await supabase.from('cycles').delete().eq('id', cycle.id); router.refresh(); } catch (e) { alert("Error"); }
   };
 
   return (
     <div 
-      className={`bg-brand-card border rounded-2xl overflow-hidden relative transition-all duration-300 ease-in-out ${
+        onClick={handleCardClick}
+        className={`group relative rounded-3xl p-6 border transition-all duration-300 cursor-pointer ${
         cycle.is_active 
-          ? 'border-brand-primary/30 hover:border-brand-primary' 
-          : 'border-[#333] opacity-80 hover:opacity-100'
-      }`}
-      style={{
-        boxShadow: 'var(--shadow-card)',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Efecto de gradiente animado */}
-      {cycle.is_active && (
-        <div className={`absolute inset-0 bg-linear-to-r from-brand-primary/5 to-transparent opacity-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : ''} pointer-events-none`}></div>
-      )}
+        ? 'bg-[#12141C] border-white/5 hover:border-brand-primary/30' 
+        : 'bg-[#0B0C10] border-white/5 opacity-60 hover:opacity-100'
+    }`}>
       
-      {/* Zona cliqueable (Título e Info) */}
-      <Link
-
- href={`/cycles/${cycle.id}`} className="block p-5 pb-3 group cursor-pointer relative z-10">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="text-xl font-subtitle text-white group-hover:text-brand-primary transition-colors duration-300">
-            {cycle.name}
-          </h3>
-          <div className="flex items-center gap-2">
-            {cycle.is_active ? (
-              <span className="text-[10px] font-bold bg-brand-primary text-brand-bg px-3 py-1 rounded-full uppercase">
-                {getStatusIcon()} Activo
-              </span>
-            ) : (
-              <span className="text-[10px] font-bold bg-[#333] text-gray-400 px-3 py-1 rounded-full uppercase">
-                {getStatusIcon()} Archivado
-              </span>
-            )}
-          </div>
-        </div>
-        
-        {/* Info adicional */}
-        <div className="space-y-2 mb-4">
-          <p className="text-sm text-brand-muted flex items-center gap-2 group-hover:text-gray-30
-
-0 transition-colors">
-            <span className="text-brand-primary">📍</span> 
-            {cycle.spaces?.name || "Sin espacio"}
-          </p>
-          <p className="text-sm text-brand-muted group-hover:text-gray-300 transition-colors">
-            <span className="text-brand-primary">📅</span> Inicio: {new Date(cycle.start_date).toLocaleDateString()}
-          </p>
-        </div>
-        
-        {/* Indicador de entrada con animación */}
-        <div 
-          className={`text-sm font-bold text-brand-primary flex items-center gap-2 transition-all duration-300 ${
-            isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
-          }`}
-        >
-          <span>Ver detalles</span>
-          <span className={isHovered ? 'translate-x-1' : ''}>→</span>
-        </div>
-      </Link>
-
-      {/* Zona de botones */}
-      <div className="flex gap-3 px-5 pb-5">
-        <button 
-          onClick={(e) => { e.stopPropagation(); toggleStatus(); }}
-          disabled={loading}
-
-
-          className={`flex-1 text-sm font-bold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
-            cycle.is_active 
-              ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30' 
-              : 'bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/30'
-          } ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02]'}`}
-        >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <span className="animate-spin">🌀</span> Procesando...
-            </span>
-          ) : cycle.is_active ? (
-            "⏹ Finalizar"
-          ) : (
-            "▶ Reactivar"
-          )}
+      <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-20">
+        <button onClick={handleDelete} className="p-2 bg-red-500/10 text-red-400 rounded-full hover:bg-red-500/20" title="Eliminar">
+            <Trash2 size={16} />
         </button>
-        
-        <button 
-          onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-          className="px-4 text-sm font-bold py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors border border-red-500/30 flex
+      </div>
 
- items-center justify-center hover:scale-105 duration-200"
-          title="Borrar definitivamente"
+      <div className="flex justify-between items-start mb-4">
+        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
+            cycle.is_active 
+            ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' 
+            : 'bg-slate-800 text-slate-400 border-slate-700'
+        }`}>
+            {cycle.is_active ? <PlayCircle size={10} /> : <StopCircle size={10} />}
+            {cycle.is_active ? 'Activo' : 'Archivado'}
+        </span>
+      </div>
+        
+      <h3 className="text-2xl font-light font-title text-white mb-2 group-hover:text-brand-primary transition-colors">
+          {cycle.name}
+      </h3>
+
+      <div className="space-y-2 mb-6">
+          <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
+              <MapPin size={14} />
+              <span>{cycle.spaces?.name || "Sin espacio"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
+              <Calendar size={14} />
+              <span>Inicio: {new Date(cycle.start_date).toLocaleDateString()}</span>
+          </div>
+      </div>
+      
+      <div className="flex items-center gap-2 text-xs font-bold text-brand-primary uppercase tracking-wider group-hover:translate-x-1 transition-transform">
+          Entrar al Panel <ArrowRight size={14} />
+      </div>
+
+      {/* Acciones Rápidas Inferiores */}
+      <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+        <button 
+            onClick={toggleStatus}
+            disabled={loading}
+            className="text-[10px] font-bold uppercase text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
         >
-          🗑
+            {cycle.is_active ? <StopCircle size={12} /> : <PlayCircle size={12} />}
+            {cycle.is_active ? "Finalizar Ciclo" : "Reactivar Ciclo"}
         </button>
       </div>
     </div>

@@ -1,25 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay, 
-  addMonths, 
-  subMonths,
-  parseISO 
-} from "date-fns";
-import { es } from "date-fns/locale"; // Para que sea en Español
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { Droplets, Camera, StickyNote, Rocket, Scissors, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Log {
   id: number;
-  created_at: string; // Fecha del evento
-  type: string;       // 'Riego', 'Foto', 'Nota', 'Cambio de Etapa', etc.
+  created_at: string;
+  type: string;
   title: string;
   notes?: string;
   plants?: { name: string };
@@ -29,59 +18,46 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
-  // 1. Cálculos de fechas para armar la grilla
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Semana empieza Lunes
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  // 2. Filtrar logs del día seleccionado (Para el panel lateral/inferior)
-  const logsForSelectedDate = logs.filter(log => 
-    selectedDate && isSameDay(parseISO(log.created_at), selectedDate)
-  );
+  const logsForSelectedDate = logs.filter(log => selectedDate && isSameDay(parseISO(log.created_at), selectedDate));
 
-  // Helper para iconos
+  // Helper que devuelve componentes Lucide directos
   const getIcon = (type: string) => {
-    if (type === 'Riego') return '💧';
-    if (type === 'Foto') return '📸';
-    if (type.includes('Etapa')) return '🚀';
-    if (type === 'Poda' || type === 'Defoliación') return '✂️';
-    return '📝';
+    if (type === 'Riego') return <Droplets size={14} className="text-blue-400" />;
+    if (type === 'Foto') return <Camera size={14} className="text-yellow-400" />;
+    if (type.includes('Etapa')) return <Rocket size={14} className="text-purple-400" />;
+    if (type === 'Poda' || type === 'Defoliación') return <Scissors size={14} className="text-red-400" />;
+    return <StickyNote size={14} className="text-slate-400" />;
   };
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
-      
-      {/* --- COLUMNA IZQUIERDA: CALENDARIO --- */}
-      <div className="flex-1 bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 shadow-xl">
-        
-        {/* Navegación Mes */}
+      {/* CALENDARIO */}
+      <div className="flex-1 bg-[#12141C] border border-white/5 rounded-3xl p-6 shadow-xl">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-title text-white capitalize">
+          <h2 className="text-xl font-title font-light text-white capitalize">
             {format(currentDate, 'MMMM yyyy', { locale: es })}
           </h2>
           <div className="flex gap-2">
-            <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-2 hover:bg-[#333] rounded text-white">◀</button>
-            <button onClick={() => setCurrentDate(new Date())} className="text-xs font-bold uppercase text-brand-primary hover:underline px-2">Hoy</button>
-            <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-2 hover:bg-[#333] rounded text-white">▶</button>
+            <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-2 hover:bg-white/5 rounded-full text-white"><ChevronLeft size={20} /></button>
+            <button onClick={() => setCurrentDate(new Date())} className="text-xs font-bold uppercase text-brand-primary hover:underline px-2 font-body">Hoy</button>
+            <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-2 hover:bg-white/5 rounded-full text-white"><ChevronRight size={20} /></button>
           </div>
         </div>
 
-        {/* Días de la semana */}
         <div className="grid grid-cols-7 mb-2">
-          {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
-            <div key={day} className="text-center text-xs font-bold text-brand-muted uppercase py-2">
-              {day}
-            </div>
+          {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(day => (
+            <div key={day} className="text-center text-[10px] font-bold text-slate-500 uppercase py-2">{day}</div>
           ))}
         </div>
 
-        {/* Grilla de días */}
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((day) => {
-            // Buscamos logs para este día específico
             const dayLogs = logs.filter(log => isSameDay(parseISO(log.created_at), day));
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -91,28 +67,20 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
               <div 
                 key={day.toString()}
                 onClick={() => setSelectedDate(day)}
-                className={`
-                  min-h-[80px] p-2 rounded-lg border cursor-pointer transition-all relative
-                  ${!isCurrentMonth ? 'bg-[#111] border-transparent opacity-40' : 'bg-[#222] border-[#333]'}
-                  ${isSelected ? 'ring-2 ring-brand-primary border-brand-primary z-10' : 'hover:border-gray-500'}
+                className={`min-h-[80px] p-2 rounded-xl border cursor-pointer transition-all relative flex flex-col justify-between
+                  ${!isCurrentMonth ? 'bg-transparent border-transparent opacity-20' : 'bg-[#0B0C10] border-white/5'}
+                  ${isSelected ? 'ring-1 ring-brand-primary border-brand-primary z-10 bg-[#1a1a1a]' : 'hover:border-slate-600'}
                 `}
               >
-                {/* Número del día */}
-                <div className={`text-xs font-bold mb-1 flex justify-between ${isToday ? 'text-brand-primary' : 'text-gray-400'}`}>
+                <div className={`text-[10px] font-bold mb-1 flex justify-between ${isToday ? 'text-brand-primary' : 'text-slate-500'}`}>
                     <span>{format(day, 'd')}</span>
-                    {isToday && <span className="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>}
+                    {isToday && <span className="w-1 h-1 rounded-full bg-brand-primary"></span>}
                 </div>
-
-                {/* Puntitos de eventos */}
                 <div className="flex flex-wrap gap-1 content-start">
-                  {dayLogs.slice(0, 5).map((log, i) => (
-                    <span key={i} className="text-[10px]" title={`${log.type}: ${log.title}`}>
-                      {getIcon(log.type)}
-                    </span>
+                  {dayLogs.slice(0, 4).map((log, i) => (
+                    <span key={i} title={`${log.type}: ${log.title}`}>{getIcon(log.type)}</span>
                   ))}
-                  {dayLogs.length > 5 && (
-                    <span className="text-[8px] text-gray-500">+{dayLogs.length - 5}</span>
-                  )}
+                  {dayLogs.length > 4 && <span className="text-[8px] text-slate-500">+{dayLogs.length - 4}</span>}
                 </div>
               </div>
             );
@@ -120,44 +88,33 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
         </div>
       </div>
 
-      {/* --- COLUMNA DERECHA: DETALLE DEL DÍA --- */}
+      {/* DETALLE LATERAL */}
       <div className="w-full lg:w-80 shrink-0">
-        <div className="bg-brand-card border border-[#333] rounded-2xl p-6 sticky top-6">
-            <h3 className="text-xl font-subtitle text-white mb-1 capitalize">
+        <div className="bg-[#12141C] border border-white/5 rounded-3xl p-6 sticky top-6">
+            <h3 className="text-xl font-title font-light text-white mb-1 capitalize">
                 {selectedDate ? format(selectedDate, 'EEEE d', { locale: es }) : 'Selecciona un día'}
             </h3>
-            <p className="text-xs text-brand-muted mb-6 uppercase font-bold">
-                {selectedDate ? format(selectedDate, 'MMMM yyyy', { locale: es }) : ''}
-            </p>
-
-            {/* Lista de eventos del día */}
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
                 {logsForSelectedDate.length > 0 ? (
                     logsForSelectedDate.map(log => (
-                        <div key={log.id} className="bg-[#1a1a1a] border border-[#333] p-3 rounded-lg hover:border-brand-primary/30 transition-colors">
+                        <div key={log.id} className="bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
                             <div className="flex justify-between items-start mb-1">
-                                <span className="text-lg">{getIcon(log.type)}</span>
-                                <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-0.5 rounded uppercase">{log.type}</span>
+                                <span>{getIcon(log.type)}</span>
+                                <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{log.type}</span>
                             </div>
                             <h4 className="font-bold text-white text-sm mb-1">{log.title}</h4>
-                            {log.plants?.name && (
-                                <p className="text-xs text-brand-primary mb-1">🌿 {log.plants.name}</p>
-                            )}
-                            {log.notes && (
-                                <p className="text-xs text-brand-muted line-clamp-2 italic">"{log.notes}"</p>
-                            )}
+                            {log.plants?.name && <p className="text-xs text-brand-primary mb-1">🌿 {log.plants.name}</p>}
+                            {log.notes && <p className="text-xs text-slate-500 italic">"{log.notes}"</p>}
                         </div>
                     ))
                 ) : (
-                    <div className="text-center py-8 text-brand-muted border border-dashed border-[#333] rounded-lg">
-                        <p>No hay eventos este día.</p>
-                        {/* Aquí podríamos poner un botón "Agregar Tarea" en el futuro */}
+                    <div className="text-center py-8 text-slate-500 border border-dashed border-white/10 rounded-xl">
+                        <p className="text-sm">Sin eventos.</p>
                     </div>
                 )}
             </div>
         </div>
       </div>
-
     </div>
   );
 }

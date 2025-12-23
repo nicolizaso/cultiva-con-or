@@ -4,99 +4,61 @@ import { useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Space } from "@/app/lib/types";
+import { Warehouse, Sun, Trash2, Tent } from "lucide-react";
 
 export default function SpaceCard({ space }: { space: Space }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteButton, setShowDeleteButton] = useState(false);
 
   const handleDelete = async () => {
-    const confirm = window.confirm(
-      `¿Eliminar "${space.name}"?\n\n⚠️ ADVERTENCIA: Si borras este espacio, los ciclos y plantas asociados podrían quedar desvinculados o perderse.`
-    );
-    
-    if (!confirm) return;
+    if (!confirm(`¿Eliminar "${space.name}"?`)) return;
     setIsDeleting(true);
-
     try {
-      const { error } = await supabase
-        .from('spaces')
-        .delete()
-        .eq('id', space.id);
-
-      if (error) throw error;
+      await supabase.from('spaces').delete().eq('id', space.id);
       router.refresh();
-    } catch (error) {
-      alert("Error al eliminar");
-      setIsDeleting(false);
-    }
+    } catch (error) { alert("Error al eliminar"); setIsDeleting(false); }
   };
 
   if (isDeleting) return null;
 
-  // Determinar ícono y color según el tipo de espacio
-  const getSpaceTypeInfo = () => {
+  // Iconos dinámicos
+  const getSpaceIcon = () => {
     switch(space.type) {
-      case 'Indoor':
-        return { icon: '🏠', bgColor: 'bg-blue-500/10', textColor: 'text-blue-400', borderColor: 'border-blue-500/30' };
-      case 'Outdoor':
-        return { icon: '☀️', bgColor: 'bg-amber-500/10', textColor: 'text-amber-400', borderColor: 'border-amber-500/30' };
-      default:
-        return { icon: '🔄', bgColor: 'bg-purple-500/10', textColor: 'text-purple-400', borderColor: 'border-purple-500/30' };
+      case 'Indoor': return <Warehouse className="text-blue-400" size={24} />;
+      case 'Outdoor': return <Sun className="text-amber-400" size={24} />;
+      default: return <Tent className="text-purple-400" size={24} />;
     }
   };
 
-  const spaceType = getSpaceTypeInfo();
-
   return (
-    <div 
-      className="bg-brand-card border border-[#333] rounded-2xl overflow-hidden transition-all duration-300 ease-in-out hover:border-brand-primary/50"
-      style={{
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.3)'
-      }}
-      onMouseEnter={() => setShowDeleteButton(true)}
-      onMouseLeave={() => setShowDeleteButton(false)}
-    >
-      <div className="p-5">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${spaceType.bgColor} ${spaceType.borderColor} border`}>
-              <span className="text-2xl">{spaceType.icon}</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-subtitle text-white">{space.name}</h3>
-              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full mt-1 ${spaceType.bgColor} ${spaceType.textColor} ${spaceType.borderColor} border`}>
-                {space.type}
-              </span>
-            </div>
+    <div className="group bg-[#12141C] border border-white/5 rounded-3xl p-6 hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden">
+        
+        {/* Fondo decorativo */}
+        <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+             <button onClick={handleDelete} className="p-2 bg-red-500/10 text-red-400 rounded-full hover:bg-red-500/20">
+                <Trash2 size={16} />
+             </button>
+        </div>
+
+        <div className="flex items-start gap-4 relative z-10">
+          <div className="w-12 h-12 rounded-2xl bg-[#0B0C10] border border-white/5 flex items-center justify-center shrink-0">
+             {getSpaceIcon()}
           </div>
-          
-          {/* Botón de eliminar con animación */}
-          <button 
-            onClick={handleDelete}
-            className={`text-brand-muted hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center ${
-              showDeleteButton ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-            }`}
-            title="Eliminar Espacio"
-          >
-            <span className="text-lg">🗑</span>
-          </button>
+          <div>
+            <h3 className="text-xl font-light font-title text-white">{space.name}</h3>
+            <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 border border-white/5 px-2 py-0.5 rounded-md">
+                {space.type}
+            </span>
+          </div>
         </div>
         
-        {/* Barra de progreso indicativa */}
-        <div className="mt-4 pt-4 border-t border-[#333]">
-          <div className="flex justify-between text-xs text-brand-muted mb-1">
-            <span>Estado</span>
-            <span>Activo</span>
-          </div>
-          <div className="w-full bg-[#1a1a1a] rounded-full h-2">
-            <div 
-              className="bg-brand-primary h-2 rounded-full transition-all duration-500 ease-out"
-              style={{ width: '75%' }}
-            ></div>
-          </div>
+        {/* Barra decorativa */}
+        <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
+            <span className="text-xs text-slate-500 font-body">Estado: Activo</span>
+            <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></div>
+            </div>
         </div>
-      </div>
     </div>
   );
 }
