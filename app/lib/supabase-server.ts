@@ -18,7 +18,8 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Ignoramos errores si estamos en un Server Component (solo lectura)
+            // Este catch es necesario porque a veces se llama desde Server Components
+            // donde no se pueden setear cookies, pero no queremos que rompa la app.
           }
         },
       },

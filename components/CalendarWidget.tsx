@@ -11,7 +11,7 @@ interface Log {
   type: string;
   title: string;
   notes?: string;
-  plants?: { name: string };
+  plants?: any; // Usamos any para manejar la inconsistencia de Supabase (Array vs Objeto)
 }
 
 export default function CalendarWidget({ logs }: { logs: Log[] }) {
@@ -26,13 +26,20 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
 
   const logsForSelectedDate = logs.filter(log => selectedDate && isSameDay(parseISO(log.created_at), selectedDate));
 
-  // Helper que devuelve componentes Lucide directos
   const getIcon = (type: string) => {
     if (type === 'Riego') return <Droplets size={14} className="text-blue-400" />;
     if (type === 'Foto') return <Camera size={14} className="text-yellow-400" />;
     if (type.includes('Etapa')) return <Rocket size={14} className="text-purple-400" />;
     if (type === 'Poda' || type === 'Defoliación') return <Scissors size={14} className="text-red-400" />;
     return <StickyNote size={14} className="text-slate-400" />;
+  };
+
+  // Helper seguro para obtener nombre de planta
+  const getPlantName = (plants: any) => {
+    if (!plants) return null;
+    if (Array.isArray(plants) && plants.length > 0) return plants[0].name;
+    if (typeof plants === 'object') return plants.name;
+    return null;
   };
 
   return (
@@ -96,17 +103,24 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
             </h3>
             <div className="space-y-4 mt-6">
                 {logsForSelectedDate.length > 0 ? (
-                    logsForSelectedDate.map(log => (
-                        <div key={log.id} className="bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
-                            <div className="flex justify-between items-start mb-1">
-                                <span>{getIcon(log.type)}</span>
-                                <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{log.type}</span>
+                    logsForSelectedDate.map(log => {
+                        const plantName = getPlantName(log.plants);
+                        return (
+                            <div key={log.id} className="bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
+                                <div className="flex justify-between items-start mb-1">
+                                    <span>{getIcon(log.type)}</span>
+                                    <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{log.type}</span>
+                                </div>
+                                <h4 className="font-bold text-white text-sm mb-1">{log.title}</h4>
+                                
+                                {plantName && (
+                                    <p className="text-xs text-brand-primary mb-1">🌿 {plantName}</p>
+                                )}
+
+                                {log.notes && <p className="text-xs text-slate-500 italic">"{log.notes}"</p>}
                             </div>
-                            <h4 className="font-bold text-white text-sm mb-1">{log.title}</h4>
-                            {log.plants?.name && <p className="text-xs text-brand-primary mb-1">🌿 {log.plants.name}</p>}
-                            {log.notes && <p className="text-xs text-slate-500 italic">"{log.notes}"</p>}
-                        </div>
-                    ))
+                        );
+                    })
                 ) : (
                     <div className="text-center py-8 text-slate-500 border border-dashed border-white/10 rounded-xl">
                         <p className="text-sm">Sin eventos.</p>

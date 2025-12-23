@@ -17,12 +17,13 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  // Navegación manual al hacer clic en la tarjeta
   const handleCardClick = () => {
     router.push(`/cycles/${cycle.id}`);
   };
 
   const toggleStatus = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que entre al ciclo al hacer click
+    e.stopPropagation(); // Evita entrar al ciclo
     setLoading(true);
     try {
       await supabase.from('cycles').update({ is_active: !cycle.is_active }).eq('id', cycle.id);
@@ -31,8 +32,8 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que entre al ciclo
-    if (!confirm("¿Eliminar ciclo?")) return;
+    e.stopPropagation(); // Evita entrar al ciclo
+    if (!confirm("¿Eliminar ciclo y su historial?")) return;
     try { await supabase.from('cycles').delete().eq('id', cycle.id); router.refresh(); } catch (e) { alert("Error"); }
   };
 
@@ -45,12 +46,14 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
         : 'bg-[#0B0C10] border-white/5 opacity-60 hover:opacity-100'
     }`}>
       
+      {/* Botón Eliminar (Flotante) */}
       <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-20">
         <button onClick={handleDelete} className="p-2 bg-red-500/10 text-red-400 rounded-full hover:bg-red-500/20" title="Eliminar">
             <Trash2 size={16} />
         </button>
       </div>
 
+      {/* Header Badge */}
       <div className="flex justify-between items-start mb-4">
         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
             cycle.is_active 
