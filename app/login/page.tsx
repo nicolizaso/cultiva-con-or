@@ -55,7 +55,7 @@ export default function LoginPage() {
         {/* HEADER DE MARCA */}
         <div className="bg-[#1a1a1a] p-8 text-center border-b border-[#333]">
           <h1 className="text-4xl font-title text-brand-primary uppercase tracking-wider mb-2">
-            Cultiva con <span className="text-white">Ojitos</span>
+            Cultiva con <span className="text-white">Pititos</span>
           </h1>
           <p className="text-brand-muted text-sm font-body">Tu compañía de cultivo inteligente</p>
         </div>
