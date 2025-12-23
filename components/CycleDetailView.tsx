@@ -18,9 +18,10 @@ interface CycleDetailViewProps {
   };
   plants: Plant[];
   lastMeasurement?: { temperature: number; humidity: number; date: string } | null;
+  history: any[];
 }
 
-export default function CycleDetailView({ cycle, plants, lastMeasurement }: CycleDetailViewProps) {
+export default function CycleDetailView({ cycle, plants, lastMeasurement, history }: CycleDetailViewProps) {
   // Estados de vista y selección
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedPlants, setSelectedPlants] = useState<number[]>([]);

@@ -62,5 +62,7 @@ export const config = {
      * - favicon.ico (icono)
      */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.png$).*)'
   ],
 };

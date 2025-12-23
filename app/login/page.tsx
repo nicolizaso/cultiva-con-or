@@ -38,9 +38,8 @@ export default function LoginPage() {
           setMsg({ type: 'error', text: res.error });
           setLoading(false);
         } else if (res?.success) {
-          setMsg({ type: 'success', text: '¡Cuenta creada! Ya puedes iniciar sesión.' });
-          setIsLogin(true); // Cambiamos a la pestaña de login automáticamente
-          setLoading(false);
+          router.push('/'); 
+          router.refresh();
         }
       }
     } catch (err) {

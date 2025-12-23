@@ -1,25 +1,32 @@
-import type { Metadata } from "next";
-// 1. Importamos las fuentes de Google
+import type { Metadata, Viewport } from "next";
 import { Ubuntu, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import BottomNav from "@/components/BottomNav"; // <--- Importamos
 
-// 2. Configuramos Ubuntu (Cuerpo)
 const ubuntu = Ubuntu({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin"],
-  variable: "--font-ubuntu", // Variable CSS para Tailwind
+  variable: "--font-ubuntu",
 });
 
-// 3. Configuramos IBM (Subtítulos)
 const ibm = IBM_Plex_Sans({
-  weight: ["700"], // Solo Bold como pediste
+  weight: ["700"],
   subsets: ["latin"],
   variable: "--font-ibm",
 });
 
 export const metadata: Metadata = {
-  title: "MiCultivo - Ojitos Rojos",
-  description: "App de seguimiento de cultivo",
+  title: "Cultiva con Ojitos",
+  description: "Gestión inteligente de cultivos",
+  manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#020617",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -29,9 +36,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      {/* 4. Inyectamos las variables en el Body */}
-      <body className={`${ubuntu.variable} ${ibm.variable} antialiased bg-slate-950`}>
-        {children}
+      <body className={`${ubuntu.variable} ${ibm.variable} antialiased bg-[#0B0C10] text-slate-200`}>
+        
+        {/* Contenedor principal */}
+        <div className="pb-24 md:pb-0"> {/* Padding bottom para que el nav no tape contenido */}
+            {children}
+        </div>
+
+        {/* Navbar Flotante (Solo visible en Mobile por CSS) */}
+        <BottomNav />
+        
       </body>
     </html>
   );

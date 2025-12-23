@@ -1,13 +1,16 @@
 import { createClient } from "@/app/lib/supabase-server";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import CycleDetailView from "@/components/CycleDetailView";
+import GlobalHeader from "@/components/GlobalHeader"; // <--- Importamos el Header nuevo
 
 export default async function CycleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
   const { id } = await params;
 
-  // 1. OBTENER CICLO + ESPACIO
+  // 1. OBTENER USUARIO (Esto faltaba y causaba el error)
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 2. OBTENER CICLO + ESPACIO
   const { data: cycle, error } = await supabase
     .from('cycles')
     .select(`
@@ -21,82 +24,92 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
     return notFound();
   }
 
-  // 2. OBTENER PLANTAS DEL CICLO
+  // 3. OBTENER PLANTAS DEL CICLO
   const { data: plants } = await supabase
     .from('plants')
     .select('*')
     .eq('cycle_id', id)
-    .order('id', { ascending: true }); // Orden por ID (lote)
+    .order('id', { ascending: true });
 
-  // 3. OBTENER LA ÚLTIMA MEDICIÓN DE CLIMA
+  // 4. OBTENER LA ÚLTIMA MEDICIÓN DE CLIMA
   const { data: lastMeasurement } = await supabase
     .from('measurements')
     .select('*')
     .eq('cycle_id', id)
-    .order('date', { ascending: false })      // Prioridad a la fecha del registro
-    .order('created_at', { ascending: false }) // Desempate por hora de creación real
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(1)
     .single();
+    
+  // 5. OBTENER HISTORIAL (Para el gráfico)
+  const { data: history } = await supabase
+    .from('measurements')
+    .select('*')
+    .eq('cycle_id', id)
+    .order('date', { ascending: true }) // Orden cronológico para el gráfico
+    .limit(20);
 
-  // Calcular días
+  // Calcular días desde el inicio
   const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <main className="min-h-screen bg-brand-bg pb-24">
+    <main className="min-h-screen bg-[#0B0C10] pb-24 text-slate-200 p-4 md:p-8">
       
-      {/* --- HERO HEADER --- */}
-      <div className="bg-[#111] border-b border-[#333] pt-8 pb-8 px-6">
-        <div className="max-w-6xl mx-auto">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-xs font-bold text-brand-muted mb-4 uppercase tracking-wider">
-                <Link href="/" className="hover:text-brand-primary">Inicio</Link> 
-                <span>/</span>
-                <Link href="/cycles" className="hover:text-brand-primary">Ciclos</Link>
-                <span>/</span>
-                <span className="text-white">Panel de Control</span>
+      {/* HEADER GLOBAL INTEGRADO */}
+      <GlobalHeader 
+        userEmail={user?.email} 
+        title="Panel de Ciclo"
+        subtitle={cycle.name}
+      />
+
+      {/* --- HERO SECTION DEL CICLO --- */}
+      <div className="bg-[#12141C] border border-white/5 rounded-3xl p-6 mb-8 relative overflow-hidden">
+        {/* Decoración de fondo */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 relative z-10">
+            <div>
+                <div className="flex items-center gap-3 mb-2">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
+                        cycle.is_active 
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                        : 'bg-slate-800 text-slate-400 border-slate-700'
+                    }`}>
+                        {cycle.is_active ? '🟢 Activo' : '🔴 Archivado'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">
+                        {cycle.spaces?.type}
+                    </span>
+                </div>
+                <h1 className="text-3xl md:text-5xl font-light text-white mb-2">
+                    {cycle.name}
+                </h1>
+                <p className="text-slate-500 text-lg flex items-center gap-2">
+                    📍 {cycle.spaces?.name} <span className="text-slate-700">|</span> 🗓️ Día {daysDiff}
+                </p>
             </div>
 
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+            {/* KPI Rápido */}
+            <div className="flex gap-8 text-right bg-[#0B0C10]/50 p-4 rounded-2xl border border-white/5 backdrop-blur-sm">
                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <span className="bg-brand-primary/20 text-brand-primary border border-brand-primary/30 px-3 py-1 rounded text-xs font-bold uppercase">
-                            {cycle.is_active ? '🟢 Activo' : '🔴 Archivado'}
-                        </span>
-                        <span className="bg-[#222] text-gray-400 border border-[#333] px-3 py-1 rounded text-xs font-bold uppercase">
-                            {cycle.spaces?.type}
-                        </span>
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-title text-white uppercase mb-2">
-                        {cycle.name}
-                    </h1>
-                    <p className="text-brand-muted text-lg flex items-center gap-2">
-                        📍 {cycle.spaces?.name} <span className="text-[#333]">|</span> 🗓️ Día {daysDiff}
-                    </p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Plantas</p>
+                    <p className="text-2xl font-light text-white">{plants?.length || 0}</p>
                 </div>
-
-                {/* KPI Rápido */}
-                <div className="flex gap-8 text-right">
-                    <div>
-                        <p className="text-xs text-brand-muted uppercase font-bold">Plantas</p>
-                        <p className="text-3xl font-title text-white">{plants?.length || 0}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-brand-muted uppercase font-bold">Salud</p>
-                        <p className="text-3xl font-title text-green-400">100%</p>
-                    </div>
+                <div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Salud</p>
+                    <p className="text-2xl font-light text-emerald-400">100%</p>
                 </div>
             </div>
         </div>
       </div>
 
       {/* --- CONTENIDO INTERACTIVO --- */}
-      <div className="max-w-6xl mx-auto p-6">
-        <CycleDetailView 
-          cycle={cycle} 
-          plants={plants || []} 
-          lastMeasurement={lastMeasurement}
-        />
-      </div>
+      <CycleDetailView 
+        cycle={cycle} 
+        plants={plants || []} 
+        lastMeasurement={lastMeasurement}
+        history={history || []}
+      />
 
     </main>
   );

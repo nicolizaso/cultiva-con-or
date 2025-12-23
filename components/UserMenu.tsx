@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { signout } from "@/app/login/actions";
+import { useRouter } from "next/navigation"; // Importar router
 
-// OJO AQUÍ: Debe decir "export default"
 export default function UserMenu({ email }: { email?: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter(); // Hook de navegación
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // ... (tu useEffect para click outside sigue igual) ...
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -18,6 +20,12 @@ export default function UserMenu({ email }: { email?: string }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleLogout = async () => {
+    await signout();
+    router.push('/login'); // Redirección explícita
+    router.refresh();      // Limpia caché del router
+  };
+
   const initial = email ? email[0].toUpperCase() : "U";
 
   return (
@@ -26,8 +34,8 @@ export default function UserMenu({ email }: { email?: string }) {
         onClick={() => setIsOpen(!isOpen)}
         className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg transition-all border-2 ${
             isOpen 
-            ? 'bg-brand-primary text-brand-bg border-brand-primary shadow-[0_0_15px_rgba(0,165,153,0.5)]' 
-            : 'bg-brand-card text-brand-primary border-brand-primary/50 hover:border-brand-primary'
+            ? 'bg-brand-primary text-brand-bg border-brand-primary' 
+            : 'bg-brand-card text-brand-primary border-brand-primary/50'
         }`}
       >
         {initial}
@@ -44,8 +52,8 @@ export default function UserMenu({ email }: { email?: string }) {
 
           <div className="p-1">
             <button 
-                onClick={() => signout()} // Llamamos a la acción importada
-                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors flex items-center gap-2"
+                onClick={handleLogout} // Usamos la nueva función
+                className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors flex items-center gap-2"
             >
                 🚪 Cerrar Sesión
             </button>

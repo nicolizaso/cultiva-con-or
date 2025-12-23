@@ -1,33 +1,31 @@
-import { createClient } from "@/app/lib/supabase-server"; // ✅ Este lee cookiesimport PlantCard from "@/components/plantcard";
-import AddPlantModal from "@/components/AddPlantModal";
-import CycleStatusCard from "@/components/CycleStatusCard";
-import UserMenu from "@/components/UserMenu"; // <--- NUEVO IMPORT
+import { createClient } from "@/app/lib/supabase-server";
 import Link from "next/link";
+import GlobalHeader from "@/components/GlobalHeader";
+import TasksCard from "@/components/TasksCard";
 import { Plant } from "./lib/types";
-import PlantCard from "@/components/plantcard";
+// Importamos los iconos necesarios
+import { Leaf, RefreshCw, CalendarDays, Warehouse, ArrowRight } from "lucide-react";
 
-// ... (Interfaces SpaceInfo y CycleWithPlantsAndSpace siguen igual) ...
+// ... (Interfaces iguales) ...
 interface SpaceInfo {
     id: number;
     name: string;
     type: string;
-  }
+}
   
-  interface CycleWithPlantsAndSpace {
+interface CycleWithPlantsAndSpace {
     id: number;
     name: string;
     start_date: string;
     space_id: number;
     plants: Plant[];
     spaces: SpaceInfo;
-  }
+}
 
 export default async function Home() {
   const supabase = await createClient();
-  // 1. OBTENER USUARIO ACTUAL (Para el menú)
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 2. CONSULTA DE DATOS (Igual que antes)
   const { data: cyclesData } = await supabase
     .from('cycles')
     .select(`
@@ -39,152 +37,151 @@ export default async function Home() {
     .order('created_at', { ascending: false });
 
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
-
-  const spacesMap = new Map<number, { info: SpaceInfo; cycles: CycleWithPlantsAndSpace[] }>();
-
-  activeCycles.forEach((cycle) => {
-    if (!cycle.spaces) return; 
-
-    if (!spacesMap.has(cycle.space_id)) {
-      spacesMap.set(cycle.space_id, {
-        info: cycle.spaces,
-        cycles: [],
-      });
-    }
-    spacesMap.get(cycle.space_id)?.cycles.push(cycle);
-  });
-
-  const spacesGroups = Array.from(spacesMap.values());
+  
+  const totalPlants = activeCycles.reduce((acc, cycle) => acc + (cycle.plants?.length || 0), 0);
+  const totalCycles = activeCycles.length;
 
   return (
-    <main className="min-h-screen bg-brand-bg p-6 text-brand-text pb-24">
+    <main className="min-h-screen bg-[#0B0C10] text-slate-200 p-4 md:p-8 pb-24 font-body">
       
-      {/* HEADER PRINCIPAL */}
-      <header className="mb-10 flex justify-between items-center relative z-20">
-        <div>
-            <h1 className="text-3xl font-title text-brand-primary uppercase tracking-wider">
-              Cultiva Con <span className="text-white">Ojitos</span>
-            </h1>
-            <div className="flex gap-2 mt-2">
-                <Link 
-                  href="/spaces" 
-                  className="text-[10px] font-bold text-brand-muted border border-[#333] px-3 py-1 rounded-full hover:border-brand-primary hover:text-brand-primary transition-colors"
-                >
-                  ⚙️ ESPACIOS
-                </Link>
-                <Link 
-                  href="/cycles" 
-                  className="text-[10px] font-bold text-brand-muted border border-[#333] px-3 py-1 rounded-full hover:border-brand-primary hover:text-brand-primary transition-colors"
-                >
-                  🔄 CICLOS
-                </Link>
-                <Link 
-                  href="/calendar" 
-                  className="text-[10px] font-bold text-brand-muted border border-[#333] px-3 py-1 rounded-full hover:border-brand-primary hover:text-brand-primary transition-colors"
-                >
-                  📅 CALENDARIO
-                </Link>
-            </div>
-        </div>
-        
-        {/* AQUÍ ESTÁ EL CAMBIO: MENÚ DE USUARIO */}
-        <UserMenu email={user?.email} />
+      <GlobalHeader userEmail={user?.email} title="Panel de Control" />
 
-      </header>
-
-      {/* RENDERIZADO POR ESPACIOS (El resto sigue igual...) */}
-      {spacesGroups.length > 0 ? (
-        <div className="space-y-16">
-          {spacesGroups.map((group) => (
-            <section key={group.info.id} className="relative">
-              
-              <div className="flex items-center gap-3 mb-6 border-l-4 border-brand-primary pl-4">
-                <h2 className="text-3xl font-title text-white uppercase">
-                  {group.info.name}
-                </h2>
-                <span className="text-xs font-bold bg-[#222] text-brand-muted px-2 py-1 rounded border border-[#333] uppercase">
-                  {group.info.type}
-                </span>
-              </div>
-
-              <CycleStatusCard cycles={group.cycles} />
-
-              <div className="mt-8 space-y-10 pl-0 md:pl-4 border-l-0 md:border-l border-[#222]">
-                {group.cycles.map((cycle) => {
-                  const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
-                  
-                  return (
-                    <div key={cycle.id}>
-                      <div className="flex flex-row items-center justify-between gap-4 mb-6">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <h3 className="text-xl font-subtitle text-white">{cycle.name}</h3>
-                            <span className="text-xs font-bold text-brand-primary/80">
-                              Día {daysDiff}
-                            </span>
-                          </div>
-                          <p className="text-xs text-brand-muted mt-1">
-                            {cycle.plants.length} plantas
-                          </p>
-                        </div>
-
-                        <div className="shrink-0">
-                          <AddPlantModal 
-                            cycleId={cycle.id} 
-                            cycleName={cycle.name} 
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {cycle.plants && cycle.plants.length > 0 ? (
-                          cycle.plants
-                            .sort((a, b) => b.id - a.id)
-                            .map((planta) => (
-                              <PlantCard 
-                                key={planta.id} 
-                                id={planta.id}
-                                name={planta.name}
-                                stage={planta.stage}
-                                days={planta.days}
-                                lastWater={planta.last_water}
-                                imageUrl={(planta as any).image_url} 
-                              />
-                          ))
-                        ) : (
-                          <div className="col-span-full py-6 text-center border border-dashed border-[#333] rounded-lg bg-brand-card/10">
-                            <p className="text-xs text-brand-muted">🌱 No hay plantas registradas aún.</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-            </section>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-24 animate-in fade-in zoom-in duration-500">
-            {/* Empty state igual que antes... */}
-             <div className="w-24 h-24 bg-[#1a1a1a] rounded-full flex items-center justify-center mx-auto mb-6 text-5xl border border-[#333]">
-            🪐
-          </div>
-          <h2 className="text-2xl font-subtitle text-white mb-2">Tu universo está vacío</h2>
-          <p className="text-brand-muted mb-8 max-w-md mx-auto">
-            Para ver el panel de control, necesitas tener al menos un Espacio con un Ciclo activo.
+      <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-title font-light text-white">
+            Hola, <span className="font-medium">{user?.email?.split('@')[0]}</span>
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 font-body">
+            {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/spaces" className="bg-brand-card hover:bg-[#333] text-white border border-[#444] px-6 py-3 rounded-lg font-title tracking-wide transition-colors">
-              1. CREAR ESPACIO
-            </Link>
-            <Link href="/cycles" className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-6 py-3 rounded-lg font-title tracking-wide transition-colors">
-              2. INICIAR CICLO
-            </Link>
+      </div>
+
+      {/* --- GRID DE MÉTRICAS (KPIs) --- */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        
+        {/* KPI 1: Plantas */}
+        <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Plantas Activas</p>
+          <div className="flex items-end justify-between">
+            <span className="text-4xl font-title font-light text-white group-hover:text-brand-primary transition-colors">{totalPlants}</span>
+            <Leaf className="text-brand-primary w-8 h-8 opacity-80 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
           </div>
         </div>
-      )}
+
+        {/* KPI 2: Ciclos */}
+        <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Ciclos en Curso</p>
+          <div className="flex items-end justify-between">
+            <span className="text-4xl font-title font-light text-white group-hover:text-brand-primary transition-colors">{totalCycles}</span>
+            <RefreshCw className="text-blue-500 w-8 h-8 opacity-80 group-hover:rotate-180 transition-transform duration-700" strokeWidth={1.5} />
+          </div>
+        </div>
+
+        {/* KPI 3: Agenda */}
+        <Link href="/calendar" className="bg-brand-primary/10 p-5 rounded-2xl border border-brand-primary/20 hover:bg-brand-primary/20 transition-all cursor-pointer group">
+          <p className="text-[10px] uppercase tracking-widest text-brand-primary font-bold mb-2 font-body">Agenda</p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-lg font-medium text-emerald-100 font-body">Calendario</span>
+            <CalendarDays className="text-brand-primary w-8 h-8 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+          </div>
+        </Link>
+        
+        {/* KPI 4: Espacios */}
+        <Link href="/spaces" className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:bg-white/5 transition-all cursor-pointer group">
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Infraestructura</p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-lg font-medium text-slate-300 font-body">Mis Espacios</span>
+            <Warehouse className="text-slate-400 w-8 h-8 group-hover:text-white transition-colors" strokeWidth={1.5} />
+          </div>
+        </Link>
+      </div>
+
+      {/* --- CONTENIDO PRINCIPAL --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* COLUMNA IZQUIERDA: CICLOS ACTIVOS */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-lg font-medium font-title text-white flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
+              Laboratorio Activo
+            </h2>
+            <Link href="/cycles" className="text-xs text-slate-500 hover:text-white transition-colors uppercase font-bold tracking-wide font-body flex items-center gap-1">
+              Ver Todos <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {activeCycles.length > 0 ? (
+            activeCycles.map((cycle) => {
+               const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
+               
+               return (
+                <div key={cycle.id} className="group relative bg-[#12141C] rounded-3xl p-6 border border-white/5 hover:border-brand-primary/30 transition-all duration-300 overflow-hidden">
+                  
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 relative z-10">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 uppercase font-body">
+                          {cycle.spaces?.name}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase font-body">
+                          Día {daysDiff}
+                        </span>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-light font-title text-white">{cycle.name}</h3>
+                    </div>
+                    
+                    <Link 
+                      href={`/cycles/${cycle.id}`}
+                      className="mt-4 md:mt-0 bg-white text-black px-6 py-2 rounded-full text-sm font-bold font-body hover:bg-brand-primary hover:text-white transition-all shadow-lg shadow-brand-primary/10 flex items-center gap-2"
+                    >
+                      Entrar al Lab <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+
+                  <div className="relative z-10">
+                    <p className="text-xs text-slate-500 uppercase font-bold mb-3 font-body">Plantas ({cycle.plants?.length})</p>
+                    <div className="flex flex-wrap gap-2">
+                      {cycle.plants?.slice(0, 6).map(plant => (
+                        <div key={plant.id} className="flex items-center gap-2 bg-[#0B0C10] border border-white/10 rounded-full pr-3 pl-1 py-1">
+                          <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400">
+                             {/* Icono pequeño de planta */}
+                             <Leaf className="w-3 h-3" />
+                          </div>
+                          <span className="text-xs text-slate-300 font-body">{plant.name}</span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                             plant.stage === 'Floración' ? 'bg-purple-500' : 'bg-brand-primary'
+                          }`}></span>
+                        </div>
+                      ))}
+                      {cycle.plants && cycle.plants.length > 6 && (
+                        <span className="text-xs text-slate-500 self-center ml-2 font-body">+{cycle.plants.length - 6} más</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+               );
+            })
+          ) : (
+            <div className="bg-[#12141C] rounded-3xl p-10 text-center border border-dashed border-white/10">
+              <p className="text-slate-500 mb-4 font-body">No hay ciclos activos en este momento.</p>
+              <Link href="/cycles" className="text-brand-primary hover:underline font-body font-bold">Iniciar un nuevo ciclo</Link>
+            </div>
+          )}
+        </div>
+
+        {/* COLUMNA DERECHA: AGENDA */}
+        <div className="space-y-6">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-lg font-medium text-white font-title">Agenda</h2>
+          </div>
+          <div className="bg-[#12141C] rounded-3xl p-1 border border-white/5 h-full min-h-[300px]">
+             <TasksCard />
+          </div>
+        </div>
+
+      </div>
     </main>
   );
 }

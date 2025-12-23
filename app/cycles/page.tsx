@@ -3,6 +3,7 @@ import Link from "next/link";
 import AddCycleModal from "@/components/AddCycleModal";
 import CycleCard from "@/components/CycleCard";
 import UserMenu from "@/components/UserMenu"; // <--- Importar
+import GlobalHeader from "@/components/GlobalHeader";
 
 export default async function CyclesPage() {
   const supabase = await createClient();
@@ -21,28 +22,9 @@ export default async function CyclesPage() {
     <main className="min-h-screen bg-brand-bg p-6 text-brand-text pb-24">
       
       {/* HEADER */}
-      <header className="mb-8 flex justify-between items-center relative z-20">
-        <div>
-            <div className="mb-2">
-                <Link 
-                  href="/" 
-                  className="inline-flex items-center gap-2 text-brand-muted hover:text-brand-primary transition-colors text-sm py-2 pr-4 font-bold"
-                >
-                    <span>←</span> VOLVER AL INICIO
-                </Link>
-            </div>
-            <h1 className="text-3xl font-title text-white uppercase tracking-wider">
-              Mis Ciclos
-            </h1>
-            <p className="text-brand-muted font-body text-sm">
-              Historial de temporadas y cultivos
-            </p>
-        </div>
-
-        {/* MENU DE USUARIO ACTIVO */}
-        <UserMenu email={user?.email} />
-
-      </header>
+      <div className="absolute top-0 left-0 w-full z-20 p-4">
+         <GlobalHeader title="Ficha Técnica" />
+      </div>
       
       {/* BARRA DE ACCIÓN */}
       <div className="flex justify-end mb-6">

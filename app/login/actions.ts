@@ -1,62 +1,49 @@
 'use server';
 
 import { createClient } from '@/app/lib/supabase-server';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 export async function login(formData: FormData) {
-  // 1. Envolvemos TODO en try/catch para que si explota, el front se entere
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
 
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      console.error("Supabase Auth Error:", error.message);
-      return { error: 'Credenciales inválidas o error de conexión' };
-    }
-
-    return { success: true };
-
-  } catch (err) {
-    console.error("Server Action Error Critico:", err);
-    return { error: 'Error interno del servidor. Revisa las variables de entorno.' };
-  }
+  if (error) return { error: 'Credenciales inválidas' };
+  
+  // Importante: revalidar para actualizar el layout
+  revalidatePath('/', 'layout');
+  return { success: true };
 }
 
 export async function signup(formData: FormData) {
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
 
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      // Opciones para evitar confirmación de email si lo tienes desactivado
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://cultivaconojitos.vercel.app'}/auth/callback`,
-      }
-    });
-
-    if (error) {
-      return { error: error.message };
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      // Ajusta esto a tu URL de producción en Vercel
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
     }
+  });
 
-    return { success: true };
-  } catch (err) {
-    console.error("Signup Error:", err);
-    return { error: 'Error al intentar registrarse.' };
-  }
+  if (error) return { error: error.message };
+
+  // Si Supabase está configurado para "Auto Confirm", el usuario ya tiene sesión.
+  revalidatePath('/', 'layout');
+  return { success: true };
 }
 
 export async function signout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  
+  revalidatePath('/', 'layout');
+  // Devolvemos true para que el componente cliente maneje la redirección
   return { success: true };
 }

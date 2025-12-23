@@ -4,6 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import LogModal from "@/components/LogModal";
 import EditPlantModal from "@/components/EditPlantModal";
+import GlobalHeader from "@/components/GlobalHeader";
 
 // 1. CAMBIO AQUÍ: Definimos params como una Promise
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,6 +37,10 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
 
   return (
     <main className="min-h-screen bg-brand-bg pb-20">
+
+      <div className="absolute top-0 left-0 w-full z-20 p-4">
+         <GlobalHeader title="Ficha Técnica" />
+      </div>
       
       {/* --- HERO SECTION (Portada) --- */}
       <div className="relative h-64 md:h-80 w-full bg-[#111]">
@@ -152,7 +157,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
             </div>
           )}
         </div>
-
+          
       </div>
     </main>
   );
