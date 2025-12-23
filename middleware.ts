@@ -1,41 +1,50 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
-  const url = request.nextUrl.clone();
-  const pathname = url.pathname;
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-  const response = NextResponse.next();
-
-  // Buscar token en cookies
-  const cookieCandidates = [
-    'sb-access-token',
-    'sb-refresh-token',
-    'sb:token',
-    'supabase-auth-token',
-    'supabase-session',
-  ];
-
-  let token: string | undefined = undefined;
-  for (const name of cookieCandidates) {
-    const c = request.cookies.get(name);
-    if (c?.value) {
-      token = c.value;
-      break;
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
     }
-  }
+  );
 
-  // Validar usuario (opcional, simplificado para rendimiento)
-  let user: any = null;
-  if (token) {
-     // Aquí podrías validar contra Supabase, por ahora asumimos que si hay token es válido
-     // para no bloquear la navegación rápida.
-     user = true; 
-  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // Si NO hay usuario y NO estamos en login, redirigir
-  if (!user && pathname !== '/login') {
+  // Si no hay usuario y la ruta no es login, redirigir
+  if (!user && request.nextUrl.pathname !== '/login') {
     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Si hay usuario y estamos en login, redirigir al home
+  if (user && request.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return response;
@@ -46,7 +55,6 @@ export const config = {
     /*
      * Excluir rutas de API, estáticos, imágenes, favicon Y MANIFIESTO
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest).*)',
-    '/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)'
+    '/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)',
   ],
 };

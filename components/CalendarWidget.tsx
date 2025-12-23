@@ -11,7 +11,7 @@ interface Log {
   type: string;
   title: string;
   notes?: string;
-  plants?: any; // Usamos any para manejar la inconsistencia de Supabase (Array vs Objeto)
+  plants?: any; // Usamos any temporalmente para manejar la inconsistencia de array/objeto
 }
 
 export default function CalendarWidget({ logs }: { logs: Log[] }) {
@@ -34,7 +34,6 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
     return <StickyNote size={14} className="text-slate-400" />;
   };
 
-  // Helper seguro para obtener nombre de planta
   const getPlantName = (plants: any) => {
     if (!plants) return null;
     if (Array.isArray(plants) && plants.length > 0) return plants[0].name;
@@ -112,11 +111,9 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
                                     <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{log.type}</span>
                                 </div>
                                 <h4 className="font-bold text-white text-sm mb-1">{log.title}</h4>
-                                
                                 {plantName && (
                                     <p className="text-xs text-brand-primary mb-1">🌿 {plantName}</p>
                                 )}
-
                                 {log.notes && <p className="text-xs text-slate-500 italic">"{log.notes}"</p>}
                             </div>
                         );

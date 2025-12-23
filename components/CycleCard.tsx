@@ -17,13 +17,12 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // Navegación manual al hacer clic en la tarjeta
   const handleCardClick = () => {
     router.push(`/cycles/${cycle.id}`);
   };
 
   const toggleStatus = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita entrar al ciclo
+    e.stopPropagation(); // Evita entrar al ciclo al hacer click
     setLoading(true);
     try {
       await supabase.from('cycles').update({ is_active: !cycle.is_active }).eq('id', cycle.id);
@@ -53,7 +52,6 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
         </button>
       </div>
 
-      {/* Header Badge */}
       <div className="flex justify-between items-start mb-4">
         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
             cycle.is_active 

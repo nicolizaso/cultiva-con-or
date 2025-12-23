@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export async function createClient() {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies(); // <--- OJO: En Next 15 esto lleva await
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,8 +18,8 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Este catch es necesario porque a veces se llama desde Server Components
-            // donde no se pueden setear cookies, pero no queremos que rompa la app.
+            // El método setAll fue llamado desde un Server Component.
+            // Esto se puede ignorar si tienes un middleware refrescando la sesión.
           }
         },
       },
