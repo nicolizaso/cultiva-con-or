@@ -57,7 +57,7 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
         </div>
 
         <div className="grid grid-cols-7 mb-2">
-          {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(day => (
+          {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
             <div key={day} className="text-center text-[10px] font-bold text-slate-500 uppercase py-2">{day}</div>
           ))}
         </div>

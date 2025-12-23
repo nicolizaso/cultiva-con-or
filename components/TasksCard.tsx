@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/app/lib/supabase";
-import { CheckCircle2, Circle, Trash2, ChevronDown, ChevronUp, Clock, Calendar } from "lucide-react";
+import { supabase } from "@/app/lib/supabase"; // Asegúrate de que este sea el cliente correcto (createBrowserClient)
+import { CheckCircle2, Circle, Trash2, Clock, ArrowUpCircle, ArrowDownCircle, MinusCircle } from "lucide-react";
 import AddTaskModal from "./AddTaskModal";
 
 interface Task {
@@ -11,13 +11,12 @@ interface Task {
   description?: string;
   due_date: string;
   priority: 'high' | 'medium' | 'low';
-  completed: boolean;
+  is_completed: boolean; // <--- CAMBIO AQUÍ (antes 'completed')
 }
 
 export default function TasksCard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedTask, setExpandedTask] = useState<number | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -28,29 +27,83 @@ export default function TasksCard() {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .order('completed', { ascending: true }) 
+        // CAMBIO AQUÍ: Ordenar por 'is_completed' en lugar de 'completed'
+        .order('is_completed', { ascending: true }) 
         .order('due_date', { ascending: true });
 
       if (error) throw error;
       setTasks(data || []);
-    } catch (error) { console.error(error); } finally { setLoading(false); }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleTask = async (taskId: number, currentStatus: boolean) => {
+    // 1. Actualización optimista (UI primero)
     const newStatus = !currentStatus;
-    setTasks(tasks.map(t => t.id === taskId ? { ...t, completed: newStatus } : t));
-    await supabase.from('tasks').update({ completed: newStatus }).eq('id', taskId);
+    setTasks(tasks.map(t => t.id === taskId ? { ...t, is_completed: newStatus } : t));
+
+    // 2. Actualización en Base de Datos
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ is_completed: newStatus }) // <--- CAMBIO AQUÍ
+        .eq('id', taskId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating task:', error);
+      // Revertir si falla
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, is_completed: currentStatus } : t));
+    }
   };
 
   const deleteTask = async (taskId: number) => {
     if (!confirm("¿Borrar tarea?")) return;
+    
+    // Optimistic delete
     setTasks(tasks.filter(t => t.id !== taskId));
-    await supabase.from('tasks').delete().eq('id', taskId);
+
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      fetchTasks(); // Recargar si falla
+    }
   };
 
   const handleAddTask = async (title: string) => {
-     const { data } = await supabase.from('tasks').insert([{ title, priority: 'medium', due_date: new Date().toISOString() }]).select();
-     if(data) setTasks([...tasks, data[0]]);
+     // Al insertar, Supabase pondrá 'is_completed' en false por defecto si así está configurada la tabla,
+     // o podemos enviarlo explícitamente.
+     const newTask = { 
+        title, 
+        priority: 'medium', 
+        due_date: new Date().toISOString(),
+        is_completed: false 
+     };
+
+     const { data, error } = await supabase
+        .from('tasks')
+        .insert([newTask])
+        .select();
+     
+     if(error) {
+        console.error("Error creating task:", error);
+        return;
+     }
+
+     if(data) {
+        setTasks([...tasks, data[0] as Task]);
+     }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    if (priority === 'high') return <ArrowUpCircle size={12} className="text-red-400" />;
+    if (priority === 'low') return <ArrowDownCircle size={12} className="text-blue-400" />;
+    return <MinusCircle size={12} className="text-slate-400" />;
   };
 
   return (
@@ -71,19 +124,22 @@ export default function TasksCard() {
         )}
 
         {tasks.map(task => (
-          <div key={task.id} className={`group p-3 rounded-xl border transition-all ${task.completed ? 'bg-transparent border-transparent opacity-50' : 'bg-[#0B0C10] border-white/5 hover:border-brand-primary/30'}`}>
+          <div key={task.id} className={`group p-3 rounded-xl border transition-all ${task.is_completed ? 'bg-transparent border-transparent opacity-50' : 'bg-[#0B0C10] border-white/5 hover:border-brand-primary/30'}`}>
             <div className="flex items-start gap-3">
-              <button onClick={() => toggleTask(task.id, task.completed)} className="mt-0.5 text-slate-500 hover:text-brand-primary transition-colors">
-                {task.completed ? <CheckCircle2 size={18} className="text-brand-primary" /> : <Circle size={18} />}
+              <button onClick={() => toggleTask(task.id, task.is_completed)} className="mt-0.5 text-slate-500 hover:text-brand-primary transition-colors">
+                {task.is_completed ? <CheckCircle2 size={18} className="text-brand-primary" /> : <Circle size={18} />}
               </button>
               
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium truncate ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                <p className={`text-sm font-medium truncate ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
                     {task.title}
                 </p>
-                {expandedTask === task.id && task.description && (
-                    <p className="text-xs text-slate-500 mt-2">{task.description}</p>
-                )}
+                
+                <div className="flex items-center gap-2 mt-1.5">
+                    <span className="flex items-center gap-1 text-[9px] text-slate-500 uppercase font-bold">
+                        {getPriorityIcon(task.priority)} {task.priority}
+                    </span>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
