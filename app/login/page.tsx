@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { login, signup } from "./actions";
-import { Sprout, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -61,12 +61,18 @@ export default function LoginPage() {
         <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-[#12141C] border border-white/5 mb-4 shadow-2xl shadow-brand-primary/10">
             {/* Si tienes el logo usa Image, si no el icono */}
-             <Sprout className="text-brand-primary w-8 h-8" />
+            <Image 
+            src="/logo-login.png"  // El nombre de tu archivo en public
+            alt="Logo Ojitos"
+            width={72}             // Ancho visual
+            height={72}            // Alto visual
+            className="w-15 h-15 object-contain" // Ajustamos a w-10 (40px) para dejar un poco de aire alrededor
+          />
           </div>
           <h1 className="text-3xl font-title font-light text-white mb-2">
-            Bienvenido a <span className="text-brand-primary font-bold">Ojitos</span>
+            Cultiva con <span className="text-brand-primary font-bold">Ojitos</span>
           </h1>
-          <p className="text-slate-500 text-sm">Gestiona tu cultivo inteligente</p>
+          <p className="text-slate-500 text-sm">Tu compañía durante el cultivo</p>
         </div>
 
         {/* Tarjeta Bento Login */}
