@@ -19,18 +19,4 @@
         "type": "image/png"
       }
     ]
-<<<<<<< HEAD
 }
-=======
-  }
-export const metadata: Metadata = {
-  title: "Cultiva con Ojitos",
-  description: "Gestión inteligente de cultivos",
-  manifest: "/manifest.webmanifest",
-  // Agrega esto para asegurar que iPhone use tu icono nuevo:
-  icons: {
-    apple: "/icon-512.png",
-  },
-};
-
->>>>>>> 0c86e9867ea6e829f7f5bada600c7cfd6fb12095
