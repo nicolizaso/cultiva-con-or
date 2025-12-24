@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { login, signup } from "./actions";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { Sprout, ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function LoginPage() {
 
     try {
       if (isLogin) {
+        // --- LÓGICA DE LOGIN ---
         const res = await login(formData);
         if (res?.error) {
           setMsg({ type: 'error', text: res.error });
@@ -30,17 +31,28 @@ export default function LoginPage() {
           router.refresh();
         }
       } else {
+        // --- LÓGICA DE REGISTRO (SIGNUP) ---
         const res = await signup(formData);
+        
         if (res?.error) {
           setMsg({ type: 'error', text: res.error });
           setLoading(false);
         } else if (res?.success) {
-          setMsg({ type: 'success', text: '¡Cuenta creada! Revisa tu email o inicia sesión.' });
-          setIsLogin(true); // Cambiar a login automáticamente
-          setLoading(false);
+          // ÉXITO: Mostramos mensaje y redirigimos
+          setMsg({ type: 'success', text: 'Registro exitoso. Iniciando sesión...' });
+          
+          // Esperamos 2 segundos antes de redirigir para que lean el mensaje
+          setTimeout(() => {
+            router.push('/');
+            router.refresh();
+          }, 2000);
+          
+          // Nota: No ponemos setLoading(false) aquí para que el botón siga 
+          // girando y el usuario no toque nada mientras redirige.
         }
       }
     } catch (err) {
+      console.error(err);
       setMsg({ type: 'error', text: 'Ocurrió un error inesperado.' });
       setLoading(false);
     }
@@ -60,19 +72,18 @@ export default function LoginPage() {
         {/* Logo Header */}
         <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-[#12141C] border border-white/5 mb-4 shadow-2xl shadow-brand-primary/10">
-            {/* Si tienes el logo usa Image, si no el icono */}
-            <Image 
-            src="/logo-login.png"  // El nombre de tu archivo en public
-            alt="Logo Ojitos"
-            width={72}             // Ancho visual
-            height={72}            // Alto visual
-            className="w-15 h-15 object-contain" // Ajustamos a w-10 (40px) para dejar un poco de aire alrededor
-          />
+             <Image 
+                src="/logo-login.png" 
+                alt="Logo Ojitos"
+                width={64}
+                height={64}
+                className="w-10 h-10 object-contain"
+             />
           </div>
           <h1 className="text-3xl font-title font-light text-white mb-2">
-            Cultiva con <span className="text-brand-primary font-bold">Ojitos</span>
+            Bienvenido a <span className="text-brand-primary font-bold">Ojitos</span>
           </h1>
-          <p className="text-slate-500 text-sm">Tu compañía durante el cultivo</p>
+          <p className="text-slate-500 text-sm">Gestiona tu cultivo inteligente</p>
         </div>
 
         {/* Tarjeta Bento Login */}
