@@ -1,59 +1,101 @@
-'use server';
+'use server'
 
-import { createClient } from '@/app/lib/supabase-server';
-import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/app/lib/supabase-server'
 
 export async function login(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await createClient()
+  
+  const loginInput = formData.get('email') as string
+  const password = formData.get('password') as string
 
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+  let email = loginInput
 
+  // 1. Detectar si es un Usuario (si no tiene @)
+  if (!loginInput.includes('@')) {
+    // Buscamos el email en la tabla 'profiles'
+    // Usamos .ilike() para ignorar mayúsculas (ej: 'Nico' es igual a 'nico')
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('email')
+      .ilike('username', loginInput)
+      .single()
+
+    if (error || !profile || !profile.email) {
+      console.error('Error buscando usuario:', error) // Esto aparecerá en tu terminal si falla
+      return { error: 'Usuario desconocido. Intenta con tu email.' }
+    }
+    
+    email = profile.email
+  }
+
+  // 2. Login con el email (el ingresado o el que encontramos por usuario)
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
-  });
+  })
 
   if (error) {
-    return { error: 'Credenciales inválidas' };
+    return { error: 'Contraseña incorrecta.' }
   }
 
-  // Importante: revalidar para actualizar el layout (ej: que aparezca el menú de usuario)
-  revalidatePath('/', 'layout');
-  return { success: true };
+  revalidatePath('/', 'layout')
+  return { success: true }
 }
 
 export async function signup(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+  const username = formData.get('username') as string
 
-  const { error } = await supabase.auth.signUp({
+  // Validaciones
+  if (!email || !password || !username) return { error: 'Todos los campos son obligatorios.' }
+  if (password !== confirmPassword) return { error: 'Las contraseñas no coinciden.' }
+  if (password.length < 6) return { error: 'Mínimo 6 caracteres para la contraseña.' }
+
+  // Verificar si ya existe el usuario (case-insensitive)
+  const { data: existingUser } = await supabase
+    .from('profiles')
+    .select('username')
+    .ilike('username', username)
+    .single()
+  
+  if (existingUser) {
+    return { error: 'Ese nombre de usuario ya está en uso.' }
+  }
+
+  // Crear usuario
+  const { error, data } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      data: { username }, // Guardamos en metadata para el trigger
     },
-  });
+  })
 
   if (error) {
-    return { error: error.message };
+    return { error: error.message }
   }
 
-  return { success: true };
+  // Auto-Login post registro
+  if (data.user) {
+    await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
 }
 
 export async function signout() {
-  const supabase = await createClient();
-  
-  // 1. Cerrar sesión en Supabase (borra cookies)
-  await supabase.auth.signOut();
-
-  // 2. Limpiar la caché de toda la app para evitar que queden datos viejos visibles
-  revalidatePath('/', 'layout');
-
-  // 3. Redirigir al usuario al login
-  redirect('/login');
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  revalidatePath('/', 'layout')
+  redirect('/login')
 }
