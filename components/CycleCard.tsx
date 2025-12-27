@@ -1,98 +1,103 @@
 "use client";
 
-import { useState } from "react";
-import { supabase } from "@/app/lib/supabase";
-import { useRouter } from "next/navigation";
-import { PlayCircle, StopCircle, Trash2, MapPin, Calendar, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, Droplets, Thermometer, Wind } from "lucide-react";
 
-interface CycleWithSpace {
-  id: number;
-  name: string;
-  start_date: string;
-  is_active: boolean;
-  spaces: { name: string } | null;
+interface CycleCardProps {
+    cycle: {
+        id: number;
+        name: string;
+        start_date: string;
+        stage: string; // Etapa actual
+        days: number; // Días totales
+        stage_days: number; // Días en etapa actual
+        plant_name: string;
+        plant_id: number;
+        image_url?: string;
+        next_task?: {
+            id: number;
+            title: string;
+            type: string;
+            is_completed: boolean;
+        } | null;
+    };
 }
 
-export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) { 
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+const STAGES_ORDER = ['Germinación', 'Plántula', 'Vegetativo', 'Floración', 'Secado', 'Curado'];
 
-  const handleCardClick = () => {
-    router.push(`/cycles/${cycle.id}`);
-  };
+const getProgress = (stage: string) => {
+    switch (stage) {
+        case 'Germinación': return { percent: 10, color: 'bg-[#8B4513]' }; // Marrón
+        case 'Plántula': return { percent: 20, color: 'bg-sky-400' }; // Celeste
+        case 'Vegetativo': return { percent: 50, color: 'bg-emerald-600' }; // Verde Oscuro
+        case 'Floración': return { percent: 80, color: 'bg-purple-600' }; // Violeta Oscuro
+        case 'Secado': return { percent: 90, color: 'bg-orange-500' }; // Naranja
+        case 'Curado': return { percent: 100, color: 'bg-yellow-400' }; // Amarillo
+        default: return { percent: 0, color: 'bg-slate-600' };
+    }
+};
 
-  const toggleStatus = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita entrar al ciclo al hacer click
-    setLoading(true);
-    try {
-      await supabase.from('cycles').update({ is_active: !cycle.is_active }).eq('id', cycle.id);
-      router.refresh();
-    } catch (error) { alert("Error al actualizar estado"); } finally { setLoading(false); }
-  };
+export default function CycleCard({ cycle }: CycleCardProps) {
+    const { percent, color } = getProgress(cycle.stage);
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita entrar al ciclo
-    if (!confirm("¿Eliminar ciclo y su historial?")) return;
-    try { await supabase.from('cycles').delete().eq('id', cycle.id); router.refresh(); } catch (e) { alert("Error"); }
-  };
+    return (
+        <div className="bg-[#12141C] border border-white/5 rounded-3xl overflow-hidden shadow-lg flex flex-col group">
 
-  return (
-    <div 
-        onClick={handleCardClick}
-        className={`group relative rounded-3xl p-6 border transition-all duration-300 cursor-pointer ${
-        cycle.is_active 
-        ? 'bg-[#12141C] border-white/5 hover:border-brand-primary/30' 
-        : 'bg-[#0B0C10] border-white/5 opacity-60 hover:opacity-100'
-    }`}>
-      
-      {/* Botón Eliminar (Flotante) */}
-      <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-20">
-        <button onClick={handleDelete} className="p-2 bg-red-500/10 text-red-400 rounded-full hover:bg-red-500/20" title="Eliminar">
-            <Trash2 size={16} />
-        </button>
-      </div>
+            {/* Cabecera / Imagen de Fondo sutil o degradado */}
+            <div className="relative p-5 pb-0">
+                 <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="text-2xl font-title font-bold text-white">Día {cycle.days}</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full text-[#0B0C10] ${color.replace('bg-', 'bg-')}/80`}>
+                                {cycle.stage} - Día {cycle.stage_days}
+                            </span>
+                        </div>
 
-      <div className="flex justify-between items-start mb-4">
-        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
-            cycle.is_active 
-            ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' 
-            : 'bg-slate-800 text-slate-400 border-slate-700'
-        }`}>
-            {cycle.is_active ? <PlayCircle size={10} /> : <StopCircle size={10} />}
-            {cycle.is_active ? 'Activo' : 'Archivado'}
-        </span>
-      </div>
-        
-      <h3 className="text-2xl font-light font-title text-white mb-2 group-hover:text-brand-primary transition-colors">
-          {cycle.name}
-      </h3>
+                        <Link href={`/plants/${cycle.plant_id}`} className="text-sm text-slate-400 hover:text-brand-primary transition-colors flex items-center gap-1">
+                            {cycle.plant_name}
+                            <ArrowUpRight size={12} />
+                        </Link>
+                    </div>
 
-      <div className="space-y-2 mb-6">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
-              <MapPin size={14} />
-              <span>{cycle.spaces?.name || "Sin espacio"}</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
-              <Calendar size={14} />
-              <span>Inicio: {new Date(cycle.start_date).toLocaleDateString()}</span>
-          </div>
-      </div>
-      
-      <div className="flex items-center gap-2 text-xs font-bold text-brand-primary uppercase tracking-wider group-hover:translate-x-1 transition-transform">
-          Entrar al Panel <ArrowRight size={14} />
-      </div>
+                    <Link
+                        href={`/ciclos?id=${cycle.id}`} // En realidad debería abrir el detalle del ciclo o ir a /ciclos/[id] si existiera, pero pide redirigir a /ciclos o ver detalles
+                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-primary hover:text-[#0B0C10] flex items-center justify-center transition-all text-white border border-white/10"
+                    >
+                        <ArrowUpRight size={20} />
+                    </Link>
+                 </div>
+            </div>
 
-      {/* Acciones Rápidas Inferiores */}
-      <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
-        <button 
-            onClick={toggleStatus}
-            disabled={loading}
-            className="text-[10px] font-bold uppercase text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
-        >
-            {cycle.is_active ? <StopCircle size={12} /> : <PlayCircle size={12} />}
-            {cycle.is_active ? "Finalizar Ciclo" : "Reactivar Ciclo"}
-        </button>
-      </div>
-    </div>
-  );
+            {/* Cuerpo */}
+            <div className="p-5 pt-2 flex-1 flex flex-col gap-4">
+
+                {/* Tarea del día si existe */}
+                {cycle.next_task ? (
+                    <div className={`p-3 rounded-xl border border-dashed border-white/10 flex items-center gap-3 bg-white/[0.02]`}>
+                         <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-brand-primary/10 text-brand-primary`}>
+                            {/* Icono simple, idealmente dinámico */}
+                            <Droplets size={14} />
+                         </div>
+                         <div className="min-w-0 flex-1">
+                            <p className="text-xs text-slate-500 uppercase font-bold mb-0.5">Para hoy</p>
+                            <p className="text-sm text-slate-200 truncate">{cycle.next_task.title}</p>
+                         </div>
+                    </div>
+                ) : (
+                    <div className="p-3 rounded-xl border border-dashed border-white/5 flex items-center justify-center bg-white/[0.01]">
+                        <p className="text-xs text-slate-600">Sin tareas para hoy</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Barra de Progreso */}
+            <div className="h-2 w-full bg-[#0B0C10] relative">
+                <div
+                    className={`h-full ${color} transition-all duration-1000 ease-out`}
+                    style={{ width: `${percent}%` }}
+                ></div>
+            </div>
+        </div>
+    );
 }

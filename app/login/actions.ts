@@ -10,6 +10,7 @@ export async function login(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
+  // Intentamos login normal (email/password)
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -29,12 +30,21 @@ export async function signup(formData: FormData) {
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
+  const username = formData.get('username') as string;
 
-  const { error } = await supabase.auth.signUp({
+  // Validación básica
+  if (!email || !password || !username) {
+     return { error: 'Faltan campos obligatorios' };
+  }
+
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      data: {
+        username: username,
+      }
     },
   });
 
@@ -42,7 +52,13 @@ export async function signup(formData: FormData) {
     return { error: error.message };
   }
 
-  return { success: true };
+  // Si hay sesión, el usuario entró directo (email confirm off o supbase config)
+  if (data.session) {
+      revalidatePath('/', 'layout');
+      return { success: true, session: true };
+  }
+
+  return { success: true, session: false };
 }
 
 export async function signout() {

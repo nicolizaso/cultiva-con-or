@@ -12,12 +12,24 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'error' | 'success', text: string } | null>(null);
 
+  // States para validación en tiempo real
+  const [pass, setPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+
   const handleOnSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
 
     const formData = new FormData(e.currentTarget);
+
+    if (!isLogin) {
+        if (pass !== confirmPass) {
+            setMsg({ type: 'error', text: 'Las contraseñas no coinciden.' });
+            setLoading(false);
+            return;
+        }
+    }
 
     try {
       if (isLogin) {
@@ -35,12 +47,19 @@ export default function LoginPage() {
           setMsg({ type: 'error', text: res.error });
           setLoading(false);
         } else if (res?.success) {
-          setMsg({ type: 'success', text: '¡Cuenta creada! Revisa tu email o inicia sesión.' });
-          setIsLogin(true); // Cambiar a login automáticamente
-          setLoading(false);
+          if (res.session) {
+             // Autologin exitoso
+             router.push('/');
+             router.refresh();
+          } else {
+             setMsg({ type: 'success', text: '¡Cuenta creada! Revisa tu email para confirmar.' });
+             setIsLogin(true);
+             setLoading(false);
+          }
         }
       }
     } catch (err) {
+      console.error(err);
       setMsg({ type: 'error', text: 'Ocurrió un error inesperado.' });
       setLoading(false);
     }
@@ -60,17 +79,16 @@ export default function LoginPage() {
         {/* Logo Header */}
         <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-[#12141C] border border-white/5 mb-4 shadow-2xl shadow-brand-primary/10">
-            {/* Si tienes el logo usa Image, si no el icono */}
             <Image 
-            src="/logo-login.png"  // El nombre de tu archivo en public
+            src="/logo-login.png"
             alt="Logo Ojitos"
-            width={72}             // Ancho visual
-            height={72}            // Alto visual
-            className="w-15 h-15 object-contain" // Ajustamos a w-10 (40px) para dejar un poco de aire alrededor
+            width={72}
+            height={72}
+            className="w-15 h-15 object-contain"
           />
           </div>
-          <h1 className="text-3xl font-title font-light text-white mb-2">
-            Cultiva con <span className="text-brand-primary font-bold">Ojitos</span>
+          <h1 className="text-3xl font-title font-light text-white mb-2 uppercase">
+            CULTIVA CON <span className="text-brand-primary font-bold">OJITOS</span>
           </h1>
           <p className="text-slate-500 text-sm">Tu compañía durante el cultivo</p>
         </div>
@@ -81,7 +99,7 @@ export default function LoginPage() {
             {/* Selector Toggle */}
             <div className="flex bg-[#0B0C10] p-1 rounded-xl mb-6 border border-white/5 relative">
                 <div 
-                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#1a1a1a] rounded-lg transition-all duration-300 shadow-sm border border-white/5 ${isLogin ? 'left-1' : 'left-[calc(50%+4px)]'}`}
+                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#1a1a1a] rounded-lg transition-all duration-300 shadow-sm border border-white/5 ${isLogin ? 'left-1' : 'left-[50%]'}`}
                 ></div>
                 <button 
                     type="button"
@@ -110,13 +128,26 @@ export default function LoginPage() {
             )}
 
             <form onSubmit={handleOnSubmit} className="space-y-4">
+
+                {/* Nombre de Usuario (Solo Registro) */}
+                <div className={`space-y-1 transition-all overflow-hidden ${isLogin ? 'h-0 opacity-0' : 'h-auto opacity-100'}`}>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Nombre de Usuario</label>
+                    <input
+                        name="username"
+                        type="text"
+                        required={!isLogin}
+                        placeholder="OjitosGrower"
+                        className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3.5 text-white text-sm outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all placeholder:text-slate-600"
+                    />
+                </div>
+
                 <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Email</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Email / Usuario</label>
                     <input 
                         name="email"
-                        type="email"
+                        type={isLogin ? "text" : "email"} // Permitir texto en login para usuario (aunque actions espera email por ahora, el input visual ayuda)
                         required
-                        placeholder="tu@email.com"
+                        placeholder={isLogin ? "Usuario o Email" : "tu@email.com"}
                         className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3.5 text-white text-sm outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all placeholder:text-slate-600"
                     />
                 </div>
@@ -129,13 +160,37 @@ export default function LoginPage() {
                         required
                         minLength={6}
                         placeholder="••••••••"
+                        value={pass}
+                        onChange={(e) => setPass(e.target.value)}
                         className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3.5 text-white text-sm outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all placeholder:text-slate-600"
                     />
                 </div>
 
+                {/* Repetir Contraseña (Solo Registro) */}
+                <div className={`space-y-1 transition-all overflow-hidden ${isLogin ? 'h-0 opacity-0' : 'h-auto opacity-100'}`}>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Repetir Contraseña</label>
+                    <input
+                        name="confirmPassword"
+                        type="password"
+                        required={!isLogin}
+                        minLength={6}
+                        placeholder="••••••••"
+                        value={confirmPass}
+                        onChange={(e) => setConfirmPass(e.target.value)}
+                        className={`w-full bg-[#0B0C10] border rounded-xl p-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 ${
+                            !isLogin && pass && confirmPass && pass !== confirmPass
+                            ? 'border-red-500/50 focus:border-red-500'
+                            : 'border-white/10 focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50'
+                        }`}
+                    />
+                    {!isLogin && pass && confirmPass && pass !== confirmPass && (
+                        <p className="text-[10px] text-red-400 ml-1">Las contraseñas no coinciden</p>
+                    )}
+                </div>
+
                 <button 
                     type="submit" 
-                    disabled={loading}
+                    disabled={loading || (!isLogin && pass !== confirmPass)}
                     className="w-full bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center gap-2 group"
                 >
                     {loading ? (
