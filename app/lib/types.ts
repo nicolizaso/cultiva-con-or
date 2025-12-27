@@ -1,23 +1,45 @@
+export type CycleStage = 
+  | 'Germinación' 
+  | 'Plántula' 
+  | 'Vegetativo' 
+  | 'Floración' 
+  | 'Secado' 
+  | 'Curado';
+
 export interface Plant {
-    id: number;
-    name: string;
-    stage: string;
-    days: number;
-    last_water: string;
-    cycle_id: number | null; // Nuevo campo
-    image_url?: string;
-  }
-  
-  export interface Cycle {
-    id: number;
-    name: string;
-    start_date: string;
-    is_active: boolean;
-    space_id: number;
-  }
-  
-  export interface Space {
-    id: number;
-    name: string;
-    type: 'Indoor' | 'Outdoor' | 'Mixto';
-  }
+  id: number;
+  name: string;
+  stage: string;
+  days: number;
+  last_water: string;
+  cycle_id: number | null;
+  image_url?: string;
+}
+
+export interface Cycle {
+  id: number;
+  name: string;
+  start_date: string;
+  is_active: boolean;
+  space_id: number;
+  stage?: CycleStage; // Opcional por si no lo usas aún
+}
+
+export interface Space {
+  id: number;
+  name: string;
+  type: 'Indoor' | 'Outdoor' | 'Mixto';
+  cycleCount?: number;
+}
+
+// ESTA ES LA INTERFAZ QUE FALTABA:
+export interface Task {
+  id: string;
+  title: string;
+  date: string; // ISO string YYYY-MM-DD
+  completed?: boolean;
+  status?: 'pending' | 'completed';
+  cycleId?: string;
+  cycleName?: string;
+  type: string; // 'riego', 'poda', etc.
+}

@@ -1,156 +1,73 @@
-"use client";
+import { createClient } from "@/app/lib/supabase-server"
+import Link from "next/link"
+import { Calendar as CalendarIcon, ArrowRight, CheckCircle2 } from "lucide-react"
+import TaskPill from "@/components/TaskPill"
+import { Task } from "@/app/lib/types"
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/app/lib/supabase"; // Asegúrate de que este sea el cliente correcto (createBrowserClient)
-import { CheckCircle2, Circle, Trash2, Clock, ArrowUpCircle, ArrowDownCircle, MinusCircle } from "lucide-react";
-import AddTaskModal from "./AddTaskModal";
+export default async function TasksCard() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  due_date: string;
-  priority: 'high' | 'medium' | 'low';
-  is_completed: boolean; // <--- CAMBIO AQUÍ (antes 'completed')
-}
+  if (!user) return null
 
-export default function TasksCard() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Obtenemos las próximas 4 tareas pendientes
+  const { data: tasksData } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('status', 'pending')
+    .order('date', { ascending: true }) // Las más urgentes primero
+    .limit(4)
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        // CAMBIO AQUÍ: Ordenar por 'is_completed' en lugar de 'completed'
-        .order('is_completed', { ascending: true }) 
-        .order('due_date', { ascending: true });
-
-      if (error) throw error;
-      setTasks(data || []);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleTask = async (taskId: number, currentStatus: boolean) => {
-    // 1. Actualización optimista (UI primero)
-    const newStatus = !currentStatus;
-    setTasks(tasks.map(t => t.id === taskId ? { ...t, is_completed: newStatus } : t));
-
-    // 2. Actualización en Base de Datos
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ is_completed: newStatus }) // <--- CAMBIO AQUÍ
-        .eq('id', taskId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating task:', error);
-      // Revertir si falla
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, is_completed: currentStatus } : t));
-    }
-  };
-
-  const deleteTask = async (taskId: number) => {
-    if (!confirm("¿Borrar tarea?")) return;
-    
-    // Optimistic delete
-    setTasks(tasks.filter(t => t.id !== taskId));
-
-    try {
-      const { error } = await supabase.from('tasks').delete().eq('id', taskId);
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      fetchTasks(); // Recargar si falla
-    }
-  };
-
-  const handleAddTask = async (title: string) => {
-     // Al insertar, Supabase pondrá 'is_completed' en false por defecto si así está configurada la tabla,
-     // o podemos enviarlo explícitamente.
-     const newTask = { 
-        title, 
-        priority: 'medium', 
-        due_date: new Date().toISOString(),
-        is_completed: false 
-     };
-
-     const { data, error } = await supabase
-        .from('tasks')
-        .insert([newTask])
-        .select();
-     
-     if(error) {
-        console.error("Error creating task:", error);
-        return;
-     }
-
-     if(data) {
-        setTasks([...tasks, data[0] as Task]);
-     }
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    if (priority === 'high') return <ArrowUpCircle size={12} className="text-red-400" />;
-    if (priority === 'low') return <ArrowDownCircle size={12} className="text-blue-400" />;
-    return <MinusCircle size={12} className="text-slate-400" />;
-  };
+  // Mapeamos los datos al tipo Task (asegurando compatibilidad)
+  const tasks = (tasksData || []).map(t => ({
+    ...t,
+    date: t.date || t.due_date // Manejo de compatibilidad de fecha
+  })) as Task[]
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col h-full">
+      {/* Header de la Tarjeta */}
       <div className="flex justify-between items-center mb-4 px-2">
-         <div className="flex items-center gap-2 text-slate-400">
-            <Clock size={14} />
-            <span className="text-[10px] uppercase font-bold tracking-widest">Pendientes</span>
-         </div>
-         <AddTaskModal onAdd={handleAddTask} />
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-brand-primary/10">
+              <CalendarIcon size={16} className="text-brand-primary" />
+           </div>
+           <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Próximas Tareas</span>
+        </div>
+        <Link 
+          href="/calendar" 
+          className="text-[10px] font-bold text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
+        >
+          VER TODO <ArrowRight size={12} />
+        </Link>
       </div>
 
-      <div className="space-y-2 overflow-y-auto pr-1 custom-scrollbar flex-1">
-        {tasks.length === 0 && !loading && (
-            <div className="text-center py-10 border border-dashed border-white/5 rounded-xl">
-                <p className="text-slate-500 text-sm">No hay tareas pendientes.</p>
-            </div>
-        )}
-
-        {tasks.map(task => (
-          <div key={task.id} className={`group p-3 rounded-xl border transition-all ${task.is_completed ? 'bg-transparent border-transparent opacity-50' : 'bg-[#0B0C10] border-white/5 hover:border-brand-primary/30'}`}>
-            <div className="flex items-start gap-3">
-              <button onClick={() => toggleTask(task.id, task.is_completed)} className="mt-0.5 text-slate-500 hover:text-brand-primary transition-colors">
-                {task.is_completed ? <CheckCircle2 size={18} className="text-brand-primary" /> : <Circle size={18} />}
-              </button>
-              
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium truncate ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
-                    {task.title}
-                </p>
-                
-                <div className="flex items-center gap-2 mt-1.5">
-                    <span className="flex items-center gap-1 text-[9px] text-slate-500 uppercase font-bold">
-                        {getPriorityIcon(task.priority)} {task.priority}
-                    </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button onClick={() => deleteTask(task.id)} className="p-1 hover:bg-red-500/10 rounded text-slate-600 hover:text-red-400">
-                    <Trash2 size={14} />
-                 </button>
-              </div>
-            </div>
+      {/* Lista de Tareas */}
+      <div className="flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-1">
+        {tasks.length > 0 ? (
+          tasks.map(task => (
+            // Usamos readOnly aquí porque la interacción compleja 
+            // la dejaremos para la página de Agenda completa
+            <TaskPill key={task.id} task={task} readOnly={true} />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-slate-600 py-6 gap-2">
+            <CheckCircle2 size={32} className="opacity-20" />
+            <p className="text-xs font-medium text-center">¡Estás al día!</p>
+            <p className="text-[10px] text-center opacity-60">No hay tareas pendientes.</p>
           </div>
-        ))}
+        )}
       </div>
+      
+      {/* Nota al pie */}
+      {tasks.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-white/5 text-center">
+           <p className="text-[10px] text-slate-500">
+             Tienes {tasks.length} pendiente{tasks.length !== 1 ? 's' : ''} visible{tasks.length !== 1 ? 's' : ''}.
+           </p>
+        </div>
+      )}
     </div>
-  );
+  )
 }
