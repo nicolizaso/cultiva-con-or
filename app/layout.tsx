@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Ubuntu, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
-import BottomNav from "@/components/BottomNav"; // <--- Importamos
+import BottomNav from "@/components/BottomNav";
+import { ToastProvider } from "@/app/context/ToastContext"; // <--- Importamos el Provider
 
 const ubuntu = Ubuntu({
   weight: ["300", "400", "500", "700"],
@@ -38,13 +39,16 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${ubuntu.variable} ${ibm.variable} antialiased bg-[#0B0C10] text-slate-200`}>
         
-        {/* Contenedor principal */}
-        <div className="pb-24 md:pb-0"> {/* Padding bottom para que el nav no tape contenido */}
-            {children}
-        </div>
+        {/* Envolvemos la app en el ToastProvider */}
+        <ToastProvider>
+          {/* Contenedor principal */}
+          <div className="pb-24 md:pb-0"> 
+              {children}
+          </div>
 
-        {/* Navbar Flotante (Solo visible en Mobile por CSS) */}
-        <BottomNav />
+          {/* Navbar Flotante */}
+          <BottomNav />
+        </ToastProvider>
         
       </body>
     </html>

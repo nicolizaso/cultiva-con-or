@@ -2,17 +2,13 @@ import { createClient } from "@/app/lib/supabase-server";
 import Link from "next/link";
 import GlobalHeader from "@/components/GlobalHeader";
 import TasksCard from "@/components/TasksCard";
+import DashboardFab from "@/components/DashboardFab"; // <--- Importamos el FAB
 import { Plant } from "./lib/types";
-// Importamos los iconos necesarios
-import { Leaf, RefreshCw, CalendarDays, Warehouse, ArrowRight } from "lucide-react";
+import { Leaf, RefreshCw, CalendarDays, Warehouse, ArrowRight, Sprout } from "lucide-react";
+import { redirect } from "next/navigation";
 
-// ... (Interfaces iguales) ...
-interface SpaceInfo {
-    id: number;
-    name: string;
-    type: string;
-}
-  
+// Definimos interfaces para el fetch
+interface SpaceInfo { id: number; name: string; type: string; }
 interface CycleWithPlantsAndSpace {
     id: number;
     name: string;
@@ -24,40 +20,58 @@ interface CycleWithPlantsAndSpace {
 
 export default async function Home() {
   const supabase = await createClient();
+  
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
 
+  // 1. Obtener Perfil
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', user.id)
+    .single();
+  const username = profile?.username;
+
+  // 2. Obtener Datos del Dashboard
   const { data: cyclesData } = await supabase
     .from('cycles')
-    .select(`
-      *,
-      spaces (id, name, type),
-      plants (*)
-    `)
+    .select(`*, spaces (id, name, type), plants (*)`)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
+  // 3. Obtener TODOS los Espacios y Plantas para el Modal
+  const { data: allSpaces } = await supabase.from('spaces').select('id, name');
+  // Obtenemos plantas activas de los ciclos activos
+  const allPlants: { id: string, name: string }[] = [];
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
   
+  activeCycles.forEach(cycle => {
+    cycle.plants?.forEach(p => {
+      allPlants.push({ id: String(p.id), name: p.name });
+    });
+  });
+
   const totalPlants = activeCycles.reduce((acc, cycle) => acc + (cycle.plants?.length || 0), 0);
   const totalCycles = activeCycles.length;
 
   return (
-    <main className="min-h-screen bg-[#0B0C10] text-slate-200 p-4 md:p-8 pb-24 font-body">
+    <main className="min-h-screen bg-[#0B0C10] text-slate-200 px-6 py-4 md:p-8 pb-24 font-body relative">
       
-      <GlobalHeader userEmail={user?.email} title="Panel de Control" />
+      <GlobalHeader userEmail={user.email} title="Panel de Control" />
 
-      <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-title font-light text-white">
-            Hola, <span className="font-medium">{user?.email?.split('@')[0]}</span>
-          </h1>
-          <p className="text-slate-500 text-sm mt-1 font-body">
-            {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-      </div>
+      {username && (
+        <div className="mb-8 animate-in slide-in-from-top-2 duration-500">
+            <h1 className="text-2xl md:text-3xl font-title font-light text-white tracking-wide uppercase">
+              Hola, <span className="font-bold text-brand-primary">{username}</span>
+            </h1>
+            <p className="text-slate-500 text-sm mt-1 font-body capitalize">
+              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+        </div>
+      )}
 
-      {/* --- GRID DE MÉTRICAS (KPIs) --- */}
+      {/* KPIs Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        
         {/* KPI 1: Plantas */}
         <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Plantas Activas</p>
@@ -66,7 +80,6 @@ export default async function Home() {
             <Leaf className="text-brand-primary w-8 h-8 opacity-80 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
           </div>
         </div>
-
         {/* KPI 2: Ciclos */}
         <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Ciclos en Curso</p>
@@ -75,7 +88,6 @@ export default async function Home() {
             <RefreshCw className="text-blue-500 w-8 h-8 opacity-80 group-hover:rotate-180 transition-transform duration-700" strokeWidth={1.5} />
           </div>
         </div>
-
         {/* KPI 3: Agenda */}
         <Link href="/calendar" className="bg-brand-primary/10 p-5 rounded-2xl border border-brand-primary/20 hover:bg-brand-primary/20 transition-all cursor-pointer group">
           <p className="text-[10px] uppercase tracking-widest text-brand-primary font-bold mb-2 font-body">Agenda</p>
@@ -84,7 +96,6 @@ export default async function Home() {
             <CalendarDays className="text-brand-primary w-8 h-8 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
           </div>
         </Link>
-        
         {/* KPI 4: Espacios */}
         <Link href="/spaces" className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:bg-white/5 transition-all cursor-pointer group">
           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Infraestructura</p>
@@ -95,10 +106,10 @@ export default async function Home() {
         </Link>
       </div>
 
-      {/* --- CONTENIDO PRINCIPAL --- */}
+      {/* Contenido Principal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* COLUMNA IZQUIERDA: CICLOS ACTIVOS */}
+        {/* Ciclos Activos */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-medium font-title text-white flex items-center gap-2">
@@ -113,46 +124,37 @@ export default async function Home() {
           {activeCycles.length > 0 ? (
             activeCycles.map((cycle) => {
                const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
-               
                return (
                 <div key={cycle.id} className="group relative bg-[#12141C] rounded-3xl p-6 border border-white/5 hover:border-brand-primary/30 transition-all duration-300 overflow-hidden">
-                  
                   <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 relative z-10">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 uppercase font-body">
-                          {cycle.spaces?.name}
-                        </span>
+                        {cycle.spaces && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 uppercase font-body">
+                            {cycle.spaces.name}
+                          </span>
+                        )}
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase font-body">
                           Día {daysDiff}
                         </span>
                       </div>
                       <h3 className="text-2xl md:text-3xl font-light font-title text-white">{cycle.name}</h3>
                     </div>
-                    
-                    <Link 
-                      href={`/cycles/${cycle.id}`}
-                      className="mt-4 md:mt-0 bg-white text-black px-6 py-2 rounded-full text-sm font-bold font-body hover:bg-brand-primary hover:text-white transition-all shadow-lg shadow-brand-primary/10 flex items-center gap-2"
-                    >
+                    <Link href={`/cycles/${cycle.id}`} className="mt-4 md:mt-0 bg-white text-black px-6 py-2 rounded-full text-sm font-bold font-body hover:bg-brand-primary hover:text-white transition-all shadow-lg shadow-brand-primary/10 flex items-center gap-2">
                       Entrar al Lab <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
-
                   <div className="relative z-10">
                     <p className="text-xs text-slate-500 uppercase font-bold mb-3 font-body">Plantas ({cycle.plants?.length})</p>
                     <div className="flex flex-wrap gap-2">
                       {cycle.plants?.slice(0, 6).map(plant => (
                         <div key={plant.id} className="flex items-center gap-2 bg-[#0B0C10] border border-white/10 rounded-full pr-3 pl-1 py-1">
                           <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400">
-                             {/* Icono pequeño de planta */}
                              <Leaf className="w-3 h-3" />
                           </div>
                           <span className="text-xs text-slate-300 font-body">{plant.name}</span>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                             plant.stage === 'Floración' ? 'bg-purple-500' : 'bg-brand-primary'
-                          }`}></span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${plant.stage === 'Floración' ? 'bg-purple-500' : 'bg-brand-primary'}`}></span>
                         </div>
                       ))}
                       {cycle.plants && cycle.plants.length > 6 && (
@@ -164,14 +166,15 @@ export default async function Home() {
                );
             })
           ) : (
-            <div className="bg-[#12141C] rounded-3xl p-10 text-center border border-dashed border-white/10">
+            <div className="bg-[#12141C] rounded-3xl p-10 text-center border border-dashed border-white/10 flex flex-col items-center justify-center">
+              <Sprout className="w-12 h-12 text-slate-600 mb-4 opacity-50" />
               <p className="text-slate-500 mb-4 font-body">No hay ciclos activos en este momento.</p>
-              <Link href="/cycles" className="text-brand-primary hover:underline font-body font-bold">Iniciar un nuevo ciclo</Link>
+              <Link href="/cycles" className="text-brand-primary hover:underline font-body font-bold bg-brand-primary/10 px-4 py-2 rounded-lg">Iniciar un nuevo ciclo</Link>
             </div>
           )}
         </div>
 
-        {/* COLUMNA DERECHA: AGENDA */}
+        {/* Agenda */}
         <div className="space-y-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-medium text-white font-title">Agenda</h2>
@@ -180,8 +183,14 @@ export default async function Home() {
              <TasksCard />
           </div>
         </div>
-
       </div>
+
+      {/* --- BOTÓN FLOTANTE Y MODAL (Cliente) --- */}
+      <DashboardFab 
+        plants={allPlants}
+        spaces={allSpaces || []}
+      />
+
     </main>
   );
 }
