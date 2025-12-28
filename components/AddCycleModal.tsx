@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Space } from "@/app/lib/types";
+import { Plus } from "lucide-react"; 
 
 export default function AddCycleModal() {
   const router = useRouter();
@@ -11,14 +12,12 @@ export default function AddCycleModal() {
   const [loading, setLoading] = useState(false);
   const [spaces, setSpaces] = useState<Space[]>([]);
 
-  // Estado del formulario
   const [formData, setFormData] = useState({
     name: "",
-    startDate: new Date().toISOString().split('T')[0], // Fecha de hoy formato YYYY-MM-DD
+    startDate: new Date().toISOString().split('T')[0],
     spaceId: "",
   });
 
-  // 1. Cargar espacios al abrir el modal (o al montar)
   useEffect(() => {
     const fetchSpaces = async () => {
       const { data } = await supabase.from('spaces').select('*');
@@ -38,29 +37,26 @@ export default function AddCycleModal() {
     }
 
     try {
-      // 2. Crear el ciclo
       const { error } = await supabase
         .from('cycles')
-        .insert([{ 
-            name: formData.name, 
+        .insert([
+          {
+            name: formData.name,
             start_date: formData.startDate,
-            space_id: parseInt(formData.spaceId),
-            is_active: true // Por defecto nace activo
-        }]);
+            space_id: Number(formData.spaceId),
+            is_active: true,
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+          },
+        ]);
 
       if (error) throw error;
 
       setIsOpen(false);
-      // Reset form
-      setFormData({ 
-        name: "", 
-        startDate: new Date().toISOString().split('T')[0], 
-        spaceId: "" 
-      });
+      setFormData({ name: "", startDate: new Date().toISOString().split('T')[0], spaceId: "" });
       router.refresh();
-
     } catch (error) {
-      alert("Error al crear ciclo: " + error);
+      console.error(error);
+      alert("Error creando ciclo");
     } finally {
       setLoading(false);
     }
@@ -68,73 +64,84 @@ export default function AddCycleModal() {
 
   return (
     <>
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
-        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-4 py-2 rounded-lg font-title tracking-wide transition-colors shadow-lg shadow-brand-primary/20"
+        className="bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-brand-primary/10 active:scale-95"
       >
-        + NUEVO CICLO
+        <Plus size={18} strokeWidth={2.5} />
+        NUEVO CICLO
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsOpen(false)}></div>
-          
-          <div className="relative bg-brand-card w-full max-w-sm rounded-2xl border border-[#333] shadow-2xl p-6 animate-in zoom-in duration-200">
-            <h2 className="text-2xl font-title text-brand-primary mb-4 uppercase">Nuevo Ciclo</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#12141C] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="bg-[#0B0C10]/50 p-6 border-b border-white/5">
+              <h2 className="text-xl font-bold text-white tracking-wide">Iniciar Nuevo Ciclo</h2>
+              <p className="text-slate-500 text-xs mt-1">Configura tu próximo cultivo</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
               
-              {/* Nombre */}
               <div>
-                <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Nombre Temporada</label>
+                <label className="block text-slate-500 mb-1.5 text-[10px] font-bold uppercase tracking-wider">Nombre del Ciclo</label>
                 <input 
-                  autoFocus
                   type="text"
+                  placeholder="Ej: Verano 2024"
                   required
-                  className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none"
-                  placeholder="Ej: Verano 2025"
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-brand-primary outline-none transition-colors"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                 />
               </div>
 
-              {/* Selector de Espacio */}
               <div>
-                <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Espacio Asignado</label>
+                <label className="block text-slate-500 mb-1.5 text-[10px] font-bold uppercase tracking-wider">Espacio Asignado</label>
                 <select 
                   required
-                  className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none cursor-pointer"
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-brand-primary outline-none appearance-none transition-colors"
                   value={formData.spaceId}
                   onChange={(e) => setFormData({...formData, spaceId: e.target.value})}
                 >
-                  <option value="">-- Selecciona un Espacio --</option>
+                  <option value="">Seleccionar Espacio...</option>
                   {spaces.map(space => (
                     <option key={space.id} value={space.id}>
-                      {space.type === 'Indoor' ? '🏠' : '☀️'} {space.name}
+                       {space.type === 'Indoor' ? '🏠' : '☀️'} {space.name}
                     </option>
                   ))}
                 </select>
                 {spaces.length === 0 && (
-                   <p className="text-xs text-red-400 mt-1">⚠️ Primero crea un Espacio.</p>
+                   <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+                     ⚠️ Primero debes crear un Espacio en la sección Mis Espacios.
+                   </p>
                 )}
               </div>
 
-              {/* Fecha Inicio */}
               <div>
-                <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Fecha Inicio</label>
+                <label className="block text-slate-500 mb-1.5 text-[10px] font-bold uppercase tracking-wider">Fecha de Inicio</label>
                 <input 
                   type="date"
                   required
-                  className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none"
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-brand-primary outline-none transition-colors scheme-dark"
                   value={formData.startDate}
                   onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                 />
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <button type="button" onClick={() => setIsOpen(false)} className="flex-1 py-3 text-brand-muted hover:text-white font-bold text-xs uppercase">Cancelar</button>
-                <button type="submit" disabled={loading} className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-brand-bg py-3 rounded-lg font-title tracking-wide transition disabled:opacity-50">
-                  {loading ? "CREANDO..." : "CREAR"}
+              <div className="flex gap-3 mt-8 pt-4 border-t border-white/5">
+                <button 
+                  type="button" 
+                  onClick={() => setIsOpen(false)} 
+                  className="flex-1 py-3 text-slate-400 hover:text-white font-bold text-xs uppercase transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="flex-1 bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] py-3 rounded-xl font-bold text-sm tracking-wide transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  {loading ? "CREANDO..." : "CONFIRMAR"}
                 </button>
               </div>
             </form>

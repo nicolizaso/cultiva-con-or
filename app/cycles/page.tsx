@@ -1,9 +1,8 @@
 import { createClient } from "@/app/lib/supabase-server";
-import Link from "next/link";
 import AddCycleModal from "@/components/AddCycleModal";
 import CycleCard from "@/components/CycleCard";
 import GlobalHeader from "@/components/GlobalHeader";
-import { RefreshCw } from "lucide-react";
+import { Sprout } from "lucide-react"; 
 
 export default async function CyclesPage() {
   const supabase = await createClient();
@@ -21,6 +20,7 @@ export default async function CyclesPage() {
       <GlobalHeader userEmail={user?.email} title="Historial" subtitle="Ciclos de Cultivo" />
       
       <div className="flex justify-end mb-6">
+          {/* Modal simple sin props automáticas */}
           <AddCycleModal />
       </div>
 
@@ -30,12 +30,13 @@ export default async function CyclesPage() {
             <CycleCard key={cycle.id} cycle={cycle} />
           ))
         ) : (
-          <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-3xl bg-[#12141C]">
-            <RefreshCw className="mx-auto text-slate-600 mb-4" size={48} />
-            <p className="text-slate-500">No hay ciclos registrados.</p>
+          <div className="col-span-full flex flex-col items-center justify-center py-20 opacity-50">
+            <Sprout size={48} className="mb-4 text-slate-600" />
+            <p className="text-slate-500">No hay ciclos registrados aún.</p>
           </div>
         )}
       </section>
+
     </main>
   );
 }

@@ -1,13 +1,12 @@
 import { createClient } from "@/app/lib/supabase-server";
 import Link from "next/link";
 import GlobalHeader from "@/components/GlobalHeader";
-import TasksCard from "@/components/TasksCard";
-import DashboardFab from "@/components/DashboardFab"; // <--- Importamos el FAB
-import { Plant } from "./lib/types";
-import { Leaf, RefreshCw, CalendarDays, Warehouse, ArrowRight, Sprout } from "lucide-react";
+import DashboardFab from "@/components/DashboardFab";
+import HomeTaskCard from "@/components/HomeTaskCard";
+import { Plant, Task } from "./lib/types";
+import { Leaf, RefreshCw, Warehouse, Sprout, Plus, ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
 
-// Definimos interfaces para el fetch
 interface SpaceInfo { id: number; name: string; type: string; }
 interface CycleWithPlantsAndSpace {
     id: number;
@@ -24,7 +23,6 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // 1. Obtener Perfil
   const { data: profile } = await supabase
     .from('profiles')
     .select('username')
@@ -32,27 +30,45 @@ export default async function Home() {
     .single();
   const username = profile?.username;
 
-  // 2. Obtener Datos del Dashboard
+  // DATOS: Ciclos
   const { data: cyclesData } = await supabase
     .from('cycles')
     .select(`*, spaces (id, name, type), plants (*)`)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
-  // 3. Obtener TODOS los Espacios y Plantas para el Modal
-  const { data: allSpaces } = await supabase.from('spaces').select('id, name');
-  // Obtenemos plantas activas de los ciclos activos
-  const allPlants: { id: string, name: string }[] = [];
+  // DATOS: Tareas para HOY
+  const todayStr = new Date().toISOString().split('T')[0];
+  const { data: tasksData } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('status', 'pending')
+    .eq('due_date', todayStr)
+    .order('created_at', { ascending: true })
+    .limit(1);
+
+  const todayTask = tasksData && tasksData.length > 0 ? (tasksData[0] as Task) : undefined;
+
+  // Procesamiento
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
+  const totalPlants = activeCycles.reduce((acc, cycle) => acc + (cycle.plants?.length || 0), 0);
+  const totalCycles = activeCycles.length;
   
+  const activeSpacesMap = new Map();
+  activeCycles.forEach(c => {
+    if (c.spaces) activeSpacesMap.set(c.spaces.id, c.spaces);
+  });
+  const activeSpacesCount = activeSpacesMap.size;
+
+  // Datos para el FAB
+  const { data: allSpaces } = await supabase.from('spaces').select('id, name');
+  const allPlants: { id: string, name: string }[] = [];
   activeCycles.forEach(cycle => {
     cycle.plants?.forEach(p => {
       allPlants.push({ id: String(p.id), name: p.name });
     });
   });
-
-  const totalPlants = activeCycles.reduce((acc, cycle) => acc + (cycle.plants?.length || 0), 0);
-  const totalCycles = activeCycles.length;
 
   return (
     <main className="min-h-screen bg-[#0B0C10] text-slate-200 px-6 py-4 md:p-8 pb-24 font-body relative">
@@ -72,25 +88,33 @@ export default async function Home() {
 
       {/* KPIs Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {/* KPI 3: Agenda */}
-        <Link href="/calendar" className="bg-brand-primary/10 p-5 rounded-2xl border border-brand-primary/20 hover:bg-brand-primary/20 transition-all cursor-pointer group">
-          <p className="text-[10px] uppercase tracking-widest text-brand-primary font-bold mb-2 font-body">Tareas para hoy</p>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-lg font-medium text-emerald-100 font-body"></span>
-            <CalendarDays className="text-brand-primary w-8 h-8 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-          </div>
-        </Link>
         
-        {/* KPI 2: Ciclos */}
-        <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
-          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Ciclos en Curso</p>
-          <div className="flex items-end justify-between">
-            <span className="text-4xl font-title font-light text-white group-hover:text-brand-primary transition-colors">{totalCycles}</span>
-            <RefreshCw className="text-blue-500 w-8 h-8 opacity-80 group-hover:rotate-180 transition-transform duration-700" strokeWidth={1.5} />
-          </div>
-        </div>
+        {/* TARJETA 1: Tareas para hoy */}
+        <HomeTaskCard task={todayTask} />
+        
+        {/* TARJETA 2: Ciclos (Condicional) */}
+        {totalCycles > 0 ? (
+          <Link href="/cycles" className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group flex flex-col justify-between">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Ciclos en Curso</p>
+            <div className="flex items-end justify-between">
+              <span className="text-4xl font-title font-light text-white group-hover:text-brand-primary transition-colors">{totalCycles}</span>
+              <RefreshCw className="text-blue-500 w-8 h-8 opacity-80 group-hover:rotate-180 transition-transform duration-700" strokeWidth={1.5} />
+            </div>
+          </Link>
+        ) : (
+          // SIMPLIFICADO: Link normal a /cycles sin query params
+          <Link href="/cycles" className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group flex flex-col justify-center items-center text-center relative">
+             <div className="bg-brand-primary/10 p-3 rounded-full mb-2 text-brand-primary group-hover:scale-110 transition-transform">
+                <Plus size={24} strokeWidth={2.5} />
+             </div>
+             <p className="text-xs text-slate-400 leading-tight font-body">
+                No tenés ningún ciclo activo.<br/>
+                <span className="text-brand-primary font-bold">Iniciá uno presionando acá</span>
+             </p>
+          </Link>
+        )}
 
-        {/* KPI 1: Plantas */}
+        {/* TARJETA 3: Plantas Activas */}
         <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Plantas Activas</p>
           <div className="flex items-end justify-between">
@@ -99,20 +123,20 @@ export default async function Home() {
           </div>
         </div>
         
-        {/* KPI 4: Espacios */}
+        {/* TARJETA 4: Mis Espacios */}
         <Link href="/spaces" className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:bg-white/5 transition-all cursor-pointer group">
           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Mis Espacios</p>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-lg font-medium text-slate-300 font-body"></span>
+            <span className="text-4xl font-title font-light text-white group-hover:text-brand-primary transition-colors">
+              {activeSpacesCount}
+            </span>
             <Warehouse className="text-slate-400 w-8 h-8 group-hover:text-white transition-colors" strokeWidth={1.5} />
           </div>
         </Link>
       </div>
 
-      {/* Contenido Principal */}
+      {/* --- FEED PRINCIPAL --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Ciclos Activos */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-medium font-title text-white flex items-center gap-2">
@@ -177,18 +201,17 @@ export default async function Home() {
           )}
         </div>
 
-        {/* Agenda */}
+        {/* Agenda Placeholder */}
         <div className="space-y-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-medium text-white font-title">Agenda</h2>
           </div>
           <div className="bg-[#12141C] rounded-3xl p-1 border border-white/5 h-full min-h-[300px]">
-             <TasksCard />
+             {/* Espacio para la agenda completa */}
           </div>
         </div>
       </div>
 
-      {/* --- BOTÓN FLOTANTE Y MODAL (Cliente) --- */}
       <DashboardFab 
         plants={allPlants}
         spaces={allSpaces || []}
