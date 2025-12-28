@@ -72,14 +72,15 @@ export default async function Home() {
 
       {/* KPIs Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {/* KPI 1: Plantas */}
-        <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
-          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Plantas Activas</p>
-          <div className="flex items-end justify-between">
-            <span className="text-4xl font-title font-light text-white group-hover:text-brand-primary transition-colors">{totalPlants}</span>
-            <Leaf className="text-brand-primary w-8 h-8 opacity-80 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+        {/* KPI 3: Agenda */}
+        <Link href="/calendar" className="bg-brand-primary/10 p-5 rounded-2xl border border-brand-primary/20 hover:bg-brand-primary/20 transition-all cursor-pointer group">
+          <p className="text-[10px] uppercase tracking-widest text-brand-primary font-bold mb-2 font-body">Tareas para hoy</p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-lg font-medium text-emerald-100 font-body"></span>
+            <CalendarDays className="text-brand-primary w-8 h-8 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
           </div>
-        </div>
+        </Link>
+        
         {/* KPI 2: Ciclos */}
         <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Ciclos en Curso</p>
@@ -88,19 +89,21 @@ export default async function Home() {
             <RefreshCw className="text-blue-500 w-8 h-8 opacity-80 group-hover:rotate-180 transition-transform duration-700" strokeWidth={1.5} />
           </div>
         </div>
-        {/* KPI 3: Agenda */}
-        <Link href="/calendar" className="bg-brand-primary/10 p-5 rounded-2xl border border-brand-primary/20 hover:bg-brand-primary/20 transition-all cursor-pointer group">
-          <p className="text-[10px] uppercase tracking-widest text-brand-primary font-bold mb-2 font-body">Agenda</p>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-lg font-medium text-emerald-100 font-body">Calendario</span>
-            <CalendarDays className="text-brand-primary w-8 h-8 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+
+        {/* KPI 1: Plantas */}
+        <div className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors group">
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Plantas Activas</p>
+          <div className="flex items-end justify-between">
+            <span className="text-4xl font-title font-light text-white group-hover:text-brand-primary transition-colors">{totalPlants}</span>
+            <Leaf className="text-brand-primary w-8 h-8 opacity-80 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
           </div>
-        </Link>
+        </div>
+        
         {/* KPI 4: Espacios */}
         <Link href="/spaces" className="bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:bg-white/5 transition-all cursor-pointer group">
-          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Infraestructura</p>
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 font-body">Mis Espacios</p>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-lg font-medium text-slate-300 font-body">Mis Espacios</span>
+            <span className="text-lg font-medium text-slate-300 font-body"></span>
             <Warehouse className="text-slate-400 w-8 h-8 group-hover:text-white transition-colors" strokeWidth={1.5} />
           </div>
         </Link>
