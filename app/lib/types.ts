@@ -11,6 +11,8 @@ export interface Plant {
   name: string;
   stage: string;
   days: number;
+  planted_at?: string; // ISO timestamp
+  current_age_days?: number; // Computed field
   last_water: string;
   cycle_id: number | null;
   image_url?: string;

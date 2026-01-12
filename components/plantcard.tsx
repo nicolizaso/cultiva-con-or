@@ -13,11 +13,13 @@ interface PlantCardProps {
   name: string;
   stage: string;
   days: number;
+  current_age_days?: number;
+  planted_at?: string;
   lastWater: string;
   imageUrl?: string | null;
 }
 
-export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }: PlantCardProps) {
+export default function PlantCard({ id, name, stage, days, current_age_days, planted_at, lastWater, imageUrl }: PlantCardProps) {
   const router = useRouter();
   const [isWatered, setIsWatered] = useState(lastWater === "Hoy");
   const [loading, setLoading] = useState(false);
@@ -226,7 +228,14 @@ export default function PlantCard({ id, name, stage, days, lastWater, imageUrl }
         <div className="flex justify-between items-end pt-4 border-t border-[#333]">
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Edad</p>
-            <p className="text-white font-bold text-lg">{days} <span className="text-sm text-brand-muted">días</span></p>
+            <p className="text-white font-bold text-lg">
+              {planted_at ? (
+                 Math.floor((new Date().getTime() - new Date(planted_at).getTime()) / (1000 * 60 * 60 * 24))
+              ) : (
+                current_age_days ?? days
+              )}
+              <span className="text-sm text-brand-muted"> días</span>
+            </p>
           </div>
           
           <div className="text-right">
