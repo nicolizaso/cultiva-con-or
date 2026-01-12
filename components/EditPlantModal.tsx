@@ -10,6 +10,7 @@ interface EditPlantModalProps {
     name: string;
     stage: string;
     cycle_id: number;
+    planted_at?: string;
   };
 }
 
@@ -24,6 +25,7 @@ export default function EditPlantModal({ plant }: EditPlantModalProps) {
     name: plant.name,
     stage: plant.stage,
     cycleId: plant.cycle_id,
+    planted_at: plant.planted_at ? new Date(plant.planted_at).toISOString().split("T")[0] : '',
   });
 
   // Cargar ciclos disponibles (por si queremos moverla)
@@ -51,7 +53,8 @@ export default function EditPlantModal({ plant }: EditPlantModalProps) {
         .update({
           name: formData.name,
           stage: formData.stage,
-          cycle_id: formData.cycleId
+          cycle_id: formData.cycleId,
+          planted_at: formData.planted_at
         })
         .eq('id', plant.id);
 
@@ -118,6 +121,17 @@ export default function EditPlantModal({ plant }: EditPlantModalProps) {
                   <option value="Secado">🍂 Secado</option>
                   <option value="Curado">🏺 Curado</option>
                 </select>
+              </div>
+
+              {/* Fecha de Plantado */}
+              <div>
+                <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Fecha de Inicio</label>
+                <input
+                  type="date"
+                  className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none"
+                  value={formData.planted_at}
+                  onChange={(e) => setFormData({...formData, planted_at: e.target.value})}
+                />
               </div>
 
               {/* Ciclo (Mover de armario) */}
