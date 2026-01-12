@@ -18,7 +18,7 @@ export default function AddPlantModal({ cycleId, cycleName }: Props) {
   const [formData, setFormData] = useState({
     name: "",
     stage: "Vegetación",
-    days: 0,
+    planted_at: new Date().toISOString().split("T")[0],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,7 +32,7 @@ export default function AddPlantModal({ cycleId, cycleName }: Props) {
           { 
             name: formData.name, 
             stage: formData.stage, 
-            days: formData.days,
+            planted_at: formData.planted_at, // Use the date picker value
             last_water: 'Nunca',
             cycle_id: cycleId // Usamos el ID que nos pasan por props
           }
@@ -42,7 +42,7 @@ export default function AddPlantModal({ cycleId, cycleName }: Props) {
 
       // Éxito:
       setIsOpen(false); // Cerramos el modal
-      setFormData({ name: "", stage: "Vegetación", days: 0 }); // Limpiamos formulario
+      setFormData({ name: "", stage: "Vegetación", planted_at: new Date().toISOString().split("T")[0] }); // Limpiamos formulario
       router.refresh(); // Recargamos solo los datos de la página de fondo
 
     } catch (error) {
@@ -96,7 +96,7 @@ export default function AddPlantModal({ cycleId, cycleName }: Props) {
                 />
               </div>
 
-              {/* Etapa y Días en fila */}
+              {/* Etapa y Fecha de Plantado en fila */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Etapa</label>
@@ -112,13 +112,12 @@ export default function AddPlantModal({ cycleId, cycleName }: Props) {
                     </select>
                 </div>
                 <div>
-                    <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Días</label>
+                    <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Fecha de Inicio</label>
                     <input 
-                    type="number"
-                    min="0"
+                    type="date"
                     className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none"
-                    value={formData.days}
-                    onChange={(e) => setFormData({...formData, days: parseInt(e.target.value)})}
+                    value={formData.planted_at}
+                    onChange={(e) => setFormData({...formData, planted_at: e.target.value})}
                     />
                 </div>
               </div>

@@ -6,6 +6,7 @@ import HomeTaskCard from "@/components/HomeTaskCard";
 import { Plant, Task } from "./lib/types";
 import { Leaf, RefreshCw, Warehouse, Sprout, Plus, ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
+import StageSuggester from "@/components/StageSuggester";
 
 interface SpaceInfo { id: number; name: string; type: string; }
 interface CycleWithPlantsAndSpace {
@@ -31,9 +32,10 @@ export default async function Home() {
   const username = profile?.username;
 
   // DATOS: Ciclos
+  // Note: We explicitly select current_age_days (computed column)
   const { data: cyclesData } = await supabase
     .from('cycles')
-    .select(`*, spaces (id, name, type), plants (*)`)
+    .select(`*, spaces (id, name, type), plants (*, current_age_days)`)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
@@ -70,9 +72,14 @@ export default async function Home() {
     });
   });
 
+  // Flatten plants list for the suggester
+  const flatPlantsList: Plant[] = activeCycles.flatMap(c => c.plants || []);
+
   return (
     <main className="min-h-screen bg-[#0B0C10] text-slate-200 px-6 py-4 md:p-8 pb-24 font-body relative">
       
+      <StageSuggester plants={flatPlantsList} />
+
       <GlobalHeader userEmail={user.email} title="Panel de Control" />
 
       {username && (
