@@ -13,7 +13,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
 
   const { data: plant, error } = await supabase
     .from('plants')
-    .select(`*, cycles ( name )`)
+    .select(`*, current_age_days, cycles ( name )`)
     .eq('id', id)
     .single();
 
@@ -70,7 +70,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                         <Calendar size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">Edad</span>
                     </div>
-                    <p className="text-2xl font-light text-white">{plant.days} <span className="text-sm text-slate-500">días</span></p>
+                    <p className="text-2xl font-light text-white">{plant.current_age_days ?? plant.days ?? 0} <span className="text-sm text-slate-500">días</span></p>
                 </div>
                 <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">
