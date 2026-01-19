@@ -10,7 +10,7 @@ export interface Plant {
   id: number;
   name: string;
   stage: string;
-  days: number;
+  days?: number; // Deprecated: Use current_age_days instead
   planted_at?: string; // ISO timestamp
   current_age_days?: number; // Computed field
   last_water: string;

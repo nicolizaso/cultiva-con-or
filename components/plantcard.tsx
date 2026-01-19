@@ -12,7 +12,7 @@ interface PlantCardProps {
   id: number;
   name: string;
   stage: string;
-  days: number;
+  days?: number;
   current_age_days?: number;
   planted_at?: string;
   lastWater: string;
@@ -232,7 +232,7 @@ export default function PlantCard({ id, name, stage, days, current_age_days, pla
               {planted_at ? (
                  Math.floor((new Date().getTime() - new Date(planted_at).getTime()) / (1000 * 60 * 60 * 24))
               ) : (
-                current_age_days ?? days
+                current_age_days ?? days ?? 0
               )}
               <span className="text-sm text-brand-muted"> días</span>
             </p>

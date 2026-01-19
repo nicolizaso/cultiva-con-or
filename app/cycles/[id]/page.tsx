@@ -17,7 +17,7 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
 
   if (error || !cycle) return notFound();
 
-  const { data: plants } = await supabase.from('plants').select('*').eq('cycle_id', id).order('id', { ascending: true });
+  const { data: plants } = await supabase.from('plants').select('*, current_age_days').eq('cycle_id', id).order('id', { ascending: true });
 
   // Consultas de datos ambientales (igual que antes)...
   const { data: lastMeasurement } = await supabase.from('measurements').select('*').eq('cycle_id', id).order('date', { ascending: false }).limit(1).single();

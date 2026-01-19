@@ -36,7 +36,7 @@ export default function StageSuggester({ plants }: StageSuggesterProps) {
 
         for (const plant of plants) {
             // Calculate age locally if planted_at is available, otherwise fall back to DB computed or static days
-            let age = plant.current_age_days ?? plant.days;
+            let age = plant.current_age_days ?? plant.days ?? 0;
 
             if (plant.planted_at) {
                 const planted = new Date(plant.planted_at);
@@ -118,7 +118,7 @@ export default function StageSuggester({ plants }: StageSuggesterProps) {
                 <div>
                     <h3 className="font-bold text-white text-sm uppercase tracking-wide">Sugerencia de Cultivo</h3>
                     <p className="text-slate-300 text-sm mt-1">
-                        <span className="text-brand-primary font-bold">{suggestion.plant.name}</span> ha cumplido <span className="font-bold text-white">{suggestion.plant.current_age_days ?? suggestion.plant.days} días</span>.
+                        <span className="text-brand-primary font-bold">{suggestion.plant.name}</span> ha cumplido <span className="font-bold text-white">{suggestion.plant.current_age_days ?? suggestion.plant.days ?? 0} días</span>.
                         <br/>
                         ¿Pasar a etapa <span className="font-bold text-white">{suggestion.nextStage}</span>?
                     </p>
