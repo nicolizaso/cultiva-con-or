@@ -116,7 +116,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                                 <Link href={`/plants/${plant.id}`} className="hover:text-brand-primary hover:underline">{plant.name}</Link>
                             </td>
                             <td className="p-4"><span className="text-[10px] px-2 py-1 rounded border uppercase font-bold bg-[#1a1a1a] text-slate-300 border-white/10">{plant.stage}</span></td>
-                            <td className="p-4 text-slate-400 font-body">{plant.days} d</td>
+                            <td className="p-4 text-slate-400 font-body">{plant.current_age_days ?? plant.days ?? 0} d</td>
                             <td className="p-4 text-slate-400 font-body">{plant.last_water || '-'}</td>
                             <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-white flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
                         </tr>
