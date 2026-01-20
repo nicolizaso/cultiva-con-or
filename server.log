@@ -1,0 +1,23 @@
+
+> mi-cultivo@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.0.2:3000
+
+ ✓ Starting...
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 1926ms
+ ○ Compiling /login ...
+ GET /login 200 in 5.1s (compile: 4.7s, proxy.ts: 6ms, render: 390ms)
+ GET /login 200 in 86ms (compile: 7ms, proxy.ts: 8ms, render: 71ms)
+ GET /login 200 in 101ms (compile: 6ms, proxy.ts: 6ms, render: 89ms)
+ GET /login 200 in 87ms (compile: 5ms, proxy.ts: 10ms, render: 71ms)
+ GET /login 200 in 73ms (compile: 5ms, proxy.ts: 4ms, render: 63ms)
+ GET /login 200 in 69ms (compile: 4ms, proxy.ts: 6ms, render: 59ms)
+ ✓ Compiled in 66ms
+ GET / 200 in 1547ms (compile: 887ms, proxy.ts: 53ms, render: 607ms)
+ GET / 200 in 156ms (compile: 5ms, proxy.ts: 6ms, render: 145ms)
+ ✓ Compiled in 1969ms
+ ✓ Compiled in 43ms
