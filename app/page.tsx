@@ -3,6 +3,7 @@ import Link from "next/link";
 import GlobalHeader from "@/components/GlobalHeader";
 import DashboardFab from "@/components/DashboardFab";
 import HomeTaskCard from "@/components/HomeTaskCard";
+import AgendaList from "@/components/AgendaList";
 import { Plant, Task } from "./lib/types";
 import { Leaf, RefreshCw, Warehouse, Sprout, Plus, ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -37,7 +38,7 @@ export default async function Home() {
     .from('cycles')
     .select(`*, spaces (id, name, type), plants (*, current_age_days)`)
     .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: true });
 
   // DATOS: Tareas para HOY
   const todayStr = new Date().toISOString().split('T')[0];
@@ -47,8 +48,7 @@ export default async function Home() {
     .eq('user_id', user.id)
     .eq('status', 'pending')
     .eq('due_date', todayStr)
-    .order('created_at', { ascending: true })
-    .limit(1);
+    .order('created_at', { ascending: true });
 
   const todayTask = tasksData && tasksData.length > 0 ? (tasksData[0] as Task) : undefined;
 
@@ -176,7 +176,7 @@ export default async function Home() {
                       <h3 className="text-2xl md:text-3xl font-light font-title text-white">{cycle.name}</h3>
                     </div>
                     <Link href={`/cycles/${cycle.id}`} className="mt-4 md:mt-0 bg-white text-black px-6 py-2 rounded-full text-sm font-bold font-body hover:bg-brand-primary hover:text-white transition-all shadow-lg shadow-brand-primary/10 flex items-center gap-2">
-                      Entrar al Lab <ArrowRight className="w-4 h-4" />
+                      Ver Ciclo <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                   <div className="relative z-10">
@@ -213,8 +213,8 @@ export default async function Home() {
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-medium text-white font-title">Agenda</h2>
           </div>
-          <div className="bg-[#12141C] rounded-3xl p-1 border border-white/5 h-full min-h-[300px]">
-             {/* Espacio para la agenda completa */}
+          <div className="bg-[#12141C] rounded-3xl p-4 border border-white/5 h-80 overflow-y-auto custom-scrollbar">
+             <AgendaList tasks={tasksData as Task[] || []} />
           </div>
         </div>
       </div>
