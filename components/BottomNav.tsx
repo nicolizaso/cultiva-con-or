@@ -20,7 +20,7 @@ export default function BottomNav() {
   if (pathname === "/login") return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       
       <nav className="bg-[#0B0C10]/95 backdrop-blur-xl border-t border-white/10 pb-safe pt-2 px-2 flex justify-around items-end shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
         
@@ -65,7 +65,7 @@ export default function BottomNav() {
         })}
       </nav>
       
-      <div className="h-6 bg-[#0B0C10]/95 lg:hidden"></div>
+      <div className="h-6 bg-[#0B0C10]/95 md:hidden"></div>
     </div>
   );
 }
