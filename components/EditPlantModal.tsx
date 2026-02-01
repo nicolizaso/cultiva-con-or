@@ -69,6 +69,27 @@ export default function EditPlantModal({ plant }: EditPlantModalProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm(`¿Estás seguro de que deseas eliminar la planta "${plant.name}"? Esta acción no se puede deshacer.`)) return;
+
+    setLoading(true);
+    try {
+        const { error } = await supabase
+            .from('plants')
+            .delete()
+            .eq('id', plant.id);
+
+        if (error) throw error;
+
+        setIsOpen(false);
+        router.refresh();
+    } catch (error) {
+        alert("Error al eliminar: " + error);
+    } finally {
+        setLoading(false);
+    }
+  };
+
   return (
     <>
       {/* BOTÓN DISPARADOR (Lápiz) */}
@@ -168,6 +189,18 @@ export default function EditPlantModal({ plant }: EditPlantModalProps) {
                   className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-brand-bg py-3 rounded-lg font-title tracking-wide transition disabled:opacity-50"
                 >
                   {loading ? "GUARDANDO..." : "GUARDAR CAMBIOS"}
+                </button>
+              </div>
+
+              {/* Botón Eliminar */}
+              <div className="mt-4 border-t border-[#333] pt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="text-red-500 hover:text-red-400 text-xs font-bold uppercase tracking-wide flex items-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  🗑 Eliminar Planta
                 </button>
               </div>
 

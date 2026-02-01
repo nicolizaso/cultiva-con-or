@@ -33,6 +33,7 @@ export default function AddPlantModal({ cycleId, cycleName }: Props) {
             name: formData.name, 
             stage: formData.stage, 
             planted_at: formData.planted_at, // Use the date picker value
+            // Note: 'days' column is deprecated and should not be inserted. Age is computed from planted_at.
             last_water: 'Nunca',
             cycle_id: cycleId // Usamos el ID que nos pasan por props
           }

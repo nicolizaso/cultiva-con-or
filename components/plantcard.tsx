@@ -229,11 +229,7 @@ export default function PlantCard({ id, name, stage, days, current_age_days, pla
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Edad</p>
             <p className="text-white font-bold text-lg">
-              {planted_at ? (
-                 Math.floor((new Date().getTime() - new Date(planted_at).getTime()) / (1000 * 60 * 60 * 24))
-              ) : (
-                current_age_days ?? days ?? 0
-              )}
+              {current_age_days ?? days ?? 0}
               <span className="text-sm text-brand-muted"> días</span>
             </p>
           </div>
