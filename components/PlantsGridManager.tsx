@@ -9,6 +9,7 @@ import { CheckSquare, Square, Trash2, X } from "lucide-react";
 interface Plant {
   id: number;
   name: string;
+  strain?: string;
   stage: string;
   days?: number;
   current_age_days?: number;
@@ -115,13 +116,14 @@ export default function PlantsGridManager({ plants }: PlantsGridManagerProps) {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {plants && plants.length > 0 ? (
           plants.map((plant) => (
             <PlantCard
               key={plant.id}
               id={plant.id}
               name={plant.name}
+              strain={plant.strain || ""}
               stage={plant.stage}
               days={plant.days}
               current_age_days={plant.current_age_days}
