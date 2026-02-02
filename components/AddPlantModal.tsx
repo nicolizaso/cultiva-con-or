@@ -1,143 +1,321 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
+import { Plant, Cycle } from "@/app/lib/types";
+import { Sprout, Fingerprint, Calendar, Layers, Hash } from "lucide-react";
 
-// Recibimos el ID del ciclo directamente desde el padre
-interface Props {
-  cycleId: number; 
-  cycleName: string;
-}
-
-export default function AddPlantModal({ cycleId, cycleName }: Props) {
+export default function AddPlantModal() {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false); // Controla si se ve o no
+  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeCycles, setActiveCycles] = useState<Cycle[]>([]);
+  const [potentialMothers, setPotentialMothers] = useState<Plant[]>([]);
 
+  // Form State
   const [formData, setFormData] = useState({
+    strain: "",
     name: "",
-    stage: "Vegetación",
+    breeder: "",
+    source_type: "Semilla" as "Semilla" | "Esqueje",
+    mother_id: "" as string | number, // Store as string for select, convert to number on submit
+    stage: "Germinación",
+    cycle_id: "" as string | number,
     planted_at: new Date().toISOString().split("T")[0],
+    quantity: 1
   });
+
+  const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
+
+  // Fetch data on mount (or when modal opens)
+  useEffect(() => {
+    if (isOpen) {
+      const fetchData = async () => {
+        // Fetch active cycles
+        const { data: cyclesData } = await supabase
+          .from('cycles')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (cyclesData) setActiveCycles(cyclesData as unknown as Cycle[]);
+
+        // Fetch potential mothers (all plants)
+        // Optimization: Could filter only those in Veg/Flower, but "existing plants" is the request.
+        const { data: plantsData } = await supabase
+          .from('plants')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (plantsData) setPotentialMothers(plantsData as unknown as Plant[]);
+      };
+      fetchData();
+    }
+  }, [isOpen]);
+
+  // Smart Naming Effect
+  useEffect(() => {
+    if (!isNameManuallyEdited && formData.strain) {
+      setFormData(prev => ({ ...prev, name: prev.strain }));
+    }
+  }, [formData.strain, isNameManuallyEdited]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.strain || !formData.cycle_id) {
+      alert("Por favor completa los campos requeridos (Genética, Ciclo).");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const plantsToInsert = [];
+      const quantity = Math.max(1, Number(formData.quantity));
+
+      for (let i = 0; i < quantity; i++) {
+        let finalName = formData.name;
+        if (quantity > 1) {
+          finalName = `${formData.name} #${i + 1}`;
+        }
+
+        plantsToInsert.push({
+          strain: formData.strain,
+          name: finalName,
+          breeder: formData.breeder || null,
+          source_type: formData.source_type,
+          mother_id: formData.source_type === 'Esqueje' && formData.mother_id ? Number(formData.mother_id) : null,
+          stage: formData.stage,
+          planted_at: formData.planted_at,
+          cycle_id: Number(formData.cycle_id),
+          last_water: 'Nunca'
+        });
+      }
+
       const { error } = await supabase
         .from('plants')
-        .insert([
-          { 
-            name: formData.name, 
-            stage: formData.stage, 
-            planted_at: formData.planted_at, // Use the date picker value
-            // Note: 'days' column is deprecated and should not be inserted. Age is computed from planted_at.
-            last_water: 'Nunca',
-            cycle_id: cycleId // Usamos el ID que nos pasan por props
-          }
-        ]);
+        .insert(plantsToInsert);
 
       if (error) throw error;
 
-      // Éxito:
-      setIsOpen(false); // Cerramos el modal
-      setFormData({ name: "", stage: "Vegetación", planted_at: new Date().toISOString().split("T")[0] }); // Limpiamos formulario
-      router.refresh(); // Recargamos solo los datos de la página de fondo
+      // Success
+      setIsOpen(false);
+      resetForm();
+      router.refresh();
 
-    } catch (error) {
-      alert("Error: " + error);
+    } catch (error: any) {
+      alert("Error al crear plantas: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      strain: "",
+      name: "",
+      breeder: "",
+      source_type: "Semilla",
+      mother_id: "",
+      stage: "Germinación",
+      cycle_id: "",
+      planted_at: new Date().toISOString().split("T")[0],
+      quantity: 1
+    });
+    setIsNameManuallyEdited(false);
+  };
+
   return (
     <>
-      {/* 1. EL BOTÓN DISPARADOR (Lo que se ve en la Home) */}
       <button 
         onClick={() => setIsOpen(true)}
-        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-4 py-2 rounded-lg font-title tracking-wide transition-colors text-sm md:text-base shadow-lg shadow-brand-primary/20"
+        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-4 py-2 rounded-lg font-title tracking-wide transition-colors text-sm md:text-base shadow-lg shadow-brand-primary/20 flex items-center gap-2"
       >
-        + NUEVA PLANTA
+        <Sprout size={18} />
+        NUEVA PLANTA
       </button>
 
-      {/* 2. EL MODAL (Solo se renderiza si isOpen es true) */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          
-          {/* Fondo oscuro (Overlay) - Cierra al hacer click fuera */}
           <div 
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setIsOpen(false)}
           ></div>
 
-          {/* La Caja del Formulario */}
-          <div className="relative bg-brand-card w-full max-w-md rounded-2xl border border-[#333] shadow-2xl p-6 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-[#12141C] w-full max-w-2xl rounded-2xl border border-white/10 shadow-2xl p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             
-            <h2 className="text-2xl font-title text-brand-primary mb-1 uppercase">Nueva Planta</h2>
-            <p className="text-xs text-brand-muted mb-6">
-              Agregando a: <span className="text-white font-bold">{cycleName}</span>
-            </p>
+            <h2 className="text-2xl font-title text-brand-primary mb-1 uppercase flex items-center gap-2">
+              <Sprout className="text-brand-primary" /> Nueva Planta
+            </h2>
+            <p className="text-xs text-slate-400 mb-6">Completa los datos para registrar nuevos ejemplares.</p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* Nombre */}
-              <div>
-                <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Genética / Nombre</label>
-                <input 
-                  autoFocus
-                  type="text"
-                  required
-                  className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none transition"
-                  placeholder="Ej: Gorilla Glue"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                />
-              </div>
-
-              {/* Etapa y Fecha de Plantado en fila */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* SECTION 1: ORIGEN & CICLO */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Ciclo (Required) */}
                 <div>
-                    <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Etapa</label>
+                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Ciclo Activo *</label>
+                  <div className="relative">
                     <select 
-                    className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none"
-                    value={formData.stage}
-                    onChange={(e) => setFormData({...formData, stage: e.target.value})}
+                      required
+                      className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none appearance-none"
+                      value={formData.cycle_id}
+                      onChange={(e) => setFormData({...formData, cycle_id: e.target.value})}
                     >
-                    <option value="Germinación">🌱 Germ.</option>
-                    <option value="Esqueje">✂️ Esqueje</option>
-                    <option value="Vegetación">🌿 Vege</option>
-                    <option value="Floración">🌸 Flora</option>
+                      <option value="" disabled>Seleccionar Ciclo...</option>
+                      {activeCycles.map(cycle => (
+                        <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
+                      ))}
                     </select>
+                    <Layers className="absolute right-3 top-3 text-slate-500 pointer-events-none" size={16} />
+                  </div>
                 </div>
-                <div>
-                    <label className="block text-brand-muted mb-1 text-xs font-bold uppercase">Fecha de Inicio</label>
-                    <input 
-                    type="date"
-                    className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-white focus:border-brand-primary outline-none"
-                    value={formData.planted_at}
-                    onChange={(e) => setFormData({...formData, planted_at: e.target.value})}
-                    />
+
+                 {/* Origen */}
+                 <div>
+                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Origen</label>
+                  <div className="flex bg-[#0B0C10] p-1 rounded-lg border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, source_type: 'Semilla', mother_id: ""})}
+                      className={`flex-1 py-2 rounded text-xs font-bold uppercase transition-all ${formData.source_type === 'Semilla' ? 'bg-brand-primary text-brand-bg shadow' : 'text-slate-500 hover:text-white'}`}
+                    >
+                      Semilla
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, source_type: 'Esqueje'})}
+                      className={`flex-1 py-2 rounded text-xs font-bold uppercase transition-all ${formData.source_type === 'Esqueje' ? 'bg-brand-primary text-brand-bg shadow' : 'text-slate-500 hover:text-white'}`}
+                    >
+                      Esqueje
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Botones */}
-              <div className="flex gap-3 mt-6 pt-2">
+              {/* Si es Esqueje, mostrar Planta Madre */}
+              {formData.source_type === 'Esqueje' && (
+                <div className="bg-brand-primary/5 p-4 rounded-xl border border-brand-primary/10">
+                  <label className="block text-brand-primary mb-1 text-xs font-bold uppercase">Planta Madre (Opcional)</label>
+                  <select
+                    className="w-full bg-[#0B0C10] border border-brand-primary/20 rounded-lg p-3 text-white focus:border-brand-primary outline-none"
+                    value={formData.mother_id}
+                    onChange={(e) => setFormData({...formData, mother_id: e.target.value})}
+                  >
+                    <option value="">-- Sin Madre Asignada --</option>
+                    {potentialMothers.map(plant => (
+                      <option key={plant.id} value={plant.id}>{plant.name} ({plant.strain || '?'})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* SECTION 2: GENÉTICA */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Genética (Strain) *</label>
+                  <div className="relative">
+                    <input 
+                      type="text"
+                      required
+                      placeholder="Ej: Lemon Haze"
+                      className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-brand-primary outline-none transition"
+                      value={formData.strain}
+                      onChange={(e) => setFormData({...formData, strain: e.target.value})}
+                    />
+                    <Fingerprint className="absolute left-3 top-3 text-slate-500" size={16} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Banco (Breeder)</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Green House Seeds"
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none transition"
+                    value={formData.breeder}
+                    onChange={(e) => setFormData({...formData, breeder: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              {/* SECTION 3: DATOS INDIVIDUALES */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Nombre Identificador</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none transition"
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData({...formData, name: e.target.value});
+                      setIsNameManuallyEdited(true);
+                    }}
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Se usará para etiquetar las plantas.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                   <div>
+                      <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Cantidad</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 pl-9 text-white focus:border-brand-primary outline-none transition"
+                          value={formData.quantity}
+                          onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value)})}
+                        />
+                        <Hash className="absolute left-3 top-3 text-slate-500" size={16} />
+                      </div>
+                   </div>
+                   <div>
+                      <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Fecha Inicio</label>
+                      <input
+                        type="date"
+                        required
+                        className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none transition"
+                        value={formData.planted_at}
+                        onChange={(e) => setFormData({...formData, planted_at: e.target.value})}
+                      />
+                   </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Etapa Inicial</label>
+                <select
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none"
+                  value={formData.stage}
+                  onChange={(e) => setFormData({...formData, stage: e.target.value})}
+                >
+                  <option value="Germinación">🌱 Germinación</option>
+                  <option value="Plántula">🌱 Plántula</option>
+                  <option value="Vegetativo">🌿 Vegetativo</option>
+                  <option value="Floración">🌸 Floración</option>
+                  <option value="Secado">🍂 Secado</option>
+                  <option value="Curado">🏺 Curado</option>
+                </select>
+              </div>
+
+              {/* ACTIONS */}
+              <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
                 <button 
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="flex-1 py-3 text-brand-muted hover:text-white font-bold text-xs uppercase"
+                  className="flex-1 py-3 text-slate-400 hover:text-white font-bold text-xs uppercase transition-colors"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-brand-bg py-3 rounded-lg font-title tracking-wide transition disabled:opacity-50"
+                  className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-brand-bg py-3 rounded-lg font-title tracking-wide transition disabled:opacity-50 shadow-lg shadow-brand-primary/20"
                 >
-                  {loading ? "GUARDANDO..." : "CREAR"}
+                  {loading ? "GUARDANDO..." : `CREAR ${formData.quantity > 1 ? `(${formData.quantity})` : ''}`}
                 </button>
               </div>
 

@@ -16,6 +16,10 @@ export interface Plant {
   last_water: string;
   cycle_id: number | null;
   image_url?: string;
+  strain?: string;
+  breeder?: string;
+  source_type?: 'Semilla' | 'Esqueje';
+  mother_id?: number | null;
 }
 
 export interface Cycle {
