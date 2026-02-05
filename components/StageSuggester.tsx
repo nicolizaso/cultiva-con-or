@@ -12,9 +12,9 @@ import { useRouter } from "next/navigation";
 
 // Thresholds configuration
 const STAGE_THRESHOLDS: Record<string, { nextStage: string; days: number }> = {
-  'Plántula': { nextStage: 'Vegetativo', days: 21 },
+  'Plantula': { nextStage: 'Vegetativo', days: 21 },
   'Vegetativo': { nextStage: 'Floración', days: 60 }, // Example
-  'Germinación': { nextStage: 'Plántula', days: 7 }, // Example
+  'Germinación': { nextStage: 'Plantula', days: 7 }, // Example
 };
 
 interface StageSuggesterProps {

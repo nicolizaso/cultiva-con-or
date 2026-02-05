@@ -1,6 +1,6 @@
 export type CycleStage = 
   | 'Germinación' 
-  | 'Plántula' 
+  | 'Plantula' 
   | 'Vegetativo' 
   | 'Floración' 
   | 'Secado' 

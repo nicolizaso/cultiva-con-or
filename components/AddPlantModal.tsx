@@ -293,7 +293,7 @@ export default function AddPlantModal() {
                   onChange={(e) => setFormData({...formData, stage: e.target.value})}
                 >
                   <option value="Germinación">🌱 Germinación</option>
-                  <option value="Plántula">🌱 Plántula</option>
+                  <option value="Plantula">🌱 Plantula</option>
                   <option value="Vegetativo">🌿 Vegetativo</option>
                   <option value="Floración">🌸 Floración</option>
                   <option value="Secado">🍂 Secado</option>

@@ -116,7 +116,7 @@ export default function PlantCard({
       borderColor: 'border-green-500/30',
       icon: '🌿'
     },
-    'Plántula': { 
+    'Plantula': { 
       bgColor: 'bg-yellow-500/10', 
       textColor: 'text-yellow-400', 
       borderColor: 'border-yellow-500/30',
