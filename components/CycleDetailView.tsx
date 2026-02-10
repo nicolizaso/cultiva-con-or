@@ -38,7 +38,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
   return (
     <div className="space-y-6">
       {/* 1. DASHBOARD AMBIENTAL (KPIs con Iconos) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2">
         {/* Temperatura */}
         <div onClick={() => setIsMeasureModalOpen(true)} className="bg-[#12141C] border border-white/5 p-5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary/50 transition-colors group">
             <div>
@@ -104,7 +104,6 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                         <th className="p-4">Planta</th>
                         <th className="p-4">Etapa</th>
                         <th className="p-4">Edad</th>
-                        <th className="p-4">Riego</th>
                         <th className="p-4 text-right">Acción</th>
                     </tr>
                 </thead>
@@ -117,7 +116,6 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                             </td>
                             <td className="p-4"><span className="text-[10px] px-2 py-1 rounded border uppercase font-bold bg-[#1a1a1a] text-slate-300 border-white/10">{plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}</span></td>
                             <td className="p-4 text-slate-400 font-body">{plant.current_age_days ?? plant.days ?? 0} d</td>
-                            <td className="p-4 text-slate-400 font-body">{plant.last_water || '-'}</td>
                             <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-white flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
                         </tr>
                     ))}
