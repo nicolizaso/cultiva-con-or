@@ -115,7 +115,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                             <td className="p-4 font-bold text-white flex items-center gap-3">
                                 <Link href={`/plants/${plant.id}`} className="hover:text-brand-primary hover:underline">{plant.name}</Link>
                             </td>
-                            <td className="p-4"><span className="text-[10px] px-2 py-1 rounded border uppercase font-bold bg-[#1a1a1a] text-slate-300 border-white/10">{plant.stage}</span></td>
+                            <td className="p-4"><span className="text-[10px] px-2 py-1 rounded border uppercase font-bold bg-[#1a1a1a] text-slate-300 border-white/10">{plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}</span></td>
                             <td className="p-4 text-slate-400 font-body">{plant.current_age_days ?? plant.days ?? 0} d</td>
                             <td className="p-4 text-slate-400 font-body">{plant.last_water || '-'}</td>
                             <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-white flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
@@ -138,7 +138,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                     </div>
                     <div className="p-3">
                         <p className="font-bold text-white text-sm truncate">{plant.name}</p>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">{plant.stage}</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">{plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}</p>
                     </div>
                 </div>
             ))}

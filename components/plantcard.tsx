@@ -97,6 +97,9 @@ export default function PlantCard({
 
   if (isDeleting) return null;
 
+  // Normalizar etapa para visualización
+  const displayStage = (stage === 'Esqueje' || stage === 'Plantula') ? 'Plántula' : stage;
+
   const stageConfig = {
     'Floración': { 
       bgColor: 'bg-purple-500/10', 
@@ -116,10 +119,16 @@ export default function PlantCard({
       borderColor: 'border-green-500/30',
       icon: '🌿'
     },
+    'Plántula': {
+      bgColor: 'bg-emerald-500/10',
+      textColor: 'text-emerald-400',
+      borderColor: 'border-emerald-500/30',
+      icon: '🌱'
+    },
     'Plantula': { 
-      bgColor: 'bg-yellow-500/10', 
-      textColor: 'text-yellow-400', 
-      borderColor: 'border-yellow-500/30',
+      bgColor: 'bg-emerald-500/10',
+      textColor: 'text-emerald-400',
+      borderColor: 'border-emerald-500/30',
       icon: '🌱'
     },
     'Germinación': { 
@@ -148,7 +157,7 @@ export default function PlantCard({
     }
   };
 
-  const stageInfo = stageConfig[stage as keyof typeof stageConfig] || stageConfig['Vegetación'];
+  const stageInfo = stageConfig[displayStage as keyof typeof stageConfig] || stageConfig['Vegetación'];
 
   // Content wrapper to handle Link vs Div based on selection mode
   const ContentWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -218,7 +227,7 @@ export default function PlantCard({
                 {/* Badges: Stage */}
                 <div className="mt-2">
                     <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>
-                        {stageInfo.icon} {stage}
+                        {stageInfo.icon} {displayStage}
                     </span>
                 </div>
 
