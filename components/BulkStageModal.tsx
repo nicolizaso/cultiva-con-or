@@ -53,7 +53,7 @@ export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess
               onChange={(e) => setStage(e.target.value)}
             >
               <option value="Germinación">🌱 Germinación</option>
-              <option value="Esqueje">✂️ Esqueje</option>
+              <option value="Esqueje">🌱 Plantula</option>
               <option value="Vegetación">🌿 Vegetación</option>
               <option value="Floración">🌸 Floración</option>
               <option value="Secado">🍂 Secado</option>
