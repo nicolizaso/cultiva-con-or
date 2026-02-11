@@ -31,10 +31,16 @@ const STAGE_CONFIG: Record<string, { color: string; bgColor: string; borderColor
     borderColor: "border-green-500/20",
     estimatedDays: 7
   },
+  "Plantula": {
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
+    estimatedDays: 14
+  },
   "Esqueje": { 
-    color: "text-blue-400", 
-    bgColor: "bg-blue-500/10", 
-    borderColor: "border-blue-500/20",
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
     estimatedDays: 14
   },
   "Vegetación": { 
@@ -66,6 +72,7 @@ function getCycleStage(plants: Plant[]): string {
     "Secado": 5,
     "Floración": 4,
     "Vegetación": 3,
+    "Plantula": 2,
     "Esqueje": 2,
     "Germinación": 1
   };
@@ -202,7 +209,7 @@ export default function CycleStatusCard({ cycles }: CycleStatusCardProps) {
                   <span
                     className={`text-xs font-bold px-3 py-1.5 rounded-full border ${stageConfig.bgColor} ${stageConfig.color} ${stageConfig.borderColor}`}
                   >
-                    {stage}
+                    {stage === 'Esqueje' || stage === 'Plantula' ? 'Plántula' : stage}
                   </span>
                 </div>
               </div>

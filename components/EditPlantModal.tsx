@@ -136,7 +136,7 @@ export default function EditPlantModal({ plant }: EditPlantModalProps) {
                   onChange={(e) => setFormData({...formData, stage: e.target.value})}
                 >
                   <option value="Germinación">🌱 Germinación</option>
-                  <option value="Plantula">✂️ Plantula</option>
+                  <option value="Plantula">🌱 Plántula</option>
                   <option value="Vegetación">🌿 Vegetación</option>
                   <option value="Floración">🌸 Floración</option>
                   <option value="Secado">🍂 Secado</option>

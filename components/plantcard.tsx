@@ -149,12 +149,6 @@ export default function PlantCard({
       borderColor: 'border-amber-900/30',
       icon: '🍯'
     },
-    'Esqueje': { 
-      bgColor: 'bg-emerald-500/10', 
-      textColor: 'text-emerald-400', 
-      borderColor: 'border-emerald-500/30',
-      icon: '✂️'
-    }
   };
 
   const stageInfo = stageConfig[displayStage as keyof typeof stageConfig] || stageConfig['Vegetación'];
