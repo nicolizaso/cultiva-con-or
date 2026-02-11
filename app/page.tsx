@@ -25,31 +25,43 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', user.id)
-    .single();
-  const username = profile?.username;
-
-  // DATOS: Ciclos
-  // Note: We explicitly select current_age_days (computed column)
-  const { data: cyclesData } = await supabase
-    .from('cycles')
-    .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage)`)
-    .eq('is_active', true)
-    .order('created_at', { ascending: true });
-
-  // DATOS: Tareas para HOY
   const todayStr = new Date().toISOString().split('T')[0];
-  const { data: tasksData } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('status', 'pending')
-    .eq('due_date', todayStr)
-    .order('created_at', { ascending: true });
 
+  // Parallel fetch of all independent dashboard data
+  const [
+    { data: profile },
+    { data: cyclesData },
+    { data: tasksData },
+    { data: allSpaces }
+  ] = await Promise.all([
+    // Profile info
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single(),
+    // Active cycles with plants and spaces info
+    // Note: We explicitly select current_age_days (computed column)
+    supabase
+      .from('cycles')
+      .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage)`)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true }),
+    // Pending tasks for today
+    supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .eq('due_date', todayStr)
+      .order('created_at', { ascending: true }),
+    // All available spaces for the UI
+    supabase
+      .from('spaces')
+      .select('id, name')
+  ]);
+
+  const username = profile?.username;
   const todayTask = tasksData && tasksData.length > 0 ? (tasksData[0] as Task) : undefined;
 
   // Procesamiento
@@ -62,9 +74,6 @@ export default async function Home() {
     if (c.spaces) activeSpacesMap.set(c.spaces.id, c.spaces);
   });
   const activeSpacesCount = activeSpacesMap.size;
-
-  // Datos para el FAB
-  const { data: allSpaces } = await supabase.from('spaces').select('id, name');
   const allPlants: { id: string, name: string }[] = [];
   activeCycles.forEach(cycle => {
     cycle.plants?.forEach(p => {
