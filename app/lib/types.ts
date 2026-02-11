@@ -12,7 +12,9 @@ export interface Plant {
   stage: string;
   days?: number; // Deprecated: Use current_age_days instead
   planted_at?: string; // ISO timestamp
+  stage_updated_at?: string; // ISO timestamp
   current_age_days?: number; // Computed field
+  days_in_stage?: number; // Computed field
   last_water: string;
   cycle_id: number | null;
   image_url?: string;
@@ -48,4 +50,15 @@ export interface Task {
   cycleId?: string;
   cycleName?: string;
   type: string; // 'riego', 'poda', etc.
+}
+
+export interface Log {
+  id: number;
+  plant_id: number | null;
+  cycle_id?: number | null;
+  type: string;
+  title: string;
+  notes?: string;
+  media_url?: string[];
+  created_at: string;
 }

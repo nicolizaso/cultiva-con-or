@@ -103,7 +103,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                         <th className="p-4 w-10"><input type="checkbox" onChange={toggleSelectAll} checked={selectedPlants.length === plants.length && plants.length > 0} className="rounded border-slate-700 bg-[#1a1a1a] accent-brand-primary" /></th>
                         <th className="p-4">Planta</th>
                         <th className="p-4">Etapa</th>
-                        <th className="p-4">Edad</th>
+                        <th className="p-4">Días en Etapa</th>
                         <th className="p-4 text-right">Acción</th>
                     </tr>
                 </thead>
@@ -115,7 +115,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                                 <Link href={`/plants/${plant.id}`} className="hover:text-brand-primary hover:underline">{plant.name}</Link>
                             </td>
                             <td className="p-4"><span className="text-[10px] px-2 py-1 rounded border uppercase font-bold bg-[#1a1a1a] text-slate-300 border-white/10">{plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}</span></td>
-                            <td className="p-4 text-slate-400 font-body">{plant.current_age_days ?? plant.days ?? 0} d</td>
+                            <td className="p-4 text-slate-400 font-body">{plant.days_in_stage ?? 0} d</td>
                             <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-white flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
                         </tr>
                     ))}
@@ -144,8 +144,8 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
       )}
 
       {/* Modales */}
-      <BulkWaterModal isOpen={isWaterModalOpen} onClose={() => setIsWaterModalOpen(false)} selectedIds={selectedPlants} onSuccess={() => setSelectedPlants([])} />
-      <BulkStageModal isOpen={isStageModalOpen} onClose={() => setIsStageModalOpen(false)} selectedIds={selectedPlants} onSuccess={() => setSelectedPlants([])} />
+      <BulkWaterModal isOpen={isWaterModalOpen} onClose={() => setIsWaterModalOpen(false)} selectedIds={selectedPlants} onSuccess={() => setSelectedPlants([])} cycleId={cycle.id} />
+      <BulkStageModal isOpen={isStageModalOpen} onClose={() => setIsStageModalOpen(false)} selectedIds={selectedPlants} onSuccess={() => setSelectedPlants([])} cycleId={cycle.id} />
       <MeasurementModal isOpen={isMeasureModalOpen} onClose={() => setIsMeasureModalOpen(false)} cycleId={cycle.id} />
     </div>
   );

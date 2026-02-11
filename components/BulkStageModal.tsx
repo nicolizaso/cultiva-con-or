@@ -8,9 +8,10 @@ interface BulkStageModalProps {
   onClose: () => void;
   selectedIds: number[];
   onSuccess: () => void;
+  cycleId: number;
 }
 
-export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess }: BulkStageModalProps) {
+export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess, cycleId }: BulkStageModalProps) {
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState("Floración");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -21,7 +22,7 @@ export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess
     e.preventDefault();
     setLoading(true);
 
-    const res = await bulkChangeStage(selectedIds, stage, new Date(date).toISOString());
+    const res = await bulkChangeStage(selectedIds, stage, new Date(date).toISOString(), cycleId);
 
     setLoading(false);
 

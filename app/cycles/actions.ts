@@ -2,27 +2,35 @@
 
 import { createClient } from '@/app/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
+import { formatDateShort } from '@/app/lib/utils';
 
 export async function bulkWaterPlants(
   plantIds: number[], 
   date: string, 
-  notes: string
+  notes: string,
+  cycleId: number
 ) {
   const supabase = await createClient();
 
   try {
-    // 1. Crear los registros de Log (Bitácora) para CADA planta seleccionada
-    const logsToInsert = plantIds.map(id => ({
-      plant_id: id,
-      type: 'Riego',
-      title: 'Riego Masivo',
-      notes: notes,
-      created_at: date // Usamos la fecha que eligió el usuario
-    }));
+    // 1. Crear UN registro de Log (Bitácora) para la acción masiva
+    const count = plantIds.length;
+    const title = `Riego masivo aplicado a ${count} plantas`;
+
+    // Notes can include the date formatted
+    const formattedDate = formatDateShort(date);
+    const finalNotes = notes ? `${notes}\nFecha: ${formattedDate}` : `Fecha: ${formattedDate}`;
 
     const { error: logError } = await supabase
       .from('logs')
-      .insert(logsToInsert);
+      .insert({
+        cycle_id: cycleId, // Link to cycle
+        plant_id: null,    // Not linked to specific plant
+        type: 'Riego',
+        title: title,
+        notes: finalNotes,
+        created_at: date
+      });
 
     if (logError) throw logError;
 
@@ -51,30 +59,36 @@ export async function bulkChangeStage(
     plantIds: number[], 
     newStage: string,
     date: string,
+    cycleId: number,
     notes?: string
   ) {
     const supabase = await createClient();
   
     try {
-      // 1. Crear logs para documentar el cambio
-      const logsToInsert = plantIds.map(id => ({
-        plant_id: id,
-        type: 'Cambio de Etapa',
-        title: `Cambio a ${newStage}`,
-        notes: notes || `Cambio de etapa masivo registrado el ${date}`,
-        created_at: date
-      }));
-  
+      // 1. Crear UN log para documentar el cambio
+      const count = plantIds.length;
+      const formattedDate = formatDateShort(date);
+
       const { error: logError } = await supabase
         .from('logs')
-        .insert(logsToInsert);
+        .insert({
+            cycle_id: cycleId,
+            plant_id: null,
+            type: 'Cambio de Etapa',
+            title: `Cambio de etapa a ${newStage} para ${count} plantas`,
+            notes: notes || `Cambio de etapa masivo registrado el ${formattedDate}`,
+            created_at: date
+        });
   
       if (logError) throw logError;
   
-      // 2. Actualizar la etapa en las plantas
+      // 2. Actualizar la etapa en las plantas Y stage_updated_at
       const { error: plantError } = await supabase
         .from('plants')
-        .update({ stage: newStage })
+        .update({
+            stage: newStage,
+            stage_updated_at: date // Use the provided date
+        })
         .in('id', plantIds);
   
       if (plantError) throw plantError;

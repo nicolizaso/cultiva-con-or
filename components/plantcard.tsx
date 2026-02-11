@@ -15,6 +15,7 @@ interface PlantCardProps {
   stage: string;
   days?: number;
   current_age_days?: number;
+  days_in_stage?: number;
   planted_at?: string;
   lastWater: string;
   imageUrl?: string | null;
@@ -31,6 +32,7 @@ export default function PlantCard({
   stage,
   days,
   current_age_days,
+  days_in_stage,
   planted_at,
   lastWater,
   imageUrl,
@@ -226,15 +228,20 @@ export default function PlantCard({
                 </div>
 
                 {/* Metrics: Age & Cycle */}
-                <div className="mt-auto pt-2 flex items-center gap-3 text-xs text-slate-400">
-                    <span className="flex items-center gap-1 font-medium text-slate-300">
-                        📅 {current_age_days ?? days ?? 0} días
-                    </span>
-                    {cycleName && (
-                        <span className="truncate border-l border-white/10 pl-3">
-                            {cycleName}
+                <div className="mt-auto pt-2 flex flex-col gap-1 text-xs text-slate-400">
+                    <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 font-medium text-slate-300">
+                            📅 {current_age_days ?? days ?? 0} días
                         </span>
-                    )}
+                        {cycleName && (
+                            <span className="truncate border-l border-white/10 pl-3">
+                                {cycleName}
+                            </span>
+                        )}
+                    </div>
+                    <span className="text-[10px] text-slate-500">
+                       en etapa de {displayStage} hace {days_in_stage ?? 0} días
+                    </span>
                 </div>
             </ContentWrapper>
 
