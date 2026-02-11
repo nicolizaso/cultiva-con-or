@@ -5,17 +5,11 @@ import { Plant } from "@/app/lib/types";
 import { supabase } from "@/app/lib/supabase";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { getFirstSuggestion } from "@/app/lib/stage-logic";
 
 // I'll assume Toast.tsx is a component I can't just call imperatively unless it has a context or similar.
 // Since I don't see a ToastContext, I'll build a simple dismissible alert inside this component
 // and render it fixed on the screen.
-
-// Thresholds configuration
-const STAGE_THRESHOLDS: Record<string, { nextStage: string; days: number }> = {
-  'Plantula': { nextStage: 'Vegetativo', days: 21 },
-  'Vegetativo': { nextStage: 'Floración', days: 60 }, // Example
-  'Germinación': { nextStage: 'Plantula', days: 7 }, // Example
-};
 
 interface StageSuggesterProps {
   plants: Plant[];
@@ -34,24 +28,9 @@ export default function StageSuggester({ plants }: StageSuggesterProps) {
         // Check local storage to see if we dismissed this recently (optional requirement)
         // For now, I'll skip the "remembers not to ask again" part to keep it simple as per "optional".
 
-        for (const plant of plants) {
-            // Calculate age locally if planted_at is available, otherwise fall back to DB computed or static days
-            let age = plant.current_age_days ?? plant.days ?? 0;
-
-            if (plant.planted_at) {
-                const planted = new Date(plant.planted_at);
-                const now = new Date();
-                const diffTime = Math.abs(now.getTime() - planted.getTime());
-                age = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            }
-
-            const threshold = STAGE_THRESHOLDS[plant.stage];
-
-            if (threshold && age >= threshold.days) {
-                // Found a candidate
-                setSuggestion({ plant, nextStage: threshold.nextStage });
-                return; // Stop after finding one
-            }
+        const foundSuggestion = getFirstSuggestion(plants);
+        if (foundSuggestion) {
+            setSuggestion(foundSuggestion);
         }
     };
 
