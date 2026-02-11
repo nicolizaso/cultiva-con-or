@@ -22,6 +22,12 @@ export interface Plant {
   breeder?: string;
   source_type?: 'Semilla' | 'Esqueje';
   mother_id?: number | null;
+  date_germinacion?: string;
+  date_plantula?: string;
+  date_vegetativo?: string;
+  date_floracion?: string;
+  date_secado?: string;
+  date_curado?: string;
 }
 
 export interface Cycle {

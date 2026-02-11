@@ -1,11 +1,11 @@
 import { createClient } from "@/app/lib/supabase-server";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import GlobalHeader from "@/components/GlobalHeader";
 import LogModal from "@/components/LogModal";
-import EditPlantModal from "@/components/EditPlantModal";
 import { formatDateShort } from "@/app/lib/utils";
-import { Calendar, Droplets, Ruler, History, Sprout } from "lucide-react";
+import { Calendar, Droplets, Ruler, History, Sprout, Edit } from "lucide-react";
 
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
@@ -51,7 +51,12 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
             </div>
           )}
           <div className="absolute top-4 right-4">
-            <EditPlantModal plant={plant} />
+            <Link
+                href={`/plants/${plant.id}/edit`}
+                className="bg-[#222] hover:bg-[#333] text-white p-2 rounded-lg border border-[#333] transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
+            >
+                <Edit size={14} /> Editar
+            </Link>
           </div>
         </div>
 
