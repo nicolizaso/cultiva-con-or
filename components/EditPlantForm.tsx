@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import { Plant, Cycle } from "@/app/lib/types";
+import { getStageColor } from "@/app/lib/utils";
 import { Sprout, Leaf, Flower, Wind, Thermometer, Calendar, Save, ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 
@@ -53,7 +54,10 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
   };
 
   const activateStage = (key: string) => {
-    if (!dates[key as keyof typeof dates]) {
+    if (dates[key as keyof typeof dates]) {
+      // Deactivate/Toggle off
+      handleDateChange(key, '');
+    } else {
       const today = new Date().toISOString().split('T')[0];
       handleDateChange(key, today);
     }
@@ -235,6 +239,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
               const dateValue = dates[dateKey];
               const isActive = !!dateValue;
               const Icon = stage.icon;
+              const colors = getStageColor(stage.label);
 
               return (
                 <div key={stage.key} className={`relative pl-16 transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
@@ -244,7 +249,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
                     onClick={() => activateStage(dateKey)}
                     className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center border-2 z-10 transition-all duration-300 ${
                         isActive
-                        ? 'bg-brand-primary text-black border-brand-primary shadow-[0_0_15px_rgba(34,197,94,0.3)]'
+                        ? `${colors.bgColor} ${colors.textColor} ${colors.borderColor}`
                         : 'bg-[#0B0C10] text-slate-600 border-white/10 hover:border-brand-primary/50 hover:text-brand-primary'
                     }`}
                   >
@@ -256,7 +261,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
                     onClick={() => activateStage(dateKey)}
                     className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${
                         isActive
-                        ? 'bg-[#0B0C10] border-brand-primary/30'
+                        ? `bg-[#0B0C10] ${colors.borderColor}`
                         : 'bg-transparent border-transparent hover:bg-white/5'
                     }`}
                   >
@@ -272,7 +277,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
                              <input
                                 type="date"
                                 className="bg-[#12141C] border border-white/10 rounded-lg px-3 py-1 text-sm text-slate-300 focus:border-brand-primary outline-none w-36"
-                                value={dateValue}
+                                value={dateValue ? dateValue.split('T')[0] : ''}
                                 onChange={(e) => handleDateChange(dateKey, e.target.value)}
                              />
                         ) : (

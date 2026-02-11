@@ -5,17 +5,9 @@ import PlantCard from "./plantcard";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 import { CheckSquare, Square, Trash2, X } from "lucide-react";
+import { Plant as BasePlant } from "@/app/lib/types";
 
-interface Plant {
-  id: number;
-  name: string;
-  strain?: string;
-  stage: string;
-  days?: number;
-  current_age_days?: number;
-  planted_at?: string;
-  last_water: string;
-  image_url?: string | null;
+interface Plant extends BasePlant {
   cycles?: { name: string } | null;
 }
 
@@ -121,15 +113,7 @@ export default function PlantsGridManager({ plants }: PlantsGridManagerProps) {
           plants.map((plant) => (
             <PlantCard
               key={plant.id}
-              id={plant.id}
-              name={plant.name}
-              strain={plant.strain || ""}
-              stage={plant.stage}
-              days={plant.days}
-              current_age_days={plant.current_age_days}
-              planted_at={plant.planted_at}
-              lastWater={plant.last_water}
-              imageUrl={plant.image_url}
+              plant={plant}
               cycleName={plant.cycles?.name}
               selectionMode={isSelectionMode}
               isSelected={selectedIds.has(plant.id)}

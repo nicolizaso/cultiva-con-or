@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Plant } from "@/app/lib/types";
+import { getPlantMetrics, getStageColor } from "@/app/lib/utils";
 import { Thermometer, CloudRain, Activity, Droplets, ArrowRight, LayoutGrid, List as ListIcon } from "lucide-react";
 import BulkWaterModal from "./BulkWaterModal";
 import BulkStageModal from "./BulkStageModal";
@@ -108,38 +109,52 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                    {plants.map(plant => (
-                        <tr key={plant.id} className={`hover:bg-white/5 transition-colors ${selectedPlants.includes(plant.id) ? 'bg-brand-primary/5' : ''}`}>
-                            <td className="p-4"><input type="checkbox" checked={selectedPlants.includes(plant.id)} onChange={() => toggleSelectPlant(plant.id)} className="rounded border-slate-700 bg-[#1a1a1a] accent-brand-primary" /></td>
-                            <td className="p-4 font-bold text-white flex items-center gap-3">
-                                <Link href={`/plants/${plant.id}`} className="hover:text-brand-primary hover:underline">{plant.name}</Link>
-                            </td>
-                            <td className="p-4"><span className="text-[10px] px-2 py-1 rounded border uppercase font-bold bg-[#1a1a1a] text-slate-300 border-white/10">{plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}</span></td>
-                            <td className="p-4 text-slate-400 font-body">{plant.days_in_stage ?? 0} d</td>
-                            <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-white flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
-                        </tr>
-                    ))}
+                    {plants.map(plant => {
+                        const { currentStage, daysInCurrentStage } = getPlantMetrics(plant);
+                        const rawStage = currentStage || plant.stage;
+                        const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plantula') ? 'Plántula' : rawStage;
+                        const stageInfo = getStageColor(displayStage);
+
+                        return (
+                            <tr key={plant.id} className={`hover:bg-white/5 transition-colors ${selectedPlants.includes(plant.id) ? 'bg-brand-primary/5' : ''}`}>
+                                <td className="p-4"><input type="checkbox" checked={selectedPlants.includes(plant.id)} onChange={() => toggleSelectPlant(plant.id)} className="rounded border-slate-700 bg-[#1a1a1a] accent-brand-primary" /></td>
+                                <td className="p-4 font-bold text-white flex items-center gap-3">
+                                    <Link href={`/plants/${plant.id}`} className="hover:text-brand-primary hover:underline">{plant.name}</Link>
+                                </td>
+                                <td className="p-4"><span className={`text-[10px] px-2 py-1 rounded border uppercase font-bold ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>{displayStage}</span></td>
+                                <td className="p-4 text-slate-400 font-body">{daysInCurrentStage} d</td>
+                                <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-white flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {plants.map(plant => (
-                <div key={plant.id} onClick={() => toggleSelectPlant(plant.id)} className={`relative group bg-[#12141C] border rounded-2xl overflow-hidden cursor-pointer transition-all ${selectedPlants.includes(plant.id) ? 'border-brand-primary ring-1 ring-brand-primary' : 'border-white/5 hover:border-slate-500'}`}>
-                    <div className="absolute top-2 left-2 z-10"><input type="checkbox" checked={selectedPlants.includes(plant.id)} readOnly className="w-5 h-5 accent-brand-primary" /></div>
-                    <div className="aspect-square bg-[#050608] relative">
-                         {(plant as any).image_url ? (
-                            <Image src={(plant as any).image_url} alt="" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                         ) : (
-                            <div className="flex items-center justify-center h-full text-brand-primary opacity-20"><LayoutGrid size={32} /></div>
-                         )}
+            {plants.map(plant => {
+                const { currentStage } = getPlantMetrics(plant);
+                const rawStage = currentStage || plant.stage;
+                const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plantula') ? 'Plántula' : rawStage;
+                const stageInfo = getStageColor(displayStage);
+
+                return (
+                    <div key={plant.id} onClick={() => toggleSelectPlant(plant.id)} className={`relative group bg-[#12141C] border rounded-2xl overflow-hidden cursor-pointer transition-all ${selectedPlants.includes(plant.id) ? 'border-brand-primary ring-1 ring-brand-primary' : 'border-white/5 hover:border-slate-500'}`}>
+                        <div className="absolute top-2 left-2 z-10"><input type="checkbox" checked={selectedPlants.includes(plant.id)} readOnly className="w-5 h-5 accent-brand-primary" /></div>
+                        <div className="aspect-square bg-[#050608] relative">
+                             {(plant as any).image_url ? (
+                                <Image src={(plant as any).image_url} alt="" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                             ) : (
+                                <div className={`flex items-center justify-center h-full ${stageInfo.textColor} opacity-20`}><LayoutGrid size={32} /></div>
+                             )}
+                        </div>
+                        <div className="p-3">
+                            <p className="font-bold text-white text-sm truncate">{plant.name}</p>
+                            <p className={`text-[10px] uppercase font-bold ${stageInfo.textColor}`}>{displayStage}</p>
+                        </div>
                     </div>
-                    <div className="p-3">
-                        <p className="font-bold text-white text-sm truncate">{plant.name}</p>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">{plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}</p>
-                    </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
       )}
 
