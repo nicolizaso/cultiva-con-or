@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Droplets, Camera, StickyNote, Rocket, Scissors, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Droplets, Camera, StickyNote, Rocket, Scissors, ChevronLeft, ChevronRight,
+  FlaskConical, ShieldAlert, Shovel, Activity, ArrowRightLeft, CloudRain, Flower, Skull, PenTool, CheckCircle, Circle
+} from "lucide-react";
 
 interface Log {
   id: number;
@@ -14,7 +17,23 @@ interface Log {
   plants?: any; // Usamos any temporalmente para manejar la inconsistencia de array/objeto
 }
 
-export default function CalendarWidget({ logs }: { logs: Log[] }) {
+interface Task {
+  id: number;
+  created_at: string;
+  due_date: string;
+  type: string;
+  title: string;
+  description?: string;
+  status: 'pending' | 'completed';
+  plants?: any;
+}
+
+interface CalendarWidgetProps {
+  logs: Log[];
+  tasks: Task[];
+}
+
+export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
@@ -24,13 +43,49 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  const logsForSelectedDate = logs.filter(log => selectedDate && isSameDay(parseISO(log.created_at), selectedDate));
+  // Unificar eventos
+  const allEvents = [
+    ...logs.map(log => ({
+      id: `log-${log.id}`,
+      originalId: log.id,
+      date: parseISO(log.created_at),
+      type: log.type,
+      title: log.title,
+      notes: log.notes,
+      plants: log.plants,
+      isTask: false,
+      status: undefined
+    })),
+    ...tasks.map(task => ({
+      id: `task-${task.id}`,
+      originalId: task.id,
+      date: parseISO(task.due_date),
+      type: task.type,
+      title: task.title,
+      notes: task.description,
+      plants: task.plants,
+      isTask: true,
+      status: task.status
+    }))
+  ];
+
+  const eventsForSelectedDate = allEvents.filter(event => selectedDate && isSameDay(event.date, selectedDate));
 
   const getIcon = (type: string) => {
-    if (type === 'Riego') return <Droplets size={14} className="text-blue-400" />;
-    if (type === 'Foto') return <Camera size={14} className="text-yellow-400" />;
-    if (type.includes('Etapa')) return <Rocket size={14} className="text-purple-400" />;
-    if (type === 'Poda' || type === 'Defoliación') return <Scissors size={14} className="text-red-400" />;
+    const t = type.toLowerCase();
+    if (t.includes('riego')) return <Droplets size={14} className="text-[#00a599]" />;
+    if (t === 'foto') return <Camera size={14} className="text-yellow-400" />;
+    if (t.includes('etapa')) return <Rocket size={14} className="text-purple-400" />;
+    if (t.includes('poda') || t.includes('defoliación') || t.includes('scissors')) return <Scissors size={14} className="text-slate-400" />;
+    if (t.includes('fertilizante')) return <FlaskConical size={14} className="text-green-500" />;
+    if (t.includes('repelente')) return <ShieldAlert size={14} className="text-orange-500" />;
+    if (t.includes('trasplante')) return <Shovel size={14} className="text-amber-700" />;
+    if (t.includes('entrenamiento')) return <Activity size={14} className="text-slate-400" />;
+    if (t.includes('ambiente')) return <ArrowRightLeft size={14} className="text-slate-400" />;
+    if (t.includes('lavado')) return <CloudRain size={14} className="text-slate-500" />;
+    if (t.includes('cosechar')) return <Flower size={14} className="text-violet-500" />;
+    if (t.includes('muerta')) return <Skull size={14} className="text-white" />;
+    if (t.includes('otro')) return <PenTool size={14} className="text-slate-400" />;
     return <StickyNote size={14} className="text-slate-400" />;
   };
 
@@ -64,7 +119,7 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
 
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((day) => {
-            const dayLogs = logs.filter(log => isSameDay(parseISO(log.created_at), day));
+            const dayEvents = allEvents.filter(event => isSameDay(event.date, day));
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isSelected = selectedDate && isSameDay(day, selectedDate);
             const isToday = isSameDay(day, new Date());
@@ -83,10 +138,12 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
                     {isToday && <span className="w-1 h-1 rounded-full bg-brand-primary"></span>}
                 </div>
                 <div className="flex flex-wrap gap-1 content-start">
-                  {dayLogs.slice(0, 4).map((log, i) => (
-                    <span key={i} title={`${log.type}: ${log.title}`}>{getIcon(log.type)}</span>
+                  {dayEvents.slice(0, 4).map((event, i) => (
+                    <span key={i} title={`${event.type}: ${event.title}`} className={event.status === 'completed' ? 'opacity-50' : ''}>
+                      {getIcon(event.type)}
+                    </span>
                   ))}
-                  {dayLogs.length > 4 && <span className="text-[8px] text-slate-500">+{dayLogs.length - 4}</span>}
+                  {dayEvents.length > 4 && <span className="text-[8px] text-slate-500">+{dayEvents.length - 4}</span>}
                 </div>
               </div>
             );
@@ -101,20 +158,29 @@ export default function CalendarWidget({ logs }: { logs: Log[] }) {
                 {selectedDate ? format(selectedDate, 'EEEE d', { locale: es }) : 'Selecciona un día'}
             </h3>
             <div className="space-y-4 mt-6">
-                {logsForSelectedDate.length > 0 ? (
-                    logsForSelectedDate.map(log => {
-                        const plantName = getPlantName(log.plants);
+                {eventsForSelectedDate.length > 0 ? (
+                    eventsForSelectedDate.map(event => {
+                        const plantName = getPlantName(event.plants);
+                        const isCompleted = event.status === 'completed';
+
                         return (
-                            <div key={log.id} className="bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
+                            <div key={event.id} className={`bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors ${isCompleted ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                                 <div className="flex justify-between items-start mb-1">
-                                    <span>{getIcon(log.type)}</span>
-                                    <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{log.type}</span>
+                                    <div className="flex items-center gap-2">
+                                      <span>{getIcon(event.type)}</span>
+                                      <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{event.type}</span>
+                                    </div>
+                                    {event.isTask && (
+                                      <span title={isCompleted ? "Completada" : "Pendiente"}>
+                                        {isCompleted ? <CheckCircle size={14} className="text-brand-primary" /> : <Circle size={14} className="text-slate-600" />}
+                                      </span>
+                                    )}
                                 </div>
-                                <h4 className="font-bold text-white text-sm mb-1">{log.title}</h4>
+                                <h4 className={`font-bold text-white text-sm mb-1 ${isCompleted ? 'line-through text-slate-400' : ''}`}>{event.title}</h4>
                                 {plantName && (
                                     <p className="text-xs text-brand-primary mb-1">🌿 {plantName}</p>
                                 )}
-                                {log.notes && <p className="text-xs text-slate-500 italic">"{log.notes}"</p>}
+                                {event.notes && <p className="text-xs text-slate-500 italic">"{event.notes}"</p>}
                             </div>
                         );
                     })
