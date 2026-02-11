@@ -6,6 +6,7 @@ import {
   ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, 
   CloudRain, Flower, Skull, PenTool, Check, ChevronDown, Loader2
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { createTask } from '@/app/actions/tasks'
 import DatePicker from './DatePicker'
 import { useToast } from '@/app/context/ToastContext' // <--- Importamos el hook
@@ -36,6 +37,7 @@ const TASK_TYPES = [
 ]
 
 export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTaskModalProps) {
+  const router = useRouter()
   const { showToast } = useToast() // <--- Inicializamos el toast
 
   const [selectedTargets, setSelectedTargets] = useState<{ id: string | number, name: string, type: 'plant' | 'space' }[]>([])
@@ -104,6 +106,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
     } else {
       // Éxito
       showToast('¡Tarea agendada correctamente!', 'success') // <--- Toast de Éxito
+      router.refresh()
       
       // Limpiar y cerrar
       setSelectedTargets([])
