@@ -68,13 +68,16 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
         {/* Datos Técnicos */}
         <div className="flex flex-col justify-center space-y-6">
             <div>
-                <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>
-                        {stageInfo.icon} {displayStage}
-                    </span>
-                    <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">
-                        {plant.cycles?.name}
-                    </span>
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>
+                            {stageInfo.icon} {displayStage}
+                        </span>
+                        <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">
+                            {plant.cycles?.name}
+                        </span>
+                    </div>
+                    <LogModal plantId={plant.id} plantName={plant.name} />
                 </div>
                 <h1 className="text-4xl md:text-5xl font-title font-light text-white mb-4">{plant.name}</h1>
             </div>
@@ -101,10 +104,6 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                     </div>
                     <p className="text-xl font-light text-white truncate">{plant.last_water || '-'}</p>
                 </div>
-            </div>
-
-            <div className="flex gap-3">
-                <LogModal plantId={plant.id} plantName={plant.name} />
             </div>
         </div>
       </div>
