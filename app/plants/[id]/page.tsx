@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import GlobalHeader from "@/components/GlobalHeader";
 import LogModal from "@/components/LogModal";
-import { formatDateShort } from "@/app/lib/utils";
+import { formatDateShort, getPlantMetrics, getStageColor } from "@/app/lib/utils";
 import { Calendar, Droplets, Ruler, History, Sprout, Edit } from "lucide-react";
 
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +33,11 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
   }
 
   const { data: logs } = await query;
+
+  const { currentStage, daysInCurrentStage, totalAge } = getPlantMetrics(plant);
+  const rawStage = currentStage || plant.stage;
+  const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plantula') ? 'Plántula' : rawStage;
+  const stageInfo = getStageColor(displayStage);
 
   return (
     <main className="min-h-screen bg-[#0B0C10] pb-24 text-slate-200 p-4 md:p-8 font-body">
@@ -64,14 +69,8 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
         <div className="flex flex-col justify-center space-y-6">
             <div>
                 <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${
-                        plant.stage === 'Floración' 
-                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
-                        : plant.stage === 'Esqueje' || plant.stage === 'Plantula' || plant.stage === 'Vegetativo' || plant.stage === 'Vegetación'
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                        : 'bg-brand-primary/10 text-brand-primary border-brand-primary/20'
-                    }`}>
-                        {plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>
+                        {stageInfo.icon} {displayStage}
                     </span>
                     <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">
                         {plant.cycles?.name}
@@ -86,14 +85,14 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                         <Calendar size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">Edad Total</span>
                     </div>
-                    <p className="text-2xl font-light text-white">{plant.current_age_days ?? plant.days ?? 0} <span className="text-sm text-slate-500">días</span></p>
+                    <p className="text-2xl font-light text-white">{totalAge} <span className="text-sm text-slate-500">días</span></p>
                 </div>
                 <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">
                         <History size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">En Etapa</span>
                     </div>
-                    <p className="text-2xl font-light text-white">{plant.days_in_stage ?? 0} <span className="text-sm text-slate-500">días</span></p>
+                    <p className="text-2xl font-light text-white">{daysInCurrentStage} <span className="text-sm text-slate-500">días</span></p>
                 </div>
                 <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5 col-span-2 md:col-span-1">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">

@@ -7,18 +7,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, MoreVertical, Trash2, Droplet, Pencil } from "lucide-react";
+import { Plant } from "@/app/lib/types";
+import { getStageColor, getPlantMetrics } from "@/app/lib/utils";
 
 interface PlantCardProps {
-  id: number;
-  name: string;
-  strain?: string;
-  stage: string;
-  days?: number;
-  current_age_days?: number;
-  days_in_stage?: number;
-  planted_at?: string;
-  lastWater: string;
-  imageUrl?: string | null;
+  plant: Plant;
   cycleName?: string;
   selectionMode?: boolean;
   isSelected?: boolean;
@@ -26,21 +19,13 @@ interface PlantCardProps {
 }
 
 export default function PlantCard({
-  id,
-  name,
-  strain,
-  stage,
-  days,
-  current_age_days,
-  days_in_stage,
-  planted_at,
-  lastWater,
-  imageUrl,
+  plant,
   cycleName,
   selectionMode = false,
   isSelected = false,
   onToggleSelection
 }: PlantCardProps) {
+  const { id, name, strain, stage, last_water: lastWater, image_url: imageUrl } = plant;
   const router = useRouter();
   const [isWatered, setIsWatered] = useState(lastWater === "Hoy");
   const [loading, setLoading] = useState(false);
@@ -99,61 +84,11 @@ export default function PlantCard({
 
   if (isDeleting) return null;
 
-  // Normalizar etapa para visualización
-  const displayStage = (stage === 'Esqueje' || stage === 'Plantula') ? 'Plántula' : stage;
+  const { currentStage, daysInCurrentStage, totalAge } = getPlantMetrics(plant);
 
-  const stageConfig = {
-    'Floración': { 
-      bgColor: 'bg-purple-500/10', 
-      textColor: 'text-purple-400', 
-      borderColor: 'border-purple-500/30',
-      icon: '🌸'
-    },
-    'Vegetativo': {
-      bgColor: 'bg-green-500/10',
-      textColor: 'text-green-400',
-      borderColor: 'border-green-500/30',
-      icon: '🌿'
-    },
-    'Vegetación': { 
-      bgColor: 'bg-green-500/10', 
-      textColor: 'text-green-400', 
-      borderColor: 'border-green-500/30',
-      icon: '🌿'
-    },
-    'Plántula': {
-      bgColor: 'bg-emerald-500/10',
-      textColor: 'text-emerald-400',
-      borderColor: 'border-emerald-500/30',
-      icon: '🌱'
-    },
-    'Plantula': { 
-      bgColor: 'bg-emerald-500/10',
-      textColor: 'text-emerald-400',
-      borderColor: 'border-emerald-500/30',
-      icon: '🌱'
-    },
-    'Germinación': { 
-      bgColor: 'bg-blue-500/10', 
-      textColor: 'text-blue-400', 
-      borderColor: 'border-blue-500/30',
-      icon: '💧'
-    },
-    'Secado': { 
-      bgColor: 'bg-amber-700/10', 
-      textColor: 'text-amber-600', 
-      borderColor: 'border-amber-700/30',
-      icon: '🍂'
-    },
-    'Curado': {
-      bgColor: 'bg-amber-900/10',
-      textColor: 'text-amber-500',
-      borderColor: 'border-amber-900/30',
-      icon: '🍯'
-    },
-  };
-
-  const stageInfo = stageConfig[displayStage as keyof typeof stageConfig] || stageConfig['Vegetación'];
+  const rawStage = currentStage || stage;
+  const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plantula') ? 'Plántula' : rawStage;
+  const stageInfo = getStageColor(displayStage);
 
   // Content wrapper to handle Link vs Div based on selection mode
   const ContentWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -231,7 +166,7 @@ export default function PlantCard({
                 <div className="mt-auto pt-2 flex flex-col gap-1 text-xs text-slate-400">
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1 font-medium text-slate-300">
-                            📅 {current_age_days ?? days ?? 0} días
+                            📅 {totalAge} días
                         </span>
                         {cycleName && (
                             <span className="truncate border-l border-white/10 pl-3">
@@ -240,7 +175,7 @@ export default function PlantCard({
                         )}
                     </div>
                     <span className="text-[10px] text-slate-500">
-                       en etapa de {displayStage} hace {days_in_stage ?? 0} días
+                       en etapa de {displayStage} hace {daysInCurrentStage} días
                     </span>
                 </div>
             </ContentWrapper>
