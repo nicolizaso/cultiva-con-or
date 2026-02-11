@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import GlobalHeader from "@/components/GlobalHeader";
 import LogModal from "@/components/LogModal";
+import PlantMetricsDisplay from "@/components/PlantMetricsDisplay";
 import { formatDateShort, getPlantMetrics, getStageColor } from "@/app/lib/utils";
 import { Calendar, Droplets, Ruler, History, Sprout, Edit } from "lucide-react";
 
@@ -88,14 +89,14 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                         <Calendar size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">Edad Total</span>
                     </div>
-                    <p className="text-2xl font-light text-white">{totalAge} <span className="text-sm text-slate-500">días</span></p>
+                    <p className="text-2xl font-light text-white"><PlantMetricsDisplay plant={plant} type="totalAge" /> <span className="text-sm text-slate-500">días</span></p>
                 </div>
                 <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">
                         <History size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">En Etapa</span>
                     </div>
-                    <p className="text-2xl font-light text-white">{daysInCurrentStage} <span className="text-sm text-slate-500">días</span></p>
+                    <p className="text-2xl font-light text-white"><PlantMetricsDisplay plant={plant} type="daysInCurrentStage" /> <span className="text-sm text-slate-500">días</span></p>
                 </div>
                 <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5 col-span-2 md:col-span-1">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">

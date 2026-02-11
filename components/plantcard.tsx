@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -31,6 +31,11 @@ export default function PlantCard({
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Lógica de Riego
   const handleWater = async (e: React.MouseEvent) => {
@@ -166,7 +171,7 @@ export default function PlantCard({
                 <div className="mt-auto pt-2 flex flex-col gap-1 text-xs text-slate-400">
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1 font-medium text-slate-300">
-                            📅 {totalAge} días
+                            📅 {isMounted ? totalAge : <span className="opacity-0">0</span>} días
                         </span>
                         {cycleName && (
                             <span className="truncate border-l border-white/10 pl-3">
@@ -175,7 +180,7 @@ export default function PlantCard({
                         )}
                     </div>
                     <span className="text-[10px] text-slate-500">
-                       en etapa de {displayStage} hace {daysInCurrentStage} días
+                       en etapa de {displayStage} hace {isMounted ? daysInCurrentStage : <span className="opacity-0">0</span>} días
                     </span>
                 </div>
             </ContentWrapper>
