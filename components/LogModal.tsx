@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/app/context/ToastContext";
 import imageCompression from 'browser-image-compression';
 import { Camera } from "lucide-react";
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function LogModal({ plantId, plantName }: Props) {
+  const { showToast } = useToast();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -102,7 +104,7 @@ export default function LogModal({ plantId, plantName }: Props) {
       setIsOpen(false);
       setNote("");
       setFile(null);
-      alert("¡Bitácora actualizada!");
+      showToast('Imagen Actualizada', 'success');
       router.refresh();
 
     } catch (error) {
