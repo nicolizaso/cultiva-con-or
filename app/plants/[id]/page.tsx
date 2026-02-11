@@ -53,9 +53,11 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${
                         plant.stage === 'Floración' 
                         ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                        : plant.stage === 'Esqueje' || plant.stage === 'Plantula' || plant.stage === 'Vegetativo' || plant.stage === 'Vegetación'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                         : 'bg-brand-primary/10 text-brand-primary border-brand-primary/20'
                     }`}>
-                        {plant.stage}
+                        {plant.stage === 'Esqueje' || plant.stage === 'Plantula' ? 'Plántula' : plant.stage}
                     </span>
                     <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">
                         {plant.cycles?.name}
