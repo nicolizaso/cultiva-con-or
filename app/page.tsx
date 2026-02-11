@@ -36,7 +36,7 @@ export default async function Home() {
   // Note: We explicitly select current_age_days (computed column)
   const { data: cyclesData } = await supabase
     .from('cycles')
-    .select(`*, spaces (id, name, type), plants (*, current_age_days)`)
+    .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage)`)
     .eq('is_active', true)
     .order('created_at', { ascending: true });
 
