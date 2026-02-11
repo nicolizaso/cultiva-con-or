@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 import imageCompression from 'browser-image-compression';
+import { Camera } from "lucide-react";
 
 interface Props {
   plantId: number;
@@ -120,7 +121,7 @@ export default function LogModal({ plantId, plantName }: Props) {
         className="text-brand-muted hover:text-brand-primary transition-colors p-2 rounded-full hover:bg-brand-card border border-transparent hover:border-brand-primary/30"
         title="Agregar Foto/Nota"
       >
-        📷
+        <Camera className="w-6 h-6 text-brand-primary" />
       </button>
 
       {/* MODAL */}
@@ -150,7 +151,6 @@ export default function LogModal({ plantId, plantName }: Props) {
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   accept="image/*"
-                  capture="environment" // <--- TRUCO: Abre la cámara trasera en el celular
                   className="hidden"
                 />
                 
