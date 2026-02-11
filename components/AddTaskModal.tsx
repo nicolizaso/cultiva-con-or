@@ -42,7 +42,11 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
 
   const [selectedTargets, setSelectedTargets] = useState<{ id: string | number, name: string, type: 'plant' | 'space' }[]>([])
   const [selectedTaskType, setSelectedTaskType] = useState<typeof TASK_TYPES[0] | null>(null)
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  // Inicializar con fecha local en formato YYYY-MM-DD
+  const [date, setDate] = useState(() => {
+    const d = new Date()
+    return d.toLocaleDateString('en-CA')
+  })
   const [description, setDescription] = useState('')
   const [otherText, setOtherText] = useState('') 
 
@@ -93,7 +97,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
     const result = await createTask({
       targets: selectedTargets,
       taskType: cleanTaskType, 
-      date,
+      date: `${date}T12:00:00`, // Forzar mediodía para evitar desfases de zona horaria
       description,
       otherText
     })
