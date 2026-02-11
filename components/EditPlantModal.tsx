@@ -48,14 +48,20 @@ export default function EditPlantModal({ plant }: EditPlantModalProps) {
     setLoading(true);
 
     try {
+      const updates: any = {
+        name: formData.name,
+        stage: formData.stage,
+        cycle_id: formData.cycleId,
+        planted_at: formData.planted_at
+      };
+
+      if (formData.stage !== plant.stage) {
+        updates.stage_updated_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from('plants')
-        .update({
-          name: formData.name,
-          stage: formData.stage,
-          cycle_id: formData.cycleId,
-          planted_at: formData.planted_at
-        })
+        .update(updates)
         .eq('id', plant.id);
 
       if (error) throw error;

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import GlobalHeader from "@/components/GlobalHeader";
 import LogModal from "@/components/LogModal";
 import EditPlantModal from "@/components/EditPlantModal";
+import { formatDateShort } from "@/app/lib/utils";
 import { Calendar, Droplets, Ruler, History, Sprout } from "lucide-react";
 
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -13,17 +14,25 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
 
   const { data: plant, error } = await supabase
     .from('plants')
-    .select(`*, current_age_days, cycles ( name )`)
+    .select(`*, current_age_days, days_in_stage, cycles ( name )`)
     .eq('id', id)
     .single();
 
   if (error || !plant) return notFound();
 
-  const { data: logs } = await supabase
+  // Fetch logs for this plant OR bulk logs for its cycle
+  let query = supabase
     .from('logs')
     .select('*')
-    .eq('plant_id', id)
     .order('created_at', { ascending: false });
+
+  if (plant.cycle_id) {
+     query = query.or(`plant_id.eq.${id},and(cycle_id.eq.${plant.cycle_id},plant_id.is.null)`);
+  } else {
+     query = query.eq('plant_id', id);
+  }
+
+  const { data: logs } = await query;
 
   return (
     <main className="min-h-screen bg-[#0B0C10] pb-24 text-slate-200 p-4 md:p-8 font-body">
@@ -66,15 +75,22 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                 <h1 className="text-4xl md:text-5xl font-title font-light text-white mb-4">{plant.name}</h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">
                         <Calendar size={14} />
-                        <span className="text-[10px] uppercase font-bold tracking-widest">Edad</span>
+                        <span className="text-[10px] uppercase font-bold tracking-widest">Edad Total</span>
                     </div>
                     <p className="text-2xl font-light text-white">{plant.current_age_days ?? plant.days ?? 0} <span className="text-sm text-slate-500">días</span></p>
                 </div>
                 <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-2 mb-1 text-slate-500">
+                        <History size={14} />
+                        <span className="text-[10px] uppercase font-bold tracking-widest">En Etapa</span>
+                    </div>
+                    <p className="text-2xl font-light text-white">{plant.days_in_stage ?? 0} <span className="text-sm text-slate-500">días</span></p>
+                </div>
+                <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5 col-span-2 md:col-span-1">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">
                         <Droplets size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">Riego</span>
@@ -111,7 +127,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                   <div className="flex justify-between items-start mb-2">
                     <span className="font-bold text-white text-sm">{log.title}</span>
                     <time className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                        {new Date(log.created_at).toLocaleDateString()}
+                        {formatDateShort(log.created_at)}
                     </time>
                   </div>
                   {log.notes && <p className="text-slate-400 text-xs leading-relaxed mb-3">"{log.notes}"</p>}
