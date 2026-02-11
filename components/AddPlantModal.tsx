@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { Plant, Cycle } from "@/app/lib/types";
 import { Sprout, Fingerprint, Calendar, Layers, Hash } from "lucide-react";
 
+const BASE_INPUT_CLASSES = "w-full bg-[#0B0C10] rounded-lg p-3 text-white focus:border-brand-primary outline-none transition";
+const INPUT_CLASSES = `${BASE_INPUT_CLASSES} border border-white/10`;
+
 export default function AddPlantModal() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -160,7 +163,7 @@ export default function AddPlantModal() {
                   <div className="relative">
                     <select 
                       required
-                      className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none appearance-none"
+                      className={`${INPUT_CLASSES} appearance-none`}
                       value={formData.cycle_id}
                       onChange={(e) => setFormData({...formData, cycle_id: e.target.value})}
                     >
@@ -200,7 +203,7 @@ export default function AddPlantModal() {
                 <div className="bg-brand-primary/5 p-4 rounded-xl border border-brand-primary/10">
                   <label className="block text-brand-primary mb-1 text-xs font-bold uppercase">Planta Madre (Opcional)</label>
                   <select
-                    className="w-full bg-[#0B0C10] border border-brand-primary/20 rounded-lg p-3 text-white focus:border-brand-primary outline-none"
+                    className={`${BASE_INPUT_CLASSES} border border-brand-primary/20`}
                     value={formData.mother_id}
                     onChange={(e) => setFormData({...formData, mother_id: e.target.value})}
                   >
@@ -221,7 +224,7 @@ export default function AddPlantModal() {
                       type="text"
                       required
                       placeholder="Ej: Lemon Haze"
-                      className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-brand-primary outline-none transition"
+                      className={`${INPUT_CLASSES} pl-10`}
                       value={formData.strain}
                       onChange={(e) => setFormData({...formData, strain: e.target.value})}
                     />
@@ -233,7 +236,7 @@ export default function AddPlantModal() {
                   <input
                     type="text"
                     placeholder="Ej: Green House Seeds"
-                    className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none transition"
+                    className={INPUT_CLASSES}
                     value={formData.breeder}
                     onChange={(e) => setFormData({...formData, breeder: e.target.value})}
                   />
@@ -247,7 +250,7 @@ export default function AddPlantModal() {
                   <input
                     type="text"
                     required
-                    className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none transition"
+                    className={INPUT_CLASSES}
                     value={formData.name}
                     onChange={(e) => {
                       setFormData({...formData, name: e.target.value});
@@ -265,7 +268,7 @@ export default function AddPlantModal() {
                           type="number"
                           min="1"
                           required
-                          className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 pl-9 text-white focus:border-brand-primary outline-none transition"
+                          className={`${INPUT_CLASSES} pl-9`}
                           value={formData.quantity}
                           onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value)})}
                         />
@@ -277,7 +280,7 @@ export default function AddPlantModal() {
                       <input
                         type="date"
                         required
-                        className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none transition"
+                        className={INPUT_CLASSES}
                         value={formData.planted_at}
                         onChange={(e) => setFormData({...formData, planted_at: e.target.value})}
                       />
@@ -288,7 +291,7 @@ export default function AddPlantModal() {
               <div>
                 <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Etapa Inicial</label>
                 <select
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-lg p-3 text-white focus:border-brand-primary outline-none"
+                  className={INPUT_CLASSES}
                   value={formData.stage}
                   onChange={(e) => setFormData({...formData, stage: e.target.value})}
                 >
