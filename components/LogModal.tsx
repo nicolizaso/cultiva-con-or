@@ -45,11 +45,7 @@ export default function LogModal({ plantId, plantName }: Props) {
             // 2. COMPRIMIR
             // "compressedFile" será mucho más ligero
             const compressedFile = await imageCompression(file, options);
-            
-            // Debug: Ver cuánto ahorramos (Opcional, sale en consola)
-            console.log(`Original: ${file.size / 1024 / 1024} MB`);
-            console.log(`Comprimido: ${compressedFile.size / 1024 / 1024} MB`);
-  
+
             // 3. PREPARAR NOMBRE Y RUTA
             const fileExt = file.name.split('.').pop();
             const fileName = `plant_${plantId}_${Date.now()}.${fileExt}`;
