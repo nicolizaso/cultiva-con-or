@@ -1,8 +1,15 @@
 'use client'
 
 import { CalendarDays, CheckCircle2 } from "lucide-react"
+import { Task } from "@/app/lib/types"
 
-export default function HomeTaskCard({ pendingCount }: { pendingCount: number }) {
+export default function HomeTaskCard({ tasks }: { tasks: Task[] }) {
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  const pendingCount = tasks.filter(t =>
+    t.status === 'pending' &&
+    t.due_date &&
+    t.due_date.split('T')[0] === todayStr
+  ).length;
 
   return (
     <div className="bg-brand-primary/10 p-5 rounded-2xl border border-brand-primary/20 hover:bg-brand-primary/20 transition-all group flex flex-col h-full relative cursor-default justify-between">

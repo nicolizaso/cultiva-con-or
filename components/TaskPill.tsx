@@ -45,7 +45,7 @@ export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly
         <div className="flex flex-col overflow-hidden">
           <span className={`text-sm font-bold truncate ${isCompleted ? 'line-through decoration-2 decoration-current/50' : ''}`}>{task.title}</span>
           <span className="text-[10px] opacity-70 truncate">
-            {new Date(task.date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+            {new Date(task.due_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
             {task.cycleName ? ` • ${task.cycleName}` : ''}
           </span>
         </div>

@@ -13,6 +13,10 @@ interface AgendaListProps {
 export default function AgendaList({ tasks }: AgendaListProps) {
   const { showToast } = useToast()
 
+  // Filter tasks for today using local time
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  const tasksForToday = tasks.filter(t => t.due_date && t.due_date.split('T')[0] === todayStr);
+
   const handleToggle = async (id: string) => {
     const task = tasks.find(t => t.id === id)
     if (!task) return
@@ -28,12 +32,12 @@ export default function AgendaList({ tasks }: AgendaListProps) {
   }
 
   // Ordenar: Pendientes primero, luego completadas.
-  const sortedTasks = [...(tasks || [])].sort((a, b) => {
+  const sortedTasks = [...(tasksForToday || [])].sort((a, b) => {
     if (a.status === b.status) return 0
     return a.status === 'pending' ? -1 : 1
   })
 
-  if (!tasks || tasks.length === 0) {
+  if (!tasksForToday || tasksForToday.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full opacity-60">
         <CheckCircle2 size={32} className="text-brand-primary mb-2" />
