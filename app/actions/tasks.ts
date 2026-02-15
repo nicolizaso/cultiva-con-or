@@ -55,6 +55,21 @@ export async function updateTask(taskId: string, updates: any) {
   return { success: true }
 }
 
+export async function deleteTasks(taskIds: string[]) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('tasks')
+    .delete()
+    .in('id', taskIds)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/')
+  revalidatePath('/calendar')
+  return { success: true }
+}
+
 export async function toggleTaskStatus(taskId: string, newStatus: 'pending' | 'completed') {
   const supabase = await createClient()
 
