@@ -5,8 +5,10 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInte
 import { es } from "date-fns/locale";
 import {
   Droplets, Camera, StickyNote, Rocket, Scissors, ChevronLeft, ChevronRight,
-  FlaskConical, ShieldAlert, Shovel, Activity, ArrowRightLeft, CloudRain, Flower, Skull, PenTool, CheckCircle, Circle
+  FlaskConical, ShieldAlert, Shovel, Activity, ArrowRightLeft, CloudRain, Flower, Skull, PenTool
 } from "lucide-react";
+import AgendaList from "@/components/AgendaList";
+import { Task as AppTask } from "@/app/lib/types";
 
 interface Log {
   id: number;
@@ -17,7 +19,7 @@ interface Log {
   plants?: any; // Usamos any temporalmente para manejar la inconsistencia de array/objeto
 }
 
-interface Task {
+interface WidgetTask {
   id: number;
   created_at: string;
   due_date: string;
@@ -30,7 +32,7 @@ interface Task {
 
 interface CalendarWidgetProps {
   logs: Log[];
-  tasks: Task[];
+  tasks: WidgetTask[];
 }
 
 export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
@@ -158,25 +160,36 @@ export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
                 {selectedDate ? format(selectedDate, 'EEEE d', { locale: es }) : 'Selecciona un día'}
             </h3>
             <div className="space-y-4 mt-6">
-                {eventsForSelectedDate.length > 0 ? (
-                    eventsForSelectedDate.map(event => {
+                {(() => {
+                  const tasks = eventsForSelectedDate.filter(e => e.isTask);
+                  if (tasks.length > 0) {
+                    const mappedTasks: AppTask[] = tasks.map(e => ({
+                      id: String(e.originalId),
+                      title: e.title,
+                      due_date: e.date.toISOString(),
+                      status: e.status || 'pending',
+                      type: e.type,
+                      cycleName: getPlantName(e.plants) || undefined,
+                      completed: e.status === 'completed'
+                    }));
+                    return <AgendaList tasks={mappedTasks} disableDateFilter={true} />;
+                  }
+                  return null;
+                })()}
+
+                {eventsForSelectedDate.filter(e => !e.isTask).length > 0 ? (
+                    eventsForSelectedDate.filter(e => !e.isTask).map(event => {
                         const plantName = getPlantName(event.plants);
-                        const isCompleted = event.status === 'completed';
 
                         return (
-                            <div key={event.id} className={`bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors ${isCompleted ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                            <div key={event.id} className="bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
                                 <div className="flex justify-between items-start mb-1">
                                     <div className="flex items-center gap-2">
                                       <span>{getIcon(event.type)}</span>
                                       <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{event.type}</span>
                                     </div>
-                                    {event.isTask && (
-                                      <span title={isCompleted ? "Completada" : "Pendiente"}>
-                                        {isCompleted ? <CheckCircle size={14} className="text-brand-primary" /> : <Circle size={14} className="text-slate-600" />}
-                                      </span>
-                                    )}
                                 </div>
-                                <h4 className={`font-bold text-white text-sm mb-1 ${isCompleted ? 'line-through text-slate-400' : ''}`}>{event.title}</h4>
+                                <h4 className="font-bold text-white text-sm mb-1">{event.title}</h4>
                                 {plantName && (
                                     <p className="text-xs text-brand-primary mb-1">🌿 {plantName}</p>
                                 )}
@@ -184,7 +197,9 @@ export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
                             </div>
                         );
                     })
-                ) : (
+                ) : null}
+
+                {eventsForSelectedDate.length === 0 && (
                     <div className="text-center py-8 text-slate-500 border border-dashed border-white/10 rounded-xl">
                         <p className="text-sm">Sin eventos.</p>
                     </div>
