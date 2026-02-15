@@ -28,6 +28,7 @@ interface WidgetTask {
   description?: string;
   status: 'pending' | 'completed';
   plants?: any;
+  recurrence_id?: string;
 }
 
 interface CalendarWidgetProps {
@@ -56,7 +57,8 @@ export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
       notes: log.notes,
       plants: log.plants,
       isTask: false,
-      status: undefined
+      status: undefined,
+      recurrence_id: undefined
     })),
     ...tasks.map(task => ({
       id: `task-${task.id}`,
@@ -67,7 +69,8 @@ export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
       notes: task.description,
       plants: task.plants,
       isTask: true,
-      status: task.status
+      status: task.status,
+      recurrence_id: task.recurrence_id
     }))
   ];
 
@@ -171,7 +174,8 @@ export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
                       type: e.type,
                       cycleName: getPlantName(e.plants) || undefined,
                       completed: e.status === 'completed',
-                      description: e.notes
+                      description: e.notes,
+                      recurrence_id: e.recurrence_id
                     }));
                     return <AgendaList tasks={mappedTasks} disableDateFilter={true} />;
                   }

@@ -137,7 +137,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-[#12141C] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
@@ -314,12 +314,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
                  </div>
                  <div className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Termina el...</label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50"
-                    />
+                    <DatePicker selectedDate={endDate} onChange={setEndDate} />
                  </div>
               </div>
             )}
