@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText } from 'lucide-react'
+import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText, RotateCcw } from 'lucide-react'
 import { Task } from '@/app/lib/types'
 
 interface TaskPillProps {
@@ -31,10 +31,11 @@ const getTaskStyle = (type: string) => {
 export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly }: TaskPillProps) {
   const style = getTaskStyle(task.type || 'otro')
   const Icon = style.icon
+  const isCompleted = task.status === 'completed'
 
   return (
     <div 
-      className={`w-full flex items-center justify-between p-3 rounded-xl border mb-2 cursor-pointer transition-all hover:brightness-110 ${style.color}`}
+      className={`w-full flex items-center justify-between p-3 rounded-xl border mb-2 cursor-pointer transition-all hover:brightness-110 ${style.color} ${isCompleted ? 'opacity-50' : ''}`}
       onClick={() => onClick && onClick(task)}
     >
       <div className="flex items-center gap-3 overflow-hidden">
@@ -42,7 +43,7 @@ export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly
           <Icon size={16} />
         </div>
         <div className="flex flex-col overflow-hidden">
-          <span className="text-sm font-bold truncate">{task.title}</span>
+          <span className={`text-sm font-bold truncate ${isCompleted ? 'line-through decoration-2 decoration-current/50' : ''}`}>{task.title}</span>
           <span className="text-[10px] opacity-70 truncate">
             {new Date(task.date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
             {task.cycleName ? ` • ${task.cycleName}` : ''}
@@ -55,9 +56,10 @@ export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly
           {onComplete && (
             <button 
               onClick={(e) => { e.stopPropagation(); onComplete(task.id); }}
-              className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400 transition-colors"
+              className={`p-1.5 rounded-lg transition-colors ${isCompleted ? 'bg-amber-500/20 hover:bg-amber-500/40 text-amber-400' : 'bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400'}`}
+              title={isCompleted ? "Marcar como pendiente" : "Marcar como completada"}
             >
-              <Check size={14} />
+              {isCompleted ? <RotateCcw size={14} /> : <Check size={14} />}
             </button>
           )}
           {onDelete && (
