@@ -101,6 +101,11 @@ export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly
         </div>
         <div className="flex flex-col overflow-hidden">
           <span className={`text-sm font-bold truncate ${isCompleted && !selectionMode ? 'line-through decoration-2 decoration-current/50' : ''}`}>{task.title}</span>
+          {task.description && (
+            <span className={`text-xs text-slate-400 mt-0.5 truncate ${isCompleted && !selectionMode ? 'line-through decoration-current/50' : ''}`}>
+              {task.description}
+            </span>
+          )}
           <span className="text-[10px] opacity-70 truncate">
             {new Date(task.due_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
             {task.cycleName ? ` • ${task.cycleName}` : ''}
