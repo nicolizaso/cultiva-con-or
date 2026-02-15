@@ -25,7 +25,8 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  // Use 'en-CA' (YYYY-MM-DD) to get today's date in a stable format compatible with DB
+  const todayStr = new Date().toLocaleDateString('en-CA');
 
   // Parallel fetch of all independent dashboard data
   const [
@@ -47,12 +48,12 @@ export default async function Home() {
       .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage)`)
       .eq('is_active', true)
       .order('created_at', { ascending: true }),
-    // Pending tasks for today
+    // Tasks for today (Both pending and completed)
     supabase
       .from('tasks')
       .select('*')
       .eq('user_id', user.id)
-      .eq('status', 'pending')
+      // REMOVED: .eq('status', 'pending') to fetch all tasks for today
       .eq('due_date', todayStr)
       .order('created_at', { ascending: true }),
     // All available spaces for the UI
@@ -62,7 +63,9 @@ export default async function Home() {
   ]);
 
   const username = profile?.username;
-  const todayTask = tasksData && tasksData.length > 0 ? (tasksData[0] as Task) : undefined;
+
+  const allTodayTasks = (tasksData || []) as Task[];
+  const pendingCount = allTodayTasks.filter(t => t.status === 'pending').length;
 
   // Procesamiento
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
@@ -106,7 +109,7 @@ export default async function Home() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         
         {/* TARJETA 1: Tareas para hoy */}
-        <HomeTaskCard task={todayTask} />
+        <HomeTaskCard pendingCount={pendingCount} />
         
         {/* TARJETA 2: Ciclos (Condicional) */}
         {totalCycles > 0 ? (
@@ -223,7 +226,7 @@ export default async function Home() {
             <h2 className="text-lg font-medium text-white font-title">Agenda</h2>
           </div>
           <div className="bg-[#12141C] rounded-3xl p-4 border border-white/5 h-80 overflow-y-auto custom-scrollbar">
-             <AgendaList tasks={tasksData as Task[] || []} />
+             <AgendaList tasks={allTodayTasks} />
           </div>
         </div>
       </div>
