@@ -4,6 +4,7 @@ import GlobalHeader from "@/components/GlobalHeader";
 import DashboardFab from "@/components/DashboardFab";
 import HomeTaskCard from "@/components/HomeTaskCard";
 import AgendaList from "@/components/AgendaList";
+import TaskManagerModal from "@/components/TaskManagerModal";
 import { Plant, Task } from "./lib/types";
 import { Leaf, RefreshCw, Warehouse, Sprout, Plus, ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -226,6 +227,7 @@ export default async function Home() {
         <div className="space-y-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-medium text-white font-title">Agenda</h2>
+            <TaskManagerModal />
           </div>
           <div className="bg-[#12141C] rounded-3xl p-4 border border-white/5 h-80 overflow-y-auto custom-scrollbar">
              <AgendaList tasks={allTodayTasks} />
