@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Task } from "@/app/lib/types"
 import TaskPill from "./TaskPill"
+import EditTaskModal from "./EditTaskModal"
 import { toggleTaskStatus, deleteTasks } from "@/app/actions/tasks"
 import { useToast } from "@/app/context/ToastContext"
 import { CheckCircle2, Trash2, X, Loader2 } from "lucide-react"
@@ -19,6 +20,7 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
   const [isDeleting, setIsDeleting] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   // Filter tasks for today using local time
   const todayStr = new Date().toLocaleDateString('en-CA');
@@ -111,6 +113,7 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
           key={task.id}
           task={task}
           onComplete={handleToggle} // Keep original prop for backward compat/button logic
+          onEdit={(t) => setEditingTask(t)}
 
           // Selection Props
           selectionMode={isSelectionMode}
@@ -120,6 +123,14 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
           onClick={(t) => handleToggle(t.id)} // Used when NOT in selection mode
         />
       ))}
+
+      {editingTask && (
+        <EditTaskModal
+           isOpen={!!editingTask}
+           onClose={() => setEditingTask(null)}
+           task={editingTask}
+        />
+      )}
 
       {/* Floating Action Bar */}
       {isSelectionMode && (

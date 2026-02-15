@@ -1,13 +1,14 @@
 'use client'
 
 import { useRef } from 'react'
-import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText, RotateCcw, CheckCircle2, Circle } from 'lucide-react'
+import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText, RotateCcw, CheckCircle2, Circle, Pencil } from 'lucide-react'
 import { Task } from '@/app/lib/types'
 
 interface TaskPillProps {
   task: Task
   onComplete?: (id: string) => void
   onDelete?: (id: string) => void
+  onEdit?: (task: Task) => void
   onClick?: (task: Task) => void
   readOnly?: boolean
   selectionMode?: boolean
@@ -33,7 +34,7 @@ const getTaskStyle = (type: string) => {
   }
 }
 
-export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly, selectionMode, isSelected, onSelect, onLongPress }: TaskPillProps) {
+export default function TaskPill({ task, onComplete, onDelete, onEdit, onClick, readOnly, selectionMode, isSelected, onSelect, onLongPress }: TaskPillProps) {
   const style = getTaskStyle(task.type || 'otro')
   const Icon = style.icon
   const isCompleted = task.status === 'completed'
@@ -122,6 +123,15 @@ export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly
               title={isCompleted ? "Marcar como pendiente" : "Marcar como completada"}
             >
               {isCompleted ? <RotateCcw size={14} /> : <Check size={14} />}
+            </button>
+          )}
+          {onEdit && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(task); }}
+              className="p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 transition-colors"
+              title="Editar"
+            >
+              <Pencil size={14} />
             </button>
           )}
           {onDelete && (

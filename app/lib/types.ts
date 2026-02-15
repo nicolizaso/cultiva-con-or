@@ -57,6 +57,7 @@ export interface Task {
   cycleName?: string;
   type: string; // 'riego', 'poda', etc.
   description?: string;
+  recurrence_id?: string;
 }
 
 export interface Log {
