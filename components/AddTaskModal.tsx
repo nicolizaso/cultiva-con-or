@@ -50,6 +50,15 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
   const [description, setDescription] = useState('')
   const [otherText, setOtherText] = useState('') 
 
+  // Estados de recurrencia
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [frequency, setFrequency] = useState('daily')
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() + 1)
+    return d.toLocaleDateString('en-CA')
+  })
+
   const [isTargetOpen, setIsTargetOpen] = useState(false)
   const [isTypeOpen, setIsTypeOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -86,6 +95,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
     if (selectedTargets.length === 0) return showToast('Selecciona al menos una planta o espacio.', 'error')
     if (!selectedTaskType) return showToast('Debes seleccionar un tipo de tarea.', 'error')
     if (selectedTaskType.id === 'otro' && !otherText.trim()) return showToast('Escribe el nombre de la tarea personalizada.', 'error')
+    if (isRecurring && !endDate) return showToast('Debes seleccionar una fecha de fin.', 'error')
 
     setIsSubmitting(true)
 
@@ -99,7 +109,11 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
       taskType: cleanTaskType, 
       date: `${date}T12:00:00`, // Forzar mediodía para evitar desfases de zona horaria
       description,
-      otherText
+      otherText,
+      // Recurrencia
+      isRecurring,
+      frequency,
+      endDate: isRecurring ? `${endDate}T12:00:00` : null
     })
 
     setIsSubmitting(false)
@@ -117,6 +131,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
       setSelectedTaskType(null)
       setDescription('')
       setOtherText('')
+      setIsRecurring(false)
       onClose()
     }
   }
@@ -271,6 +286,43 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
           <div className="space-y-1.5">
             <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Fecha</label>
             <DatePicker selectedDate={date} onChange={setDate} />
+
+            {/* RECURRENCIA */}
+            <div className="mt-2 flex items-center justify-between bg-[#0B0C10] border border-white/10 rounded-xl p-3">
+               <span className="text-sm text-slate-300 font-bold">Repetir</span>
+               <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+               </label>
+            </div>
+
+            {isRecurring && (
+              <div className="grid grid-cols-2 gap-2 animate-in slide-in-from-top-2">
+                 <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Frecuencia</label>
+                    <select
+                      value={frequency}
+                      onChange={(e) => setFrequency(e.target.value)}
+                      className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50"
+                    >
+                      <option value="daily">Diario</option>
+                      <option value="every2days">Cada 2 días</option>
+                      <option value="weekly">Semanal</option>
+                      <option value="biweekly">Quincenal</option>
+                      <option value="monthly">Mensual</option>
+                    </select>
+                 </div>
+                 <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Termina el...</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50"
+                    />
+                 </div>
+              </div>
+            )}
           </div>
 
           {/* 4. DETALLES */}
