@@ -2,6 +2,7 @@
 
 import { createClient } from "@/app/lib/supabase-server"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from 'crypto'
 
 export async function createTask(formData: any) {
   const supabase = await createClient()
@@ -16,6 +17,9 @@ export async function createTask(formData: any) {
 
   let tasksToInsert: any[] = []
 
+  // Generate a recurrence ID if this is a recurring series
+  const recurrenceId = isRecurring ? randomUUID() : null
+
   // Helper to create task objects for a specific date string (YYYY-MM-DD...)
   const createTasksForDate = (dateStr: string) => {
     return targets.map((target: any) => ({
@@ -27,7 +31,8 @@ export async function createTask(formData: any) {
       type: taskType.id,
       status: 'pending',
       plant_id: target.type === 'plant' ? Number(target.id) : null,
-      space_id: target.type === 'space' ? Number(target.id) : null
+      space_id: target.type === 'space' ? Number(target.id) : null,
+      recurrence_id: recurrenceId
     }))
   }
 
@@ -86,21 +91,80 @@ export async function createTask(formData: any) {
 
 // --- NUEVAS FUNCIONES PARA EL POPUP ---
 
-export async function updateTask(taskId: string, updates: any) {
+export async function updateTask(taskId: string, updates: any, scope: 'single' | 'all_future' = 'single', recurrenceId?: string) {
   const supabase = await createClient()
   
-  const { error } = await supabase
-    .from('tasks')
-    .update({
-      description: updates.description,
-      due_date: updates.date,
-      date: updates.date
-    })
-    .eq('id', taskId)
+  if (scope === 'single') {
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        title: updates.title,
+        description: updates.description,
+        due_date: updates.date,
+        date: updates.date
+      })
+      .eq('id', taskId)
 
-  if (error) return { error: error.message }
-  
+    if (error) return { error: error.message }
+  } else if (scope === 'all_future' && recurrenceId) {
+    // 1. Fetch current task to get old date
+    const { data: currentTask, error: fetchError } = await supabase
+      .from('tasks')
+      .select('due_date')
+      .eq('id', taskId)
+      .single()
+
+    if (fetchError || !currentTask) return { error: 'Task not found' }
+
+    // 2. Calculate delta days
+    // Ensure we parse dates correctly (YYYY-MM-DD)
+    const oldDateStr = currentTask.due_date.split('T')[0]
+    const newDateStr = updates.date.split('T')[0]
+
+    const oldDate = new Date(oldDateStr)
+    const newDate = new Date(newDateStr)
+
+    const diffTime = newDate.getTime() - oldDate.getTime()
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+
+    // 3. Fetch all future tasks in series (inclusive of current task)
+    const { data: futureTasks, error: listError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('recurrence_id', recurrenceId)
+      .gte('due_date', currentTask.due_date)
+
+    if (listError) return { error: listError.message }
+    if (!futureTasks || futureTasks.length === 0) return { success: true }
+
+    // 4. Update each task
+    const updatesPromises = futureTasks.map(task => {
+      // Apply date shift
+      const taskDate = new Date(task.due_date.split('T')[0]) // Parse local YYYY-MM-DD
+      taskDate.setDate(taskDate.getDate() + diffDays)
+
+      // Format back to YYYY-MM-DD
+      // Use local parts to avoid UTC shifting issues
+      // Since we parsed as local/UTC depending on browser, but here we run on Node.
+      // new Date('YYYY-MM-DD') in Node is UTC.
+      // So setDate works in UTC.
+      // Then toISOString().split('T')[0] gives YYYY-MM-DD.
+      const shiftedDateStr = taskDate.toISOString().split('T')[0]
+      const shiftedDateFull = `${shiftedDateStr}T12:00:00` // Append noon
+
+      return supabase.from('tasks').update({
+        title: updates.title || task.title,
+        description: updates.description !== undefined ? updates.description : task.description,
+        due_date: shiftedDateFull,
+        date: shiftedDateFull
+      }).eq('id', task.id)
+    })
+
+    await Promise.all(updatesPromises)
+  }
+
   revalidatePath('/')
+  revalidatePath('/calendar')
   return { success: true }
 }
 
