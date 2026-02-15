@@ -170,7 +170,8 @@ export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
                       status: e.status || 'pending',
                       type: e.type,
                       cycleName: getPlantName(e.plants) || undefined,
-                      completed: e.status === 'completed'
+                      completed: e.status === 'completed',
+                      description: e.notes
                     }));
                     return <AgendaList tasks={mappedTasks} disableDateFilter={true} />;
                   }
