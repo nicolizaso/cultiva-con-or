@@ -50,7 +50,7 @@ export interface Space {
 export interface Task {
   id: string;
   title: string;
-  date: string; // ISO string YYYY-MM-DD
+  due_date: string; // ISO string YYYY-MM-DD
   completed?: boolean;
   status?: 'pending' | 'completed';
   cycleId?: string;

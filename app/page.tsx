@@ -19,14 +19,18 @@ interface CycleWithPlantsAndSpace {
     spaces: SpaceInfo;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const supabase = await createClient();
   
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Use 'en-CA' (YYYY-MM-DD) to get today's date in a stable format compatible with DB
-  const todayStr = new Date().toLocaleDateString('en-CA');
+  // Get yesterday's date to ensure we catch tasks regardless of timezone shifts
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toLocaleDateString('en-CA');
 
   // Parallel fetch of all independent dashboard data
   const [
@@ -48,13 +52,12 @@ export default async function Home() {
       .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage)`)
       .eq('is_active', true)
       .order('created_at', { ascending: true }),
-    // Tasks for today (Both pending and completed)
+    // Tasks (Both pending and completed, broader range to fix timezone issues)
     supabase
       .from('tasks')
       .select('*')
       .eq('user_id', user.id)
-      // REMOVED: .eq('status', 'pending') to fetch all tasks for today
-      .eq('due_date', todayStr)
+      .gte('due_date', yesterdayStr)
       .order('created_at', { ascending: true }),
     // All available spaces for the UI
     supabase
@@ -65,7 +68,6 @@ export default async function Home() {
   const username = profile?.username;
 
   const allTodayTasks = (tasksData || []) as Task[];
-  const pendingCount = allTodayTasks.filter(t => t.status === 'pending').length;
 
   // Procesamiento
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
@@ -109,7 +111,7 @@ export default async function Home() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         
         {/* TARJETA 1: Tareas para hoy */}
-        <HomeTaskCard pendingCount={pendingCount} />
+        <HomeTaskCard tasks={allTodayTasks} />
         
         {/* TARJETA 2: Ciclos (Condicional) */}
         {totalCycles > 0 ? (
