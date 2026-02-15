@@ -56,6 +56,7 @@ export interface Task {
   cycleId?: string;
   cycleName?: string;
   type: string; // 'riego', 'poda', etc.
+  description?: string;
 }
 
 export interface Log {
