@@ -1,7 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { bulkChangeStage } from "@/app/cycles/actions";
+
+const stageColumnMap: Record<string, string> = {
+  'Germinación': 'date_germinacion',
+  'Plantula': 'date_plantula',
+  'Plántula': 'date_plantula', // Handle both variations just in case
+  'Vegetación': 'date_vegetativo',
+  'Vegetativo': 'date_vegetativo', // Handle both variations just in case
+  'Floración': 'date_floracion',
+  'Secado': 'date_secado',
+  'Curado': 'date_curado'
+};
 
 interface BulkStageModalProps {
   isOpen: boolean;
@@ -12,6 +24,7 @@ interface BulkStageModalProps {
 }
 
 export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess, cycleId }: BulkStageModalProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState("Floración");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -22,11 +35,21 @@ export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess
     e.preventDefault();
     setLoading(true);
 
-    const res = await bulkChangeStage(selectedIds, stage, new Date(date).toISOString(), cycleId);
+    const dateCol = stageColumnMap[stage];
+
+    const res = await bulkChangeStage(
+      selectedIds,
+      stage,
+      new Date(date).toISOString(),
+      cycleId,
+      undefined,
+      dateCol
+    );
 
     setLoading(false);
 
     if (res?.success) {
+      router.refresh();
       onSuccess();
       onClose();
     } else {

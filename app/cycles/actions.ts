@@ -60,7 +60,8 @@ export async function bulkChangeStage(
     newStage: string,
     date: string,
     cycleId: number,
-    notes?: string
+    notes?: string,
+    stageDateColumn?: string
   ) {
     const supabase = await createClient();
   
@@ -83,12 +84,18 @@ export async function bulkChangeStage(
       if (logError) throw logError;
   
       // 2. Actualizar la etapa en las plantas Y stage_updated_at
+      const updates: any = {
+        stage: newStage,
+        stage_updated_at: date // Use the provided date
+      };
+
+      if (stageDateColumn) {
+        updates[stageDateColumn] = date;
+      }
+
       const { error: plantError } = await supabase
         .from('plants')
-        .update({
-            stage: newStage,
-            stage_updated_at: date // Use the provided date
-        })
+        .update(updates)
         .in('id', plantIds);
   
       if (plantError) throw plantError;
