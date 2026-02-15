@@ -225,3 +225,40 @@ export async function deleteTask(taskId: string) {
   revalidatePath('/')
   return { success: true }
 }
+
+export async function getAllPendingTasks() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Debes iniciar sesión.' }
+
+  const [tasksResult, cyclesResult] = await Promise.all([
+     supabase
+      .from('tasks')
+      .select('*, plants(id, name, cycle_id, cycles(id, name))')
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .order('due_date', { ascending: true }),
+     supabase
+      .from('cycles')
+      .select('id, name')
+      .eq('is_active', true)
+  ])
+
+  if (tasksResult.error) return { error: tasksResult.error.message }
+  if (cyclesResult.error) return { error: cyclesResult.error.message }
+
+  // Map tasks to flatten cycleName
+  const tasks = tasksResult.data.map((t: any) => {
+    // If connected via plant
+    let cycleName = t.plants?.cycles?.name
+    let cycleId = t.plants?.cycles?.id
+
+    return {
+      ...t,
+      cycleName,
+      cycleId
+    }
+  })
+
+  return { tasks, cycles: cyclesResult.data }
+}
