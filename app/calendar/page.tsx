@@ -16,7 +16,7 @@ export default async function CalendarPage() {
 
   const { data: tasks } = await supabase
     .from('tasks')
-    .select(`*, plants ( name )`)
+    .select(`*, description, plants ( name )`)
     .order('due_date', { ascending: true });
 
   return (
