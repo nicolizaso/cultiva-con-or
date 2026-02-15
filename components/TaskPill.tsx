@@ -1,6 +1,7 @@
 'use client'
 
-import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText, RotateCcw } from 'lucide-react'
+import { useRef } from 'react'
+import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText, RotateCcw, CheckCircle2, Circle } from 'lucide-react'
 import { Task } from '@/app/lib/types'
 
 interface TaskPillProps {
@@ -9,6 +10,10 @@ interface TaskPillProps {
   onDelete?: (id: string) => void
   onClick?: (task: Task) => void
   readOnly?: boolean
+  selectionMode?: boolean
+  isSelected?: boolean
+  onSelect?: (id: string) => void
+  onLongPress?: (id: string) => void
 }
 
 // Helper para obtener icono y colores según el tipo
@@ -28,22 +33,74 @@ const getTaskStyle = (type: string) => {
   }
 }
 
-export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly }: TaskPillProps) {
+export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly, selectionMode, isSelected, onSelect, onLongPress }: TaskPillProps) {
   const style = getTaskStyle(task.type || 'otro')
   const Icon = style.icon
   const isCompleted = task.status === 'completed'
 
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const isLongPressTriggered = useRef(false)
+
+  const handleStart = () => {
+    if (readOnly || selectionMode) return
+    isLongPressTriggered.current = false
+    timerRef.current = setTimeout(() => {
+      isLongPressTriggered.current = true
+      if (onLongPress) onLongPress(task.id)
+    }, 600)
+  }
+
+  const handleEnd = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isLongPressTriggered.current) {
+      isLongPressTriggered.current = false
+      return
+    }
+
+    if (selectionMode && onSelect) {
+      onSelect(task.id)
+    } else if (onClick) {
+      onClick(task)
+    } else if (onComplete && !readOnly && !selectionMode) {
+      onComplete(task.id)
+    }
+  }
+
   return (
     <div 
-      className={`w-full flex items-center justify-between p-3 rounded-xl border mb-2 cursor-pointer transition-all hover:brightness-110 ${style.color} ${isCompleted ? 'opacity-50' : ''}`}
-      onClick={() => onClick && onClick(task)}
+      className={`w-full flex items-center justify-between p-3 rounded-xl border mb-2 cursor-pointer transition-all hover:brightness-110 select-none
+        ${style.color}
+        ${isCompleted && !selectionMode ? 'opacity-50' : ''}
+        ${isSelected ? 'ring-2 ring-white/50 bg-white/5' : ''}
+      `}
+      onMouseDown={handleStart}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
+      onTouchStart={handleStart}
+      onTouchEnd={handleEnd}
+      onClick={handleClick}
+      onContextMenu={(e) => {
+        if (!readOnly) e.preventDefault()
+      }}
     >
-      <div className="flex items-center gap-3 overflow-hidden">
+      <div className="flex items-center gap-3 overflow-hidden pointer-events-none">
+        {selectionMode && (
+          <div className="shrink-0 transition-all duration-300">
+             {isSelected ? <CheckCircle2 size={20} className="text-white drop-shadow-md" /> : <Circle size={20} className="text-white/30" />}
+          </div>
+        )}
+
         <div className={`p-1.5 rounded-lg bg-black/20 shrink-0`}>
           <Icon size={16} />
         </div>
         <div className="flex flex-col overflow-hidden">
-          <span className={`text-sm font-bold truncate ${isCompleted ? 'line-through decoration-2 decoration-current/50' : ''}`}>{task.title}</span>
+          <span className={`text-sm font-bold truncate ${isCompleted && !selectionMode ? 'line-through decoration-2 decoration-current/50' : ''}`}>{task.title}</span>
           <span className="text-[10px] opacity-70 truncate">
             {new Date(task.due_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
             {task.cycleName ? ` • ${task.cycleName}` : ''}
@@ -51,7 +108,7 @@ export default function TaskPill({ task, onComplete, onDelete, onClick, readOnly
         </div>
       </div>
 
-      {!readOnly && (
+      {!readOnly && !selectionMode && (
         <div className="flex gap-2 ml-2">
           {onComplete && (
             <button 
