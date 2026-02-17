@@ -1,23 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Plant } from "@/app/lib/types";
+import { Plant, Log } from "@/app/lib/types";
 import { getPlantMetrics, getStageColor } from "@/app/lib/utils";
-import { Thermometer, CloudRain, Activity, Droplets, ArrowRight, LayoutGrid, List as ListIcon } from "lucide-react";
+import { Thermometer, CloudRain, Activity, Droplets, ArrowRight, LayoutGrid, List as ListIcon, Camera, X } from "lucide-react";
 import BulkWaterModal from "./BulkWaterModal";
 import BulkStageModal from "./BulkStageModal";
 import MeasurementModal from "./MeasurementModal";
+import { useToast } from "@/app/context/ToastContext";
+import { uploadCycleImage } from "@/app/cycles/actions";
+import imageCompression from 'browser-image-compression';
 
 interface CycleDetailViewProps {
   cycle: { id: number; name: string; start_date: string; spaces: { name: string; type: string }; };
   plants: Plant[];
   lastMeasurement?: { temperature: number; humidity: number; date: string } | null;
   history: any[];
+  cycleImages?: Log[];
 }
 
-export default function CycleDetailView({ cycle, plants, lastMeasurement }: CycleDetailViewProps) {
+export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleImages = [] }: CycleDetailViewProps) {
+  const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedPlants, setSelectedPlants] = useState<number[]>([]);
   const [isWaterModalOpen, setIsWaterModalOpen] = useState(false);
@@ -28,6 +37,39 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+
+      try {
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        };
+
+        const compressedFile = await imageCompression(file, options);
+
+        const formData = new FormData();
+        formData.append('file', compressedFile);
+
+        const result = await uploadCycleImage(cycle.id, formData);
+
+        if (result.error) throw new Error(result.error);
+
+        showToast('Foto subida correctamente', 'success');
+
+      } catch (error) {
+        console.error(error);
+        showToast('Error al subir la foto', 'error');
+      } finally {
+        setIsUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const vpd = lastMeasurement 
     ? ((0.61078 * Math.exp((17.27 * lastMeasurement.temperature) / (lastMeasurement.temperature + 237.3))) * (1 - (lastMeasurement.humidity / 100))).toFixed(2)
@@ -160,6 +202,66 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement }: Cycl
                     </div>
                 );
             })}
+        </div>
+      )}
+
+      {/* 4. GALERÍA DE CICLO (NUEVA SECCIÓN) */}
+      <div className="bg-[#12141C] border border-white/5 p-6 rounded-2xl">
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="text-white font-bold text-lg">Seguimiento del Indoor</h3>
+            <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary border border-brand-primary/20 p-2 rounded-lg transition-colors disabled:opacity-50"
+            >
+                {isUploading ? <Activity className="animate-spin" size={20} /> : <Camera size={20} />}
+            </button>
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+            />
+        </div>
+
+        {cycleImages && cycleImages.length > 0 ? (
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                {cycleImages.map((img) => (
+                    <div key={img.id} onClick={() => setLightboxImage(img.media_url?.[0] || null)} className="relative flex-shrink-0 w-40 md:w-48 aspect-[3/4] bg-black rounded-xl overflow-hidden border border-white/10 snap-center cursor-pointer group hover:border-brand-primary/50 transition-colors">
+                         {img.media_url && img.media_url[0] && (
+                            <Image
+                                src={img.media_url[0]}
+                                alt={img.title || "Foto del ciclo"}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                         )}
+                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                            <p className="text-white text-xs font-bold">{new Date(img.created_at).toLocaleDateString()}</p>
+                            <p className="text-slate-400 text-[10px]">Día {Math.floor((new Date(img.created_at).getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24))}</p>
+                         </div>
+                    </div>
+                ))}
+            </div>
+        ) : (
+            <div className="text-center py-10 border border-dashed border-white/10 rounded-xl bg-white/5 flex flex-col items-center justify-center">
+                <Camera className="text-slate-600 mb-2 opacity-50" size={32} />
+                <p className="text-slate-500 text-sm mb-1 font-bold">Sin fotos del ciclo</p>
+                <p className="text-slate-600 text-xs">Sube una foto para ver el progreso visual</p>
+            </div>
+        )}
+      </div>
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setLightboxImage(null)}>
+            <button className="absolute top-4 right-4 text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50">
+                <X size={24} />
+            </button>
+            <div className="relative w-full max-w-4xl h-full max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                <Image src={lightboxImage} alt="Full screen" fill className="object-contain" />
+            </div>
         </div>
       )}
 
