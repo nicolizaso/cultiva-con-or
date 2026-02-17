@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText, RotateCcw, CheckCircle2, Circle, Pencil } from 'lucide-react'
+import { Check, Trash2, Droplets, FlaskConical, ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, CloudRain, Flower, Skull, FileText, RotateCcw, CheckCircle2, Circle, Pencil, ArrowRightCircle } from 'lucide-react'
 import { Task } from '@/app/lib/types'
 
 interface TaskPillProps {
@@ -27,6 +27,7 @@ const getTaskStyle = (type: string) => {
     case 'poda': return { color: 'bg-slate-500/20 text-slate-300 border-slate-500/30', icon: Scissors }
     case 'entrenamiento': return { color: 'bg-slate-500/20 text-slate-300 border-slate-500/30', icon: Activity }
     case 'ambiente': return { color: 'bg-slate-500/20 text-slate-300 border-slate-500/30', icon: ArrowRightLeft }
+    case 'cambio_etapa': return { color: 'bg-purple-500/20 text-purple-300 border-purple-500/30', icon: ArrowRightCircle }
     case 'lavado': return { color: 'bg-slate-600/20 text-slate-300 border-slate-600/30', icon: CloudRain }
     case 'cosechar': return { color: 'bg-violet-500/20 text-violet-300 border-violet-500/30', icon: Flower }
     case 'muerta': return { color: 'bg-red-900/40 text-red-200 border-red-500/30', icon: Skull }

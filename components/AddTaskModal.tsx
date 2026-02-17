@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { 
   X, Sprout, FileText, Droplets, FlaskConical, 
   ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, 
-  CloudRain, Flower, Skull, PenTool, Check, ChevronDown, Loader2
+  CloudRain, Flower, Skull, PenTool, Check, ChevronDown, Loader2, ArrowRightCircle
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createTask } from '@/app/actions/tasks'
@@ -30,6 +30,7 @@ const TASK_TYPES = [
   { id: 'poda', label: 'Poda', icon: Scissors, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
   { id: 'entrenamiento', label: 'Entrenamiento', icon: Activity, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
   { id: 'ambiente', label: 'Cambiar Ambiente', icon: ArrowRightLeft, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
+  { id: 'cambio_etapa', label: 'Cambio de Etapa', icon: ArrowRightCircle, color: 'text-purple-400', border: 'border-purple-400/30', bg: 'bg-purple-400/10' },
   { id: 'lavado', label: 'Lavado de Raíces', icon: CloudRain, color: 'text-slate-500', border: 'border-slate-500/30', bg: 'bg-slate-500/10' },
   { id: 'cosechar', label: 'Cosechar', icon: Flower, color: 'text-violet-500', border: 'border-violet-500/30', bg: 'bg-violet-500/10' },
   { id: 'muerta', label: 'Declarar Muerta', icon: Skull, color: 'text-white', border: 'border-white/30', bg: 'bg-black' },
