@@ -139,7 +139,7 @@ export async function bulkChangeStage(
     }
   }
 
-  export async function uploadCycleImage(cycleId: number, formData: FormData) {
+  export async function uploadCycleImage(cycleId: number | string, formData: FormData) {
     const supabase = await createClient();
     const file = formData.get('file') as File;
 
@@ -148,8 +148,13 @@ export async function bulkChangeStage(
     }
 
     try {
+      const numericCycleId = Number(cycleId);
+      if (isNaN(numericCycleId)) {
+        throw new Error(`Invalid cycle ID: ${cycleId}`);
+      }
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `cycle_${cycleId}_${Date.now()}.${fileExt}`;
+      const fileName = `cycle_${numericCycleId}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       // Upload file
@@ -168,7 +173,7 @@ export async function bulkChangeStage(
       const { error: dbError } = await supabase
         .from('cycle_images')
         .insert({
-          cycle_id: cycleId,
+          cycle_id: numericCycleId,
           storage_path: filePath,
           public_url: publicUrl,
           taken_at: new Date().toISOString()
@@ -180,8 +185,8 @@ export async function bulkChangeStage(
       return { success: true };
 
     } catch (error) {
-      console.error('Error uploading cycle image:', error);
-      return { error: 'Error al subir la imagen.' };
+      console.error('Full Upload Error:', error);
+      return { error: (error as Error).message || 'Unknown upload error' };
     }
   }
 
