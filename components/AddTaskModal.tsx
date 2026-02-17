@@ -20,6 +20,7 @@ interface AddTaskModalProps {
   onClose: () => void
   plants: Plant[]
   spaces: Space[]
+  initialDate?: Date
 }
 
 const TASK_TYPES = [
@@ -37,7 +38,7 @@ const TASK_TYPES = [
   { id: 'otro', label: 'Otro', icon: PenTool, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
 ]
 
-export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTaskModalProps) {
+export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialDate }: AddTaskModalProps) {
   const router = useRouter()
   const { showToast } = useToast() // <--- Inicializamos el toast
 
@@ -45,9 +46,16 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
   const [selectedTaskType, setSelectedTaskType] = useState<typeof TASK_TYPES[0] | null>(null)
   // Inicializar con fecha local en formato YYYY-MM-DD
   const [date, setDate] = useState(() => {
-    const d = new Date()
+    const d = initialDate || new Date()
     return d.toLocaleDateString('en-CA')
   })
+
+  useEffect(() => {
+    if (initialDate) {
+      setDate(initialDate.toLocaleDateString('en-CA'))
+    }
+  }, [initialDate])
+
   const [description, setDescription] = useState('')
   const [otherText, setOtherText] = useState('') 
 

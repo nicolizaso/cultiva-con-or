@@ -7,7 +7,7 @@ import AddTaskModal from './AddTaskModal'
 interface Plant { id: string; name: string; }
 interface Space { id: number; name: string; }
 
-export default function DashboardFab({ plants, spaces }: { plants: Plant[], spaces: Space[] }) {
+export default function DashboardFab({ plants, spaces, initialDate }: { plants: Plant[], spaces: Space[], initialDate?: Date }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
@@ -28,6 +28,7 @@ export default function DashboardFab({ plants, spaces }: { plants: Plant[], spac
         onClose={() => setIsModalOpen(false)}
         plants={plants}
         spaces={spaces}
+        initialDate={initialDate}
       />
     </>
   )

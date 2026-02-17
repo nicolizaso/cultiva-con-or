@@ -1,8 +1,6 @@
 import { createClient } from "@/app/lib/supabase-server";
-import Link from "next/link";
-import CalendarWidget from "@/components/CalendarWidget";
+import CalendarView from "@/components/CalendarView";
 import GlobalHeader from "@/components/GlobalHeader";
-import DashboardFab from "@/components/DashboardFab";
 import { Plant } from "../lib/types";
 
 export const dynamic = 'force-dynamic';
@@ -60,11 +58,10 @@ export default async function CalendarPage() {
   return (
     <main className="min-h-screen bg-[#0B0C10] text-slate-200 p-4 md:p-8 pb-24 font-body">
       <GlobalHeader userEmail={user?.email} title="Agenda" subtitle="Planificación" />
-      <div className="max-w-6xl mx-auto">
-        <CalendarWidget logs={logs || []} tasks={tasks || []} />
-      </div>
 
-      <DashboardFab
+      <CalendarView
+        logs={logs || []}
+        tasks={tasks || []}
         plants={allPlants}
         spaces={allSpaces || []}
       />
