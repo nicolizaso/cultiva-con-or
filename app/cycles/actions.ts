@@ -138,3 +138,52 @@ export async function bulkChangeStage(
       return { error: 'Error al guardar medición' };
     }
   }
+
+  export async function uploadCycleImage(cycleId: number, formData: FormData) {
+    const supabase = await createClient();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return { error: 'No file provided' };
+    }
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `cycle_${cycleId}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload file
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      // Insert Log
+      const { error: logError } = await supabase
+        .from('logs')
+        .insert({
+          cycle_id: cycleId,
+          plant_id: null,
+          type: 'Cycle Image',
+          title: 'Foto del Ciclo 📷',
+          notes: 'Foto de seguimiento general del indoor.',
+          media_url: [publicUrl],
+          created_at: new Date().toISOString()
+        });
+
+      if (logError) throw logError;
+
+      revalidatePath('/cycles/[id]', 'page');
+      return { success: true };
+
+    } catch (error) {
+      console.error('Error uploading cycle image:', error);
+      return { error: 'Error al subir la imagen.' };
+    }
+  }

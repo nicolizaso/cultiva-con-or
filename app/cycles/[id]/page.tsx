@@ -23,6 +23,14 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
   const { data: lastMeasurement } = await supabase.from('measurements').select('*').eq('cycle_id', id).order('date', { ascending: false }).limit(1).single();
   const { data: history } = await supabase.from('measurements').select('*').eq('cycle_id', id).order('date', { ascending: true }).limit(20);
 
+  // Fetch Cycle Images (Gallery)
+  const { data: cycleImages } = await supabase
+    .from('logs')
+    .select('*')
+    .eq('cycle_id', id)
+    .eq('type', 'Cycle Image')
+    .order('created_at', { ascending: false });
+
   const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
 
   return (
@@ -76,6 +84,7 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
         plants={plants || []} 
         lastMeasurement={lastMeasurement}
         history={history || []}
+        cycleImages={cycleImages || []}
       />
     </main>
   );
