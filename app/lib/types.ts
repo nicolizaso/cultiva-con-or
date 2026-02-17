@@ -70,3 +70,13 @@ export interface Log {
   media_url?: string[];
   created_at: string;
 }
+
+export interface CycleImage {
+  id: string;
+  cycle_id: number;
+  storage_path: string;
+  public_url: string;
+  taken_at: string; // ISO Timestamp
+  created_at: string; // ISO Timestamp
+  description?: string;
+}

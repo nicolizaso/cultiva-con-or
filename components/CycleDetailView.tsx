@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Plant, Log } from "@/app/lib/types";
+import { Plant, CycleImage } from "@/app/lib/types";
 import { getPlantMetrics, getStageColor } from "@/app/lib/utils";
-import { Thermometer, CloudRain, Activity, Droplets, ArrowRight, LayoutGrid, List as ListIcon, Camera, X } from "lucide-react";
+import { Thermometer, CloudRain, Activity, Droplets, ArrowRight, LayoutGrid, List as ListIcon, Camera, X, Trash2 } from "lucide-react";
 import BulkWaterModal from "./BulkWaterModal";
 import BulkStageModal from "./BulkStageModal";
 import MeasurementModal from "./MeasurementModal";
 import { useToast } from "@/app/context/ToastContext";
-import { uploadCycleImage } from "@/app/cycles/actions";
+import { uploadCycleImage, deleteCycleImages, updateCycleImage } from "@/app/cycles/actions";
 import imageCompression from 'browser-image-compression';
 
 interface CycleDetailViewProps {
@@ -18,14 +18,20 @@ interface CycleDetailViewProps {
   plants: Plant[];
   lastMeasurement?: { temperature: number; humidity: number; date: string } | null;
   history: any[];
-  cycleImages?: Log[];
+  cycleImages?: CycleImage[];
 }
 
 export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleImages = [] }: CycleDetailViewProps) {
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<CycleImage | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Gallery Selection State
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const ignoreNextClick = useRef(false);
 
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedPlants, setSelectedPlants] = useState<number[]>([]);
@@ -37,6 +43,78 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleImageTouchStart = (imageId: string) => {
+    if (isSelectionMode) return;
+    longPressTimerRef.current = setTimeout(() => {
+      setIsSelectionMode(true);
+      setSelectedImages((prev) => [...prev, imageId]);
+      ignoreNextClick.current = true;
+    }, 500);
+  };
+
+  const handleImageTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleImageClick = (image: CycleImage) => {
+    if (ignoreNextClick.current) {
+      ignoreNextClick.current = false;
+      return;
+    }
+
+    if (isSelectionMode) {
+      if (selectedImages.includes(image.id)) {
+        const newSelection = selectedImages.filter((id) => id !== image.id);
+        setSelectedImages(newSelection);
+        if (newSelection.length === 0) setIsSelectionMode(false);
+      } else {
+        setSelectedImages([...selectedImages, image.id]);
+      }
+    } else {
+      setSelectedImage(image);
+    }
+  };
+
+  const handleSaveImageDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedImage) return;
+
+    const form = e.target as HTMLFormElement;
+    const dateInput = form.elements.namedItem('date') as HTMLInputElement;
+    const descInput = form.elements.namedItem('description') as HTMLTextAreaElement;
+
+    // We append T12:00:00 to avoid timezone shift issues when saving only YYYY-MM-DD
+    const newDate = new Date(`${dateInput.value}T12:00:00`);
+
+    const result = await updateCycleImage(selectedImage.id, {
+        taken_at: newDate.toISOString(),
+        description: descInput.value
+    });
+
+    if (result.success) {
+        showToast("Imagen actualizada", "success");
+        setSelectedImage(null);
+    } else {
+        showToast("Error al actualizar", "error");
+    }
+  };
+
+  const handleDeleteImages = async () => {
+    if (!confirm("¿Estás seguro de eliminar las fotos seleccionadas?")) return;
+
+    const result = await deleteCycleImages(selectedImages);
+    if (result.success) {
+        showToast("Fotos eliminadas", "success");
+        setSelectedImages([]);
+        setIsSelectionMode(false);
+    } else {
+        showToast("Error al eliminar", "error");
+    }
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -228,18 +306,36 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
         {cycleImages && cycleImages.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                 {cycleImages.map((img) => (
-                    <div key={img.id} onClick={() => setLightboxImage(img.media_url?.[0] || null)} className="relative flex-shrink-0 w-40 md:w-48 aspect-[3/4] bg-black rounded-xl overflow-hidden border border-white/10 snap-center cursor-pointer group hover:border-brand-primary/50 transition-colors">
-                         {img.media_url && img.media_url[0] && (
-                            <Image
-                                src={img.media_url[0]}
-                                alt={img.title || "Foto del ciclo"}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
+                    <div
+                        key={img.id}
+                        onMouseDown={() => handleImageTouchStart(img.id)}
+                        onTouchStart={() => handleImageTouchStart(img.id)}
+                        onTouchEnd={handleImageTouchEnd}
+                        onMouseUp={handleImageTouchEnd}
+                        onClick={() => handleImageClick(img)}
+                        className={`relative flex-shrink-0 w-40 md:w-48 aspect-[3/4] bg-black rounded-xl overflow-hidden border snap-center cursor-pointer group transition-all duration-300 ${selectedImages.includes(img.id) ? 'border-brand-primary ring-2 ring-brand-primary' : 'border-white/10 hover:border-brand-primary/50'}`}
+                    >
+                         {/* Selection Overlay */}
+                         {isSelectionMode && (
+                            <div className="absolute top-2 left-2 z-20">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedImages.includes(img.id)}
+                                    readOnly
+                                    className="w-5 h-5 accent-brand-primary rounded border-white/20 bg-black/50 backdrop-blur-sm"
+                                />
+                            </div>
                          )}
+
+                         <Image
+                                src={img.public_url}
+                                alt={img.description || "Foto del ciclo"}
+                                fill
+                                className={`object-cover transition-transform duration-500 ${selectedImages.includes(img.id) ? 'scale-105 opacity-60' : 'group-hover:scale-105'}`}
+                         />
                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                            <p className="text-white text-xs font-bold">{new Date(img.created_at).toLocaleDateString()}</p>
-                            <p className="text-slate-400 text-[10px]">Día {Math.floor((new Date(img.created_at).getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24))}</p>
+                            <p className="text-white text-xs font-bold">{new Date(img.taken_at).toLocaleDateString()}</p>
+                            <p className="text-slate-400 text-[10px]">Día {Math.floor((new Date(img.taken_at).getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24))}</p>
                          </div>
                     </div>
                 ))}
@@ -253,14 +349,82 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
         )}
       </div>
 
-      {/* Lightbox */}
-      {lightboxImage && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setLightboxImage(null)}>
-            <button className="absolute top-4 right-4 text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50">
-                <X size={24} />
-            </button>
-            <div className="relative w-full max-w-4xl h-full max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-                <Image src={lightboxImage} alt="Full screen" fill className="object-contain" />
+      {/* Lightbox / Detail Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+            <div className="bg-[#12141C] border border-white/10 rounded-2xl w-full max-w-5xl h-[80vh] overflow-hidden flex flex-col md:flex-row shadow-2xl" onClick={(e) => e.stopPropagation()}>
+
+                {/* Image Section */}
+                <div className="relative w-full md:w-2/3 h-1/2 md:h-full bg-black flex items-center justify-center">
+                     <Image
+                        src={selectedImage.public_url}
+                        alt="Detail"
+                        fill
+                        className="object-contain"
+                    />
+                     <button type="button" onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white z-10 hover:bg-white/20 transition-colors">
+                        <X size={20} />
+                     </button>
+                </div>
+
+                {/* Form Section */}
+                <div className="w-full md:w-1/3 p-6 flex flex-col h-1/2 md:h-full bg-[#12141C] border-l border-white/5">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-white font-bold text-lg font-title">Detalles de la Foto</h3>
+                    </div>
+
+                    <form onSubmit={handleSaveImageDetails} className="flex flex-col gap-6 flex-1 h-full">
+                        <div>
+                            <label className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-2 block">Fecha</label>
+                            <input
+                                type="date"
+                                name="date"
+                                defaultValue={new Date(selectedImage.taken_at).toLocaleDateString('en-CA')}
+                                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-primary/50 transition-colors font-body text-sm"
+                            />
+                        </div>
+
+                        <div className="flex-1 flex flex-col">
+                            <label className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-2 block">Notas / Descripción</label>
+                            <textarea
+                                name="description"
+                                defaultValue={selectedImage.description || ''}
+                                placeholder="Escribe una nota sobre esta foto..."
+                                className="w-full flex-1 min-h-[120px] bg-[#0B0C10] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-primary/50 transition-colors resize-none font-body text-sm leading-relaxed"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="bg-brand-primary hover:bg-brand-primary/80 text-black font-bold py-4 rounded-xl transition-colors w-full mt-auto shadow-lg shadow-brand-primary/20"
+                        >
+                            Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* SELECTION FAB */}
+      {isSelectionMode && (
+        <div className="fixed bottom-24 md:bottom-12 left-0 right-0 z-50 flex justify-center px-4 animate-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-[#1a1a1a] border border-white/10 shadow-2xl shadow-black rounded-full px-6 py-3 flex items-center gap-6 backdrop-blur-md">
+                <span className="text-white font-bold text-sm">{selectedImages.length} seleccionadas</span>
+                <div className="h-4 w-px bg-white/10"></div>
+                <button
+                    onClick={() => { setIsSelectionMode(false); setSelectedImages([]); }}
+                    className="text-slate-400 hover:text-white transition-colors"
+                >
+                    <X size={20} />
+                </button>
+                <button
+                    onClick={handleDeleteImages}
+                    disabled={selectedImages.length === 0}
+                    className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-full transition-colors"
+                >
+                    <Trash2 size={20} />
+                </button>
             </div>
         </div>
       )}
