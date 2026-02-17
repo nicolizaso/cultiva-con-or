@@ -351,11 +351,11 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
 
       {/* Lightbox / Detail Modal */}
       {selectedImage && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
-            <div className="bg-[#12141C] border border-white/10 rounded-2xl w-full max-w-5xl h-[80vh] overflow-hidden flex flex-col md:flex-row shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+            <div className="bg-[#12141C] border border-white/10 rounded-2xl w-[90%] md:w-full max-w-md md:max-w-5xl h-auto md:h-[80vh] max-h-[85vh] overflow-y-auto md:overflow-hidden flex flex-col md:flex-row shadow-2xl" onClick={(e) => e.stopPropagation()}>
 
                 {/* Image Section */}
-                <div className="relative w-full md:w-2/3 h-1/2 md:h-full bg-black flex items-center justify-center">
+                <div className="relative w-full md:w-2/3 h-64 md:h-full shrink-0 bg-black flex items-center justify-center">
                      <Image
                         src={selectedImage.public_url}
                         alt="Detail"
@@ -368,7 +368,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                 </div>
 
                 {/* Form Section */}
-                <div className="w-full md:w-1/3 p-6 flex flex-col h-1/2 md:h-full bg-[#12141C] border-l border-white/5">
+                <div className="w-full md:w-1/3 p-4 md:p-6 flex flex-col h-auto md:h-full bg-[#12141C] border-l border-white/5">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-white font-bold text-lg font-title">Detalles de la Foto</h3>
                     </div>
@@ -390,7 +390,8 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                                 name="description"
                                 defaultValue={selectedImage.description || ''}
                                 placeholder="Escribe una nota sobre esta foto..."
-                                className="w-full flex-1 min-h-[120px] bg-[#0B0C10] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-primary/50 transition-colors resize-none font-body text-sm leading-relaxed"
+                                rows={3}
+                                className="w-full h-20 md:h-auto md:flex-1 bg-[#0B0C10] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-primary/50 transition-colors resize-none font-body text-sm leading-relaxed"
                             />
                         </div>
 
