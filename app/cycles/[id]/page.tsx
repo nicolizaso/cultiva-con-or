@@ -25,11 +25,10 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
 
   // Fetch Cycle Images (Gallery)
   const { data: cycleImages } = await supabase
-    .from('logs')
+    .from('cycle_images')
     .select('*')
     .eq('cycle_id', id)
-    .eq('type', 'Cycle Image')
-    .order('created_at', { ascending: false });
+    .order('taken_at', { ascending: false });
 
   const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
 

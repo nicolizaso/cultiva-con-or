@@ -164,20 +164,17 @@ export async function bulkChangeStage(
         .from('images')
         .getPublicUrl(filePath);
 
-      // Insert Log
-      const { error: logError } = await supabase
-        .from('logs')
+      // Insert into cycle_images
+      const { error: dbError } = await supabase
+        .from('cycle_images')
         .insert({
           cycle_id: cycleId,
-          plant_id: null,
-          type: 'Cycle Image',
-          title: 'Foto del Ciclo 📷',
-          notes: 'Foto de seguimiento general del indoor.',
-          media_url: [publicUrl],
-          created_at: new Date().toISOString()
+          storage_path: filePath,
+          public_url: publicUrl,
+          taken_at: new Date().toISOString()
         });
 
-      if (logError) throw logError;
+      if (dbError) throw dbError;
 
       revalidatePath('/cycles/[id]', 'page');
       return { success: true };
@@ -185,5 +182,65 @@ export async function bulkChangeStage(
     } catch (error) {
       console.error('Error uploading cycle image:', error);
       return { error: 'Error al subir la imagen.' };
+    }
+  }
+
+  export async function deleteCycleImages(imageIds: string[]) {
+    const supabase = await createClient();
+
+    try {
+      // 1. Get storage paths for the images to delete
+      const { data: images, error: fetchError } = await supabase
+        .from('cycle_images')
+        .select('storage_path')
+        .in('id', imageIds);
+
+      if (fetchError) throw fetchError;
+
+      if (images && images.length > 0) {
+        const paths = images.map(img => img.storage_path);
+
+        // 2. Delete files from Storage
+        const { error: storageError } = await supabase.storage
+          .from('images')
+          .remove(paths);
+
+        if (storageError) console.error('Error deleting files from storage:', storageError);
+      }
+
+      // 3. Delete records from DB
+      const { error: dbError } = await supabase
+        .from('cycle_images')
+        .delete()
+        .in('id', imageIds);
+
+      if (dbError) throw dbError;
+
+      revalidatePath('/cycles/[id]', 'page');
+      return { success: true };
+
+    } catch (error) {
+      console.error('Error deleting cycle images:', error);
+      return { error: 'Error al eliminar las imágenes.' };
+    }
+  }
+
+  export async function updateCycleImage(id: string, updates: { taken_at?: Date | string, description?: string }) {
+    const supabase = await createClient();
+
+    try {
+      const { error } = await supabase
+        .from('cycle_images')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      revalidatePath('/cycles/[id]', 'page');
+      return { success: true };
+
+    } catch (error) {
+      console.error('Error updating cycle image:', error);
+      return { error: 'Error al actualizar la imagen.' };
     }
   }
