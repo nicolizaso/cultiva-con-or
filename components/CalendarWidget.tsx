@@ -34,11 +34,12 @@ interface WidgetTask {
 interface CalendarWidgetProps {
   logs: Log[];
   tasks: WidgetTask[];
+  selectedDate: Date;
+  onDateSelect: (date: Date) => void;
 }
 
-export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
+export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
@@ -132,7 +133,7 @@ export default function CalendarWidget({ logs, tasks }: CalendarWidgetProps) {
             return (
               <div 
                 key={day.toString()}
-                onClick={() => setSelectedDate(day)}
+                onClick={() => onDateSelect(day)}
                 className={`min-h-[80px] p-2 rounded-xl border cursor-pointer transition-all relative flex flex-col justify-between
                   ${!isCurrentMonth ? 'bg-transparent border-transparent opacity-20' : 'bg-[#0B0C10] border-white/5'}
                   ${isSelected ? 'ring-1 ring-brand-primary border-brand-primary z-10 bg-[#1a1a1a]' : 'hover:border-slate-600'}
