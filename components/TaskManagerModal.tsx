@@ -18,7 +18,7 @@ export default function TaskManagerModal() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [cycles, setCycles] = useState<CycleSimple[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
+  const [selectedTasks, setSelectedTasks] = useState<Set<string | number>>(new Set())
   const [filterCycle, setFilterCycle] = useState<string>('')
   const [filterType, setFilterType] = useState<string>('')
   const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -51,7 +51,7 @@ export default function TaskManagerModal() {
     if (res.cycles) setCycles(res.cycles)
   }
 
-  const handleToggleSelect = (taskId: string) => {
+  const handleToggleSelect = (taskId: string | number) => {
     const newSelected = new Set(selectedTasks)
     if (newSelected.has(taskId)) {
       newSelected.delete(taskId)
