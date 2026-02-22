@@ -116,7 +116,7 @@ export async function createTask(formData: any) {
 
 // --- NUEVAS FUNCIONES PARA EL POPUP ---
 
-export async function updateTask(taskId: string, updates: any, scope: 'single' | 'all_future' = 'single', recurrenceId?: string) {
+export async function updateTask(taskId: string | number, updates: any, scope: 'single' | 'all_future' = 'single', recurrenceId?: string) {
   const supabase = await createClient()
   
   if (scope === 'single') {
@@ -188,7 +188,7 @@ export async function updateTask(taskId: string, updates: any, scope: 'single' |
   return { success: true }
 }
 
-export async function deleteTasks(taskIds: string[]) {
+export async function deleteTasks(taskIds: (string | number)[]) {
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -203,7 +203,7 @@ export async function deleteTasks(taskIds: string[]) {
   return { success: true }
 }
 
-export async function toggleTaskStatus(taskId: string, newStatus: 'pending' | 'completed') {
+export async function toggleTaskStatus(taskId: string | number, newStatus: 'pending' | 'completed') {
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -256,7 +256,7 @@ export async function toggleTaskStatus(taskId: string, newStatus: 'pending' | 'c
   return { success: true }
 }
 
-export async function completeTask(taskId: string) {
+export async function completeTask(taskId: string | number) {
   const supabase = await createClient()
   
   const { error } = await supabase
@@ -270,7 +270,7 @@ export async function completeTask(taskId: string) {
   return { success: true }
 }
 
-export async function deleteTask(taskId: string) {
+export async function deleteTask(taskId: string | number) {
   const supabase = await createClient()
   
   const { error } = await supabase
