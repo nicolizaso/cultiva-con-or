@@ -1,0 +1,24 @@
+
+> mi-cultivo@0.1.0 dev
+> next dev
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.0.2:3000
+
+ ✓ Starting...
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 1596ms
+ ○ Compiling /test-verification ...
+ ⨯ Error: Invalid src prop (https://via.placeholder.com/150) on `next/image`, hostname "via.placeholder.com" is not configured under images in your `next.config.js`
+See more info: https://nextjs.org/docs/messages/next-image-unconfigured-host
+    at ignore-listed frames {
+  digest: '467068087'
+}
+ GET /test-verification 500 in 5.4s (compile: 4.9s, render: 589ms)
+ ✓ Compiled in 57ms
+ GET /test-verification 200 in 249ms (compile: 70ms, render: 178ms)
+ ✓ Compiled in 5ms
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[?25h
