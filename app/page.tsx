@@ -57,7 +57,7 @@ export default async function Home() {
     // Tasks (Both pending and completed, broader range to fix timezone issues)
     supabase
       .from('tasks')
-      .select('*')
+      .select('*, cycles(id, name), task_plants(plants(name))')
       .eq('user_id', user.id)
       .gte('due_date', yesterdayStr)
       .order('created_at', { ascending: true }),
@@ -69,7 +69,10 @@ export default async function Home() {
 
   const username = profile?.username;
 
-  const allTodayTasks = (tasksData || []) as Task[];
+  const allTodayTasks = (tasksData || []).map((t: any) => ({
+    ...t,
+    cycleName: t.cycles?.name
+  })) as Task[];
 
   // Procesamiento
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
