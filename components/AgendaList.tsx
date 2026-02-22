@@ -18,7 +18,7 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
 
   // Selection State
   const [isSelectionMode, setIsSelectionMode] = useState(false)
-  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
+  const [selectedTasks, setSelectedTasks] = useState<Set<string | number>>(new Set())
   const [isDeleting, setIsDeleting] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
 
@@ -28,12 +28,12 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
     ? tasks
     : tasks.filter(t => t.due_date && t.due_date.split('T')[0] === todayStr);
 
-  const handleToggle = async (id: string) => {
+  const handleToggle = async (id: string | number) => {
     const task = tasks.find(t => t.id === id)
     if (!task) return
 
     const newStatus = task.status === 'completed' ? 'pending' : 'completed'
-    const res = await toggleTaskStatus(id, newStatus)
+    const res = await toggleTaskStatus(String(id), newStatus)
 
     if (res?.error) {
       showToast('Error al actualizar estado', 'error')
@@ -44,7 +44,7 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
 
   // --- Selection Logic ---
 
-  const handleLongPress = (taskId: string) => {
+  const handleLongPress = (taskId: string | number) => {
      if (isSelectionMode) return
      setIsSelectionMode(true)
      setSelectedTasks(new Set([taskId]))
@@ -54,7 +54,7 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
      }
   }
 
-  const handleSelectionToggle = (id: string) => {
+  const handleSelectionToggle = (id: string | number) => {
      const newSelected = new Set(selectedTasks)
      if (newSelected.has(id)) {
        newSelected.delete(id)
@@ -80,7 +80,8 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
     if (!window.confirm(`¿Estás seguro de que quieres eliminar ${selectedTasks.size} tarea(s)?`)) return
 
     setIsDeleting(true)
-    const res = await deleteTasks(Array.from(selectedTasks))
+    // Convert all IDs to strings for the server action
+    const res = await deleteTasks(Array.from(selectedTasks).map(String))
     setIsDeleting(false)
 
     if (res?.error) {

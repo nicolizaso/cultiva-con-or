@@ -48,11 +48,12 @@ export interface Space {
 
 // ESTA ES LA INTERFAZ QUE FALTABA:
 export interface Task {
-  id: string;
+  id: number | string;
   title: string;
   due_date: string; // ISO string YYYY-MM-DD
   completed?: boolean;
   status?: 'pending' | 'completed';
+  cycle_id?: number;
   cycleId?: string;
   cycleName?: string;
   type: string; // 'riego', 'poda', etc.
