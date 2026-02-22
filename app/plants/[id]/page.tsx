@@ -5,19 +5,9 @@ import { notFound } from "next/navigation";
 import GlobalHeader from "@/components/GlobalHeader";
 import LogModal from "@/components/LogModal";
 import PlantMetricsDisplay from "@/components/PlantMetricsDisplay";
-import { formatDateShort, getPlantMetrics, getStageColor } from "@/app/lib/utils";
-import { Calendar, Droplets, Ruler, History, Sprout, Edit } from "lucide-react";
-
-interface TimelineItem {
-  id: string;
-  originalId: number | string;
-  date: string;
-  title: string;
-  type: string;
-  notes?: string;
-  media_url?: string[];
-  isTask: boolean;
-}
+import TimelineSection, { TimelineItem } from "@/components/TimelineSection"; // Updated import
+import { getPlantMetrics, getStageColor } from "@/app/lib/utils";
+import { Calendar, Droplets, History, Sprout, Edit } from "lucide-react";
 
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
@@ -32,7 +22,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
 
   if (error || !plant) return notFound();
 
-  // Fetch logs for this plant OR bulk logs for its cycle
+  // 1. Fetch logs
   let logsQuery = supabase
     .from('logs')
     .select('*')
@@ -44,36 +34,81 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
      logsQuery = logsQuery.eq('plant_id', id);
   }
 
-  // Fetch pending tasks: Space-based OR Plant-linked
+  // 2. Fetch Tasks (Both Pending and Completed)
+  // Space-based tasks
   const spaceTasksQuery = supabase
     .from('tasks')
     .select('*')
-    .eq('status', 'pending')
     .eq('space_id', plant.space_id);
 
+  // Linked tasks
   const linkedTasksQuery = supabase
     .from('tasks')
     .select('*, task_plants!inner(plant_id)')
-    .eq('status', 'pending')
     .eq('task_plants.plant_id', id);
 
-  const [logsResult, spaceTasksResult, linkedTasksResult] = await Promise.all([
+  // 3. Fetch Cycle Images (if cycle exists)
+  let imagesQuery: any = Promise.resolve({ data: [] });
+  if (plant.cycle_id) {
+    imagesQuery = supabase
+      .from('cycle_images')
+      .select('*')
+      .eq('cycle_id', plant.cycle_id)
+      .order('taken_at', { ascending: false });
+  }
+
+  const [logsResult, spaceTasksResult, linkedTasksResult, imagesResult] = await Promise.all([
     logsQuery,
     spaceTasksQuery,
-    linkedTasksQuery
+    linkedTasksQuery,
+    imagesQuery
   ]);
 
   const logs = logsResult.data || [];
   const spaceTasks = spaceTasksResult.data || [];
   const linkedTasks = linkedTasksResult.data || [];
+  const cycleImages = imagesResult.data || [];
 
   // Deduplicate tasks
-  const allTasks = [...spaceTasks, ...linkedTasks];
-  const pendingTasks = Array.from(new Map(allTasks.map((t: any) => [t.id, t])).values());
+  const allTasksRaw = [...spaceTasks, ...linkedTasks];
+  const uniqueTasksMap = new Map();
+  // @ts-ignore
+  allTasksRaw.forEach((t: any) => uniqueTasksMap.set(t.id, t));
+  const uniqueTasks = Array.from(uniqueTasksMap.values());
 
-  // Merge for timeline
-  const timelineItems: TimelineItem[] = [
-    ...pendingTasks.map((task: any) => ({
+  // Split Tasks
+  // @ts-ignore
+  const pendingTasksList = uniqueTasks.filter((t: any) => t.status === 'pending');
+  // @ts-ignore
+  const completedTasksList = uniqueTasks.filter((t: any) => t.status !== 'pending'); // Assuming 'completed' or others are history
+
+  // Map to TimelineItem
+  const pendingTimelineItems: TimelineItem[] = pendingTasksList.map((task: any) => ({
+    id: `task-${task.id}`,
+    originalId: task.id,
+    date: task.due_date,
+    title: task.title,
+    type: task.type,
+    notes: task.description,
+    isTask: true,
+    status: 'pending'
+  })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // ASC for pending
+
+  const historyTimelineItems: TimelineItem[] = [
+    // Logs
+    ...logs.map((log: any) => ({
+      id: `log-${log.id}`,
+      originalId: log.id,
+      date: log.created_at,
+      title: log.title,
+      type: log.type || 'log',
+      notes: log.notes,
+      media_url: log.media_url,
+      isTask: false,
+      status: 'completed'
+    })),
+    // Completed Tasks
+    ...completedTasksList.map((task: any) => ({
       id: `task-${task.id}`,
       originalId: task.id,
       date: task.due_date,
@@ -81,19 +116,21 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
       type: task.type,
       notes: task.description,
       isTask: true,
-      media_url: undefined
+      status: 'completed'
     })),
-    ...logs.map((log: any) => ({
-      id: `log-${log.id}`,
-      originalId: log.id,
-      date: log.created_at,
-      title: log.title,
-      type: log.type,
-      notes: log.notes,
-      media_url: log.media_url,
-      isTask: false
+    // Cycle Images
+    ...cycleImages.map((img: any) => ({
+      id: `img-${img.id}`,
+      originalId: img.id,
+      date: img.taken_at,
+      title: 'Foto de Ciclo',
+      type: 'image',
+      notes: img.description,
+      media_url: [img.public_url],
+      isTask: false,
+      status: 'completed'
     }))
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // DESC for history
 
   const { currentStage, daysInCurrentStage, totalAge } = getPlantMetrics(plant);
   const rawStage = currentStage || plant.stage;
@@ -176,47 +213,10 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
             <h2 className="text-lg font-title text-white">Bitácora de Seguimiento</h2>
         </div>
 
-        <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-white/10 before:to-transparent">
-          {timelineItems && timelineItems.length > 0 ? (
-            timelineItems.map((item) => (
-              <div key={item.id} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active ${item.isTask ? 'opacity-90' : ''}`}>
-                
-                {/* Icono Central */}
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border ${item.isTask ? 'border-dashed border-slate-500 text-slate-400' : 'border-[#333] text-brand-primary'} bg-[#0B0C10] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10`}>
-                  {item.type?.toLowerCase() === 'riego' ? <Droplets size={16} /> : (item.isTask ? <Calendar size={16} /> : <Sprout size={16} />)}
-                </div>
-                
-                {/* Tarjeta */}
-                <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#12141C] p-5 rounded-2xl border ${item.isTask ? 'border-dashed border-slate-700' : 'border-white/5'} hover:border-brand-primary/30 transition-colors shadow-lg`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-sm">{item.title}</span>
-                      {item.isTask && <span className="text-[9px] uppercase font-bold bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">Pendiente</span>}
-                    </div>
-                    <time className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                        {formatDateShort(item.date)}
-                    </time>
-                  </div>
-                  {item.notes && <p className="text-slate-400 text-xs leading-relaxed mb-3">"{item.notes}"</p>}
-                  
-                  {item.media_url && item.media_url.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                        {item.media_url.map((url: string, i: number) => (
-                            <div key={i} className="relative h-24 rounded-lg overflow-hidden border border-white/5">
-                                <Image src={url} alt="Log" fill className="object-cover" />
-                            </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-10">
-                <p className="text-slate-500 text-sm">Sin registros aún.</p>
-            </div>
-          )}
-        </div>
+        <TimelineSection
+          pendingTasks={pendingTimelineItems}
+          historyItems={historyTimelineItems}
+        />
       </section>
     </main>
   );
