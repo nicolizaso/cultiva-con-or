@@ -6,15 +6,15 @@ import { Task } from '@/app/lib/types'
 
 interface TaskPillProps {
   task: Task
-  onComplete?: (id: string) => void
-  onDelete?: (id: string) => void
+  onComplete?: (id: string | number) => void
+  onDelete?: (id: string | number) => void
   onEdit?: (task: Task) => void
   onClick?: (task: Task) => void
   readOnly?: boolean
   selectionMode?: boolean
   isSelected?: boolean
-  onSelect?: (id: string) => void
-  onLongPress?: (id: string) => void
+  onSelect?: (id: string | number) => void
+  onLongPress?: (id: string | number) => void
 }
 
 // Helper para obtener icono y colores según el tipo
