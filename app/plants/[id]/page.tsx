@@ -8,6 +8,17 @@ import PlantMetricsDisplay from "@/components/PlantMetricsDisplay";
 import { formatDateShort, getPlantMetrics, getStageColor } from "@/app/lib/utils";
 import { Calendar, Droplets, Ruler, History, Sprout, Edit } from "lucide-react";
 
+interface TimelineItem {
+  id: string;
+  originalId: number | string;
+  date: string;
+  title: string;
+  type: string;
+  notes?: string;
+  media_url?: string[];
+  isTask: boolean;
+}
+
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
   const { id } = await params;
@@ -61,7 +72,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
   const pendingTasks = Array.from(new Map(allTasks.map((t: any) => [t.id, t])).values());
 
   // Merge for timeline
-  const timelineItems = [
+  const timelineItems: TimelineItem[] = [
     ...pendingTasks.map((task: any) => ({
       id: `task-${task.id}`,
       originalId: task.id,
@@ -69,7 +80,8 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
       title: task.title,
       type: task.type,
       notes: task.description,
-      isTask: true
+      isTask: true,
+      media_url: undefined
     })),
     ...logs.map((log: any) => ({
       id: `log-${log.id}`,
