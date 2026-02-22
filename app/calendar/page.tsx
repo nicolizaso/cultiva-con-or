@@ -31,7 +31,7 @@ export default async function CalendarPage() {
       .order('created_at', { ascending: true }),
     supabase
       .from('tasks')
-      .select(`*, description, plants ( name )`)
+      .select(`*, description, task_plants(plants(name))`)
       .order('due_date', { ascending: true }),
     supabase
       .from('cycles')

@@ -23,11 +23,13 @@ interface WidgetTask {
   id: number;
   created_at: string;
   due_date: string;
+  date?: string; // Fallback date
   type: string;
   title: string;
   description?: string;
   status: 'pending' | 'completed';
   plants?: any;
+  task_plants?: any[];
   recurrence_id?: string;
 }
 
@@ -64,11 +66,11 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
     ...tasks.map(task => ({
       id: `task-${task.id}`,
       originalId: task.id,
-      date: parseISO(task.due_date),
+      date: parseISO(task.due_date || task.date!),
       type: task.type,
       title: task.title,
       notes: task.description,
-      plants: task.plants,
+      plants: task.task_plants || task.plants,
       isTask: true,
       status: task.status,
       recurrence_id: task.recurrence_id
@@ -97,8 +99,23 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
 
   const getPlantName = (plants: any) => {
     if (!plants) return null;
-    if (Array.isArray(plants) && plants.length > 0) return plants[0].name;
+
+    // Si es un array (caso task_plants o logs con múltiples plantas)
+    if (Array.isArray(plants)) {
+      if (plants.length === 0) return null;
+
+      // Caso nueva estructura: task_plants con objeto anidado 'plants'
+      if (plants[0].plants) {
+        return plants.map((p: any) => p.plants?.name).filter(Boolean).join(', ');
+      }
+
+      // Caso legacy o simple array de plantas
+      return plants.map((p: any) => p.name || p).filter(Boolean).join(', ');
+    }
+
+    // Caso objeto simple
     if (typeof plants === 'object') return plants.name;
+
     return null;
   };
 
