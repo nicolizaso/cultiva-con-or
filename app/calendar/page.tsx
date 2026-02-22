@@ -31,7 +31,7 @@ export default async function CalendarPage() {
       .order('created_at', { ascending: true }),
     supabase
       .from('tasks')
-      .select(`*, description, task_plants(plants(name))`)
+      .select(`*, description, cycles(id, name), task_plants(plants(name))`)
       .order('due_date', { ascending: true }),
     supabase
       .from('cycles')
@@ -55,15 +55,22 @@ export default async function CalendarPage() {
   });
   const allPlants = Array.from(allPlantsMap.values());
 
+  const viewCycles = cycles.map(c => ({ id: c.id, name: c.name }));
+  const mappedTasks = (tasks || []).map((t: any) => ({
+    ...t,
+    cycleName: t.cycles?.name
+  }));
+
   return (
     <main className="min-h-screen bg-[#0B0C10] text-slate-200 p-4 md:p-8 pb-24 font-body">
       <GlobalHeader userEmail={user?.email} title="Agenda" subtitle="Planificación" />
 
       <CalendarView
         logs={logs || []}
-        tasks={tasks || []}
+        tasks={mappedTasks}
         plants={allPlants}
         spaces={allSpaces || []}
+        cycles={viewCycles}
       />
     </main>
   );

@@ -31,6 +31,7 @@ interface WidgetTask {
   plants?: any;
   task_plants?: any[];
   recurrence_id?: string;
+  cycleName?: string;
 }
 
 interface CalendarWidgetProps {
@@ -73,7 +74,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
       plants: task.task_plants || task.plants,
       isTask: true,
       status: task.status,
-      recurrence_id: task.recurrence_id
+      recurrence_id: task.recurrence_id,
+      cycleName: task.cycleName
     }))
   ];
 
@@ -190,7 +192,7 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                       due_date: e.date.toISOString(),
                       status: e.status || 'pending',
                       type: e.type,
-                      cycleName: getPlantName(e.plants) || undefined,
+                      cycleName: (e as any).cycleName,
                       completed: e.status === 'completed',
                       description: e.notes,
                       recurrence_id: e.recurrence_id
