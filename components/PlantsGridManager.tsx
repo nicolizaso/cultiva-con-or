@@ -4,8 +4,9 @@ import { useState, useMemo } from "react";
 import PlantCard from "./plantcard";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
-import { CheckSquare, Square, Trash2, X, FilterX } from "lucide-react";
+import { CheckSquare, Square, Trash2, X, FilterX, Filter } from "lucide-react";
 import { Plant as BasePlant, Cycle, Space } from "@/app/lib/types";
+import AddPlantModal from "./AddPlantModal";
 
 interface Plant extends BasePlant {
   cycles?: { id: number; name: string; space_id: number } | null;
@@ -23,6 +24,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Filter States
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedCycleId, setSelectedCycleId] = useState<string>("all");
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>("all");
 
@@ -123,73 +125,42 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
 
   return (
     <div>
-      {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-[#12141C] border border-white/5 rounded-2xl items-start md:items-center">
-        <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Space Filter */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-slate-500 font-bold uppercase ml-1">Espacio</label>
-                <select
-                    value={selectedSpaceId}
-                    onChange={(e) => setSelectedSpaceId(e.target.value)}
-                    className="w-full bg-[#0B0C10] text-slate-300 text-sm border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
-                >
-                    <option value="all">Todos los espacios</option>
-                    {spaces.map(space => (
-                        <option key={space.id} value={space.id}>{space.name}</option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Cycle Filter */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-slate-500 font-bold uppercase ml-1">Ciclo</label>
-                <select
-                    value={selectedCycleId}
-                    onChange={(e) => setSelectedCycleId(e.target.value)}
-                    className="w-full bg-[#0B0C10] text-slate-300 text-sm border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
-                >
-                    <option value="all">Todos los ciclos</option>
-                    {cycles.map(cycle => (
-                        <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
-                    ))}
-                </select>
-            </div>
-        </div>
-
-        {hasFilters && (
-             <button
-                onClick={clearFilters}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors md:mt-5"
-            >
-                <FilterX size={16} />
-                Limpiar
-            </button>
-        )}
-      </div>
-
       {/* Toolbar */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
          <div className="text-sm text-slate-500 font-bold">
             {filteredPlants.length} plantas {hasFilters && <span className="text-slate-600 font-normal">(filtrado de {plants.length})</span>}
          </div>
 
-         <div className="flex gap-2">
+         <div className="flex gap-2 self-end md:self-auto">
+            <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2 rounded-lg transition-colors ${
+                    showFilters || hasFilters
+                    ? "bg-brand-primary text-brand-bg shadow-lg shadow-brand-primary/20"
+                    : "bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white"
+                }`}
+                title="Filtrar"
+            >
+                <Filter size={20} />
+            </button>
+
+            <AddPlantModal />
+
             {isSelectionMode && (
                 <button
                     onClick={toggleSelectAll}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold uppercase transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold uppercase transition-colors"
                 >
                     {isAllSelected ? <CheckSquare size={16}/> : <Square size={16}/>}
-                    {isAllSelected ? "Deseleccionar" : "Seleccionar todo"}
+                    <span className="hidden md:inline">{isAllSelected ? "Deseleccionar" : "Todos"}</span>
                 </button>
             )}
 
             <button
                 onClick={toggleSelectionMode}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${
                     isSelectionMode
-                    ? "bg-brand-primary/20 text-brand-primary border border-brand-primary/50"
+                    ? "bg-white/10 text-white border border-white/20"
                     : "bg-white/5 hover:bg-white/10 text-slate-300 border border-transparent"
                 }`}
             >
@@ -197,6 +168,55 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
             </button>
          </div>
       </div>
+
+      {/* Collapsible Filter Section */}
+      {showFilters && (
+        <div className="bg-[#12141C] p-4 rounded-2xl mb-6 animate-in fade-in slide-in-from-top-2 border border-white/5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Space Filter */}
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs text-slate-500 font-bold uppercase ml-1">Espacio</label>
+                    <select
+                        value={selectedSpaceId}
+                        onChange={(e) => setSelectedSpaceId(e.target.value)}
+                        className="w-full bg-[#0B0C10] text-slate-300 text-sm border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
+                    >
+                        <option value="all">Todos los espacios</option>
+                        {spaces.map(space => (
+                            <option key={space.id} value={space.id}>{space.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Cycle Filter */}
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs text-slate-500 font-bold uppercase ml-1">Ciclo</label>
+                    <select
+                        value={selectedCycleId}
+                        onChange={(e) => setSelectedCycleId(e.target.value)}
+                        className="w-full bg-[#0B0C10] text-slate-300 text-sm border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
+                    >
+                        <option value="all">Todos los ciclos</option>
+                        {cycles.map(cycle => (
+                            <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            {hasFilters && (
+                <div className="mt-4 flex justify-end">
+                    <button
+                        onClick={clearFilters}
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                        <FilterX size={16} />
+                        Limpiar Filtros
+                    </button>
+                </div>
+            )}
+        </div>
+      )}
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
