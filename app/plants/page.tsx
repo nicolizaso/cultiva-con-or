@@ -7,15 +7,29 @@ export default async function PlantsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: plants } = await supabase
-    .from('plants')
-    .select(`
-      *,
-      current_age_days,
-      days_in_stage,
-      cycles ( name )
-    `)
-    .order('created_at', { ascending: false });
+  const [
+    { data: plants },
+    { data: cycles },
+    { data: spaces }
+  ] = await Promise.all([
+    supabase
+      .from('plants')
+      .select(`
+        *,
+        current_age_days,
+        days_in_stage,
+        cycles ( id, name, space_id )
+      `)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('cycles')
+      .select('id, name, space_id')
+      .order('start_date', { ascending: false }),
+    supabase
+      .from('spaces')
+      .select('id, name')
+      .order('name')
+  ]);
 
   return (
     <main className="min-h-screen bg-[#0B0C10] text-slate-200 p-4 md:p-8 pb-24 font-body">
@@ -30,7 +44,11 @@ export default async function PlantsPage() {
         <AddPlantModal />
       </div>
 
-      <PlantsGridManager plants={plants as any[] || []} />
+      <PlantsGridManager
+        plants={plants as any[] || []}
+        cycles={cycles as any[] || []}
+        spaces={spaces as any[] || []}
+      />
 
     </main>
   );
