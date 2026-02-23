@@ -1,7 +1,6 @@
 import { createClient } from "@/app/lib/supabase-server";
 import GlobalHeader from "@/components/GlobalHeader";
 import PlantsGridManager from "@/components/PlantsGridManager";
-import AddPlantModal from "@/components/AddPlantModal";
 
 export default async function PlantsPage() {
   const supabase = await createClient();
@@ -39,10 +38,6 @@ export default async function PlantsPage() {
         title="Inventario Global" 
         subtitle="Todas las muestras"
       />
-
-      <div className="flex justify-end mb-6">
-        <AddPlantModal />
-      </div>
 
       <PlantsGridManager
         plants={plants as any[] || []}
