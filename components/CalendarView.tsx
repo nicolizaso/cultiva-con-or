@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import CalendarWidget from './CalendarWidget'
 import DashboardFab from './DashboardFab'
+import AgendaList from './AgendaList'
+import { Task } from '@/app/lib/types'
 
 interface CalendarViewProps {
   logs: any[]
-  tasks: any[]
+  tasks: Task[]
   plants: any[]
   spaces: any[]
   cycles?: { id: number; name: string }[]
@@ -24,9 +26,14 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
     ? logs
     : logs.filter(l => l.cycle_id === selectedCycleId)
 
+  // Filter tasks for Global Agenda (Pending + Sorted by Date)
+  const globalTasks = filteredTasks
+    .filter(t => t.status === 'pending')
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+
   return (
     <>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto pb-32">
         {cycles.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-4 mb-2 scrollbar-hide">
             <button
@@ -61,6 +68,20 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
           selectedDate={selectedDate}
           onDateSelect={setSelectedDate}
         />
+
+        {/* Global Agenda Section */}
+        <div className="mt-12 border-t border-white/5 pt-8">
+           <h3 className="text-xl font-title font-light text-white mb-6 flex items-center gap-3">
+              Agenda Global
+              <span className="text-xs font-bold bg-brand-primary/20 text-brand-primary px-2.5 py-1 rounded-full border border-brand-primary/20">
+                 {globalTasks.length} pendientes
+              </span>
+           </h3>
+
+           <div className="bg-[#12141C] border border-white/5 rounded-3xl p-6 shadow-xl">
+              <AgendaList tasks={globalTasks} disableDateFilter={true} />
+           </div>
+        </div>
       </div>
 
       <DashboardFab

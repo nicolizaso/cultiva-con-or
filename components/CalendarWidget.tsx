@@ -19,15 +19,20 @@ interface Log {
   plants?: any; // Usamos any temporalmente para manejar la inconsistencia de array/objeto
 }
 
+interface GroupedLog extends Log {
+  isGroup?: boolean;
+  count?: number;
+}
+
 interface WidgetTask {
-  id: number;
-  created_at: string;
+  id: number | string;
+  created_at?: string;
   due_date: string;
   date?: string; // Fallback date
   type: string;
   title: string;
   description?: string;
-  status: 'pending' | 'completed';
+  status?: 'pending' | 'completed';
   plants?: any;
   task_plants?: any[];
   recurrence_id?: string;
@@ -41,6 +46,41 @@ interface CalendarWidgetProps {
   onDateSelect: (date: Date) => void;
 }
 
+// Helper para agrupar logs
+const groupLogs = (logs: Log[]): GroupedLog[] => {
+  const groups: Record<string, Log[]> = {};
+
+  logs.forEach(log => {
+      // Key: Type + Title + Minute (ignore seconds)
+      const dateKey = log.created_at.substring(0, 16); // YYYY-MM-DDTHH:mm
+      const key = `${log.type}-${log.title}-${dateKey}`;
+
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(log);
+  });
+
+  return Object.values(groups).map(group => {
+      if (group.length === 1) return group[0];
+
+      const first = group[0];
+      // Collect all plants from the group
+      const allPlants = group.map(g => {
+        if (Array.isArray(g.plants)) return g.plants;
+        if (g.plants) return [g.plants];
+        return [];
+      }).flat();
+
+      return {
+          ...first,
+          isGroup: true,
+          count: group.length,
+          id: -first.id, // Use negative ID to avoid conflicts or just distinct
+          // Combine plants for display
+          plants: allPlants
+      } as GroupedLog;
+  });
+}
+
 export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -50,10 +90,12 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  // Unificar eventos
+  // Unificar eventos (con agrupación de logs)
+  const groupedLogs = groupLogs(logs);
+
   const allEvents = [
-    ...logs.map(log => ({
-      id: `log-${log.id}`,
+    ...groupedLogs.map(log => ({
+      id: log.isGroup ? `group-${log.id}` : `log-${log.id}`,
       originalId: log.id,
       date: parseISO(log.created_at),
       type: log.type,
@@ -62,7 +104,9 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
       plants: log.plants,
       isTask: false,
       status: undefined,
-      recurrence_id: undefined
+      recurrence_id: undefined,
+      isGroup: log.isGroup,
+      count: log.count
     })),
     ...tasks.map(task => ({
       id: `task-${task.id}`,
@@ -164,8 +208,13 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                 </div>
                 <div className="flex flex-wrap gap-1 content-start">
                   {dayEvents.slice(0, 4).map((event, i) => (
-                    <span key={i} title={`${event.type}: ${event.title}`} className={event.status === 'completed' ? 'opacity-50' : ''}>
+                    <span key={i} title={`${event.type}: ${event.title}`} className={`relative ${event.status === 'completed' ? 'opacity-50' : ''}`}>
                       {getIcon(event.type)}
+                      {(event as any).isGroup && (
+                        <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-brand-primary text-[7px] font-bold text-black">
+                          {(event as any).count}
+                        </span>
+                      )}
                     </span>
                   ))}
                   {dayEvents.length > 4 && <span className="text-[8px] text-slate-500">+{dayEvents.length - 4}</span>}
@@ -205,6 +254,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                 {eventsForSelectedDate.filter(e => !e.isTask).length > 0 ? (
                     eventsForSelectedDate.filter(e => !e.isTask).map(event => {
                         const plantName = getPlantName(event.plants);
+                        const isGroup = (event as any).isGroup;
+                        const count = (event as any).count;
 
                         return (
                             <div key={event.id} className="bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
@@ -213,10 +264,13 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                                       <span>{getIcon(event.type)}</span>
                                       <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{event.type}</span>
                                     </div>
+                                    {isGroup && (
+                                       <span className="text-[9px] bg-brand-primary/20 text-brand-primary px-1.5 py-0.5 rounded font-bold">x{count}</span>
+                                    )}
                                 </div>
-                                <h4 className="font-bold text-white text-sm mb-1">{event.title}</h4>
+                                <h4 className="font-bold text-white text-sm mb-1">{event.title} {isGroup && <span className="text-slate-500 font-normal">x{count} plantas</span>}</h4>
                                 {plantName && (
-                                    <p className="text-xs text-brand-primary mb-1">🌿 {plantName}</p>
+                                    <p className="text-xs text-brand-primary mb-1 break-words leading-relaxed">🌿 {plantName}</p>
                                 )}
                                 {event.notes && <p className="text-xs text-slate-500 italic">"{event.notes}"</p>}
                             </div>
