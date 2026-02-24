@@ -206,6 +206,16 @@ export async function deleteTasks(taskIds: (string | number)[]) {
 export async function toggleTaskStatus(taskId: string | number, newStatus: 'pending' | 'completed') {
   const supabase = await createClient()
 
+  // Check current status to prevent duplicate logs/updates
+  const { data: currentTask, error: fetchError } = await supabase
+    .from('tasks')
+    .select('status')
+    .eq('id', taskId)
+    .single()
+
+  if (fetchError) return { error: fetchError.message }
+  if (currentTask.status === newStatus) return { success: true }
+
   const { error } = await supabase
     .from('tasks')
     .update({ status: newStatus })
@@ -282,6 +292,30 @@ export async function deleteTask(taskId: string | number) {
   
   revalidatePath('/')
   return { success: true }
+}
+
+export async function deleteTaskSeries(recurrenceId: string, currentTaskId: string | number, scope: 'this' | 'series') {
+  const supabase = await createClient()
+
+  if (scope === 'this') {
+    return deleteTask(currentTaskId)
+  }
+
+  if (scope === 'series') {
+    // Fetch all IDs in series
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select('id')
+      .eq('recurrence_id', recurrenceId)
+
+    if (error) return { error: error.message }
+    if (!tasks || tasks.length === 0) return { success: true }
+
+    const ids = tasks.map((t: any) => t.id)
+    return deleteTasks(ids)
+  }
+
+  return { error: 'Invalid scope' }
 }
 
 export async function getAllPendingTasks() {
