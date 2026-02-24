@@ -11,9 +11,10 @@ import { CheckCircle2, Trash2, X, Loader2 } from "lucide-react"
 interface AgendaListProps {
   tasks: Task[]
   disableDateFilter?: boolean
+  groupByStatus?: boolean
 }
 
-export default function AgendaList({ tasks, disableDateFilter = false }: AgendaListProps) {
+export default function AgendaList({ tasks, disableDateFilter = false, groupByStatus = false }: AgendaListProps) {
   const { showToast } = useToast()
 
   // Selection State
@@ -94,7 +95,11 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
 
   // Ordenar: Pendientes primero, luego completadas.
   const sortedTasks = [...(tasksToDisplay || [])].sort((a, b) => {
-    if (a.status === b.status) return 0
+    // If grouping, sort by pending first
+    if (a.status === b.status) {
+       // Secondary sort by date
+       return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+    }
     return a.status === 'pending' ? -1 : 1
   })
 
@@ -107,23 +112,74 @@ export default function AgendaList({ tasks, disableDateFilter = false }: AgendaL
     )
   }
 
+  const pendingTasks = sortedTasks.filter(t => t.status === 'pending')
+  const completedTasks = sortedTasks.filter(t => t.status === 'completed')
+
   return (
     <div className={`space-y-2 pr-2 ${isSelectionMode ? 'pb-24' : ''}`}>
-      {sortedTasks.map((task) => (
-        <TaskPill
-          key={task.id}
-          task={task}
-          onComplete={handleToggle} // Keep original prop for backward compat/button logic
-          onEdit={(t) => setEditingTask(t)}
+      {groupByStatus ? (
+        <>
+           {/* Pending Section */}
+           {pendingTasks.length > 0 && (
+              <div className="mb-4">
+                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 sticky top-0 bg-[#12141C] z-10 py-2 border-b border-white/5">Pendientes ({pendingTasks.length})</h4>
+                 <div className="space-y-2">
+                    {pendingTasks.map(task => (
+                       <TaskPill
+                          key={task.id}
+                          task={task}
+                          onComplete={handleToggle}
+                          onEdit={(t) => setEditingTask(t)}
+                          selectionMode={isSelectionMode}
+                          isSelected={selectedTasks.has(task.id)}
+                          onLongPress={handleLongPress}
+                          onSelect={handleSelectionToggle}
+                          onClick={(t) => handleToggle(t.id)}
+                       />
+                    ))}
+                 </div>
+              </div>
+           )}
 
-          // Selection Props
-          selectionMode={isSelectionMode}
-          isSelected={selectedTasks.has(task.id)}
-          onLongPress={handleLongPress}
-          onSelect={handleSelectionToggle}
-          onClick={(t) => handleToggle(t.id)} // Used when NOT in selection mode
-        />
-      ))}
+           {/* Completed Section */}
+           {completedTasks.length > 0 && (
+              <div className="mb-4">
+                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 sticky top-0 bg-[#12141C] z-10 py-2 border-b border-white/5">Completadas ({completedTasks.length})</h4>
+                 <div className="space-y-2">
+                    {completedTasks.map(task => (
+                       <TaskPill
+                          key={task.id}
+                          task={task}
+                          onComplete={handleToggle}
+                          onEdit={(t) => setEditingTask(t)}
+                          selectionMode={isSelectionMode}
+                          isSelected={selectedTasks.has(task.id)}
+                          onLongPress={handleLongPress}
+                          onSelect={handleSelectionToggle}
+                          onClick={(t) => handleToggle(t.id)}
+                       />
+                    ))}
+                 </div>
+              </div>
+           )}
+        </>
+      ) : (
+        sortedTasks.map((task) => (
+          <TaskPill
+            key={task.id}
+            task={task}
+            onComplete={handleToggle} // Keep original prop for backward compat/button logic
+            onEdit={(t) => setEditingTask(t)}
+
+            // Selection Props
+            selectionMode={isSelectionMode}
+            isSelected={selectedTasks.has(task.id)}
+            onLongPress={handleLongPress}
+            onSelect={handleSelectionToggle}
+            onClick={(t) => handleToggle(t.id)} // Used when NOT in selection mode
+          />
+        ))
+      )}
 
       {editingTask && (
         <EditTaskModal

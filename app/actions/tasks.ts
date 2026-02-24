@@ -18,94 +18,96 @@ export async function createTask(formData: any) {
   const recurrenceId = isRecurring ? randomUUID() : null
 
   // 1. Resolve Target Metadata (cycle_id and linked plants)
-  const targetInfos = await Promise.all(targets.map(async (target: any) => {
-    let cycleId: number | null = null;
-    let linkedPlantIds: number[] = [];
+  const allPlantIds = new Set<number>();
+  const encounteredCycleIds = new Set<number>();
 
+  await Promise.all(targets.map(async (target: any) => {
     if (target.type === 'plant') {
       const { data: plant } = await supabase.from('plants').select('cycle_id').eq('id', target.id).single();
-      cycleId = plant?.cycle_id;
-      linkedPlantIds = [Number(target.id)];
+      if (plant?.cycle_id) encounteredCycleIds.add(plant.cycle_id);
+      allPlantIds.add(Number(target.id));
     } else if (target.type === 'space') {
       const { data: cycle } = await supabase.from('cycles').select('id').eq('space_id', target.id).eq('is_active', true).single();
-      cycleId = cycle?.id || null;
+      const cycleId = cycle?.id || null;
+      if (cycleId) encounteredCycleIds.add(cycleId);
 
       if (cycleId) {
         const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id).eq('cycle_id', cycleId);
-        linkedPlantIds = plants?.map((p: any) => p.id) || [];
+        plants?.forEach((p: any) => allPlantIds.add(p.id));
       } else {
          // Fallback: plants in space
          const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id);
-         linkedPlantIds = plants?.map((p: any) => p.id) || [];
+         plants?.forEach((p: any) => allPlantIds.add(p.id));
       }
     }
-    return { target, cycleId, linkedPlantIds };
   }));
 
-  // 2. Generate and Insert Tasks per Target
-  for (const { target, cycleId, linkedPlantIds } of targetInfos) {
-      let datesToInsert: string[] = [];
+  const uniqueCycleIds = Array.from(encounteredCycleIds);
+  const primaryCycleId = uniqueCycleIds.length === 1 ? uniqueCycleIds[0] : null;
+  const linkedPlantIds = Array.from(allPlantIds);
 
-      if (isRecurring && endDate) {
-          const startDateObj = new Date(date);
-          const endDateObj = new Date(endDate);
-          let current = new Date(startDateObj);
-          let count = 0;
-          const maxIterations = 50;
+  // 2. Generate Dates
+  let datesToInsert: string[] = [];
 
-          while (current <= endDateObj && count < maxIterations) {
-              const year = current.getFullYear();
-              const month = String(current.getMonth() + 1).padStart(2, '0');
-              const day = String(current.getDate()).padStart(2, '0');
-              datesToInsert.push(`${year}-${month}-${day}T12:00:00`);
+  if (isRecurring && endDate) {
+      const startDateObj = new Date(date);
+      const endDateObj = new Date(endDate);
+      let current = new Date(startDateObj);
+      let count = 0;
+      const maxIterations = 50;
 
-              switch (frequency) {
-                  case 'daily': current.setDate(current.getDate() + 1); break;
-                  case 'every2days': current.setDate(current.getDate() + 2); break;
-                  case 'weekly': current.setDate(current.getDate() + 7); break;
-                  case 'biweekly': current.setDate(current.getDate() + 14); break;
-                  case 'monthly': current.setMonth(current.getMonth() + 1); break;
-                  default: current.setDate(current.getDate() + 1);
-              }
-              count++;
+      while (current <= endDateObj && count < maxIterations) {
+          const year = current.getFullYear();
+          const month = String(current.getMonth() + 1).padStart(2, '0');
+          const day = String(current.getDate()).padStart(2, '0');
+          datesToInsert.push(`${year}-${month}-${day}T12:00:00`);
+
+          switch (frequency) {
+              case 'daily': current.setDate(current.getDate() + 1); break;
+              case 'every2days': current.setDate(current.getDate() + 2); break;
+              case 'weekly': current.setDate(current.getDate() + 7); break;
+              case 'biweekly': current.setDate(current.getDate() + 14); break;
+              case 'monthly': current.setMonth(current.getMonth() + 1); break;
+              default: current.setDate(current.getDate() + 1);
           }
-      } else {
-          // Ensure consistent T12:00:00 format for single dates too
-          const d = date.includes('T') ? date : `${date}T12:00:00`;
-          datesToInsert.push(d);
+          count++;
       }
+  } else {
+      // Ensure consistent T12:00:00 format for single dates too
+      const d = date.includes('T') ? date : `${date}T12:00:00`;
+      datesToInsert.push(d);
+  }
 
-      const tasksData = datesToInsert.map(d => ({
-          user_id: user.id,
-          title: title,
-          description: description || null,
-          due_date: d,
-          date: d, // Keep for compatibility
-          type: taskType.id,
-          status: 'pending',
-          plant_id: target.type === 'plant' ? Number(target.id) : null,
-          space_id: target.type === 'space' ? Number(target.id) : null,
-          recurrence_id: recurrenceId,
-          cycle_id: cycleId
-      }));
+  // 3. Create Tasks (One per date)
+  const tasksData = datesToInsert.map(d => ({
+      user_id: user.id,
+      title: title,
+      description: description || null,
+      due_date: d,
+      date: d, // Keep for compatibility
+      type: taskType.id,
+      status: 'pending',
+      recurrence_id: recurrenceId,
+      cycle_id: primaryCycleId
+  }));
 
-      const { data: insertedTasks, error } = await supabase.from('tasks').insert(tasksData).select('id');
-      if (error) return { error: error.message };
+  const { data: insertedTasks, error } = await supabase.from('tasks').insert(tasksData).select('id');
+  if (error) return { error: error.message };
 
-      if (linkedPlantIds.length > 0 && insertedTasks) {
-          const taskPlantsData = [];
-          for (const task of insertedTasks) {
-              for (const plantId of linkedPlantIds) {
-                  taskPlantsData.push({
-                      task_id: task.id,
-                      plant_id: plantId
-                  });
-              }
+  // 4. Link Plants via Junction Table
+  if (linkedPlantIds.length > 0 && insertedTasks) {
+      const taskPlantsData = [];
+      for (const task of insertedTasks) {
+          for (const plantId of linkedPlantIds) {
+              taskPlantsData.push({
+                  task_id: task.id,
+                  plant_id: plantId
+              });
           }
-          if (taskPlantsData.length > 0) {
-              const { error: tpError } = await supabase.from('task_plants').insert(taskPlantsData);
-              if (tpError) console.error('Error linking task_plants:', tpError);
-          }
+      }
+      if (taskPlantsData.length > 0) {
+          const { error: tpError } = await supabase.from('task_plants').insert(taskPlantsData);
+          if (tpError) console.error('Error linking task_plants:', tpError);
       }
   }
 
@@ -326,7 +328,7 @@ export async function getAllPendingTasks() {
   const [tasksResult, cyclesResult] = await Promise.all([
      supabase
       .from('tasks')
-      .select('*, plants(id, name, cycle_id, cycles(id, name))')
+      .select('*, task_plants(plants(id, name, cycle_id, cycles(id, name)))')
       .eq('user_id', user.id)
       .eq('status', 'pending')
       .order('due_date', { ascending: true }),
@@ -341,9 +343,24 @@ export async function getAllPendingTasks() {
 
   // Map tasks to flatten cycleName
   const tasks = tasksResult.data.map((t: any) => {
-    // If connected via plant
-    let cycleName = t.plants?.cycles?.name
-    let cycleId = t.plants?.cycles?.id
+    // Handle both direct cycle_id on task (if set) and derived from plants
+    let cycleName = null;
+    let cycleId = t.cycle_id;
+
+    if (t.task_plants && t.task_plants.length > 0) {
+        // Try to get cycle from the first plant if task doesn't have it, or just for display name
+        const firstPlant = t.task_plants[0].plants;
+        if (firstPlant?.cycles) {
+            cycleName = firstPlant.cycles.name;
+            if (!cycleId) cycleId = firstPlant.cycles.id;
+        }
+    }
+
+    // Fallback: match cycleId with available cycles if name not found yet
+    if (!cycleName && cycleId) {
+        const matchingCycle = cyclesResult.data.find((c: any) => c.id === cycleId);
+        if (matchingCycle) cycleName = matchingCycle.name;
+    }
 
     return {
       ...t,

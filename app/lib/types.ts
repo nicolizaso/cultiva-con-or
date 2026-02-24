@@ -61,6 +61,16 @@ export interface Task {
   type: string; // 'riego', 'poda', etc.
   description?: string;
   recurrence_id?: string;
+  task_plants?: {
+    plant_id?: number;
+    plants?: {
+      id?: number;
+      name?: string;
+      cycle_id?: number;
+      cycles?: { id: number; name: string; };
+    };
+  }[];
+  plants?: any;
 }
 
 export interface Log {

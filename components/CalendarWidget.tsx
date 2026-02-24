@@ -244,7 +244,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                       cycleName: (e as any).cycleName,
                       completed: e.status === 'completed',
                       description: e.notes,
-                      recurrence_id: e.recurrence_id
+                      recurrence_id: e.recurrence_id,
+                      task_plants: e.plants // Mapped from task.task_plants in allEvents
                     }));
                     return <AgendaList tasks={mappedTasks} disableDateFilter={true} />;
                   }
