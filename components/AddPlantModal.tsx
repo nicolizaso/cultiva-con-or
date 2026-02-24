@@ -31,6 +31,9 @@ export default function AddPlantModal() {
 
   const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
 
+  const SEED_STAGES = ['Germinación', 'Plántula', 'Vegetativo', 'Floración'];
+  const CLONE_STAGES = ['Enraizamiento', 'Vegetativo', 'Floración'];
+
   // Fetch data on mount (or when modal opens)
   useEffect(() => {
     if (isOpen) {
@@ -63,6 +66,19 @@ export default function AddPlantModal() {
       setFormData(prev => ({ ...prev, name: prev.strain }));
     }
   }, [formData.strain, isNameManuallyEdited]);
+
+  // Stage Switch Effect based on Source Type
+  useEffect(() => {
+    if (formData.source_type === 'Esqueje') {
+      setFormData(prev => ({ ...prev, stage: 'Enraizamiento' }));
+    } else {
+       // Reset to Germinación if switching back to seed and current stage is not valid for seed?
+       // Or just default to Germinación.
+       if (!SEED_STAGES.includes(formData.stage) && formData.stage !== 'Germinación') {
+          setFormData(prev => ({ ...prev, stage: 'Germinación' }));
+       }
+    }
+  }, [formData.source_type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -295,10 +311,20 @@ export default function AddPlantModal() {
                   value={formData.stage}
                   onChange={(e) => setFormData({...formData, stage: e.target.value})}
                 >
-                  <option value="Germinación">🌱 Germinación</option>
-                  <option value="Plantula">🌱 Plántula</option>
-                  <option value="Vegetativo">🌿 Vegetativo</option>
-                  <option value="Floración">🌸 Floración</option>
+                  {formData.source_type === 'Semilla' ? (
+                     <>
+                        <option value="Germinación">🌱 Germinación</option>
+                        <option value="Plántula">🌱 Plántula</option>
+                        <option value="Vegetativo">🌿 Vegetativo</option>
+                        <option value="Floración">🌸 Floración</option>
+                     </>
+                  ) : (
+                     <>
+                        <option value="Enraizamiento">🧬 Enraizamiento</option>
+                        <option value="Vegetativo">🌿 Vegetativo</option>
+                        <option value="Floración">🌸 Floración</option>
+                     </>
+                  )}
                   <option value="Secado">🍂 Secado</option>
                   <option value="Curado">🏺 Curado</option>
                 </select>

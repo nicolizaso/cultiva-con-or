@@ -1,7 +1,8 @@
 export type CycleStage = 
   | 'Germinación' 
-  | 'Plantula' 
+  | 'Plántula'
   | 'Vegetativo' 
+  | 'Enraizamiento'
   | 'Floración' 
   | 'Secado' 
   | 'Curado';
@@ -24,6 +25,7 @@ export interface Plant {
   mother_id?: number | null;
   date_germinacion?: string;
   date_plantula?: string;
+  date_enraizamiento?: string;
   date_vegetativo?: string;
   date_floracion?: string;
   date_secado?: string;

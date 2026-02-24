@@ -2,8 +2,9 @@ import type { Plant } from "./types.ts";
 
 // Thresholds configuration
 export const STAGE_THRESHOLDS: Record<string, { nextStage: string; days: number }> = {
-  'Germinación': { nextStage: 'Plantula', days: 7 },
-  'Plantula': { nextStage: 'Vegetativo', days: 21 },
+  'Germinación': { nextStage: 'Plántula', days: 7 },
+  'Plántula': { nextStage: 'Vegetativo', days: 21 },
+  'Enraizamiento': { nextStage: 'Vegetativo', days: 12 },
   'Vegetativo': { nextStage: 'Floración', days: 60 },
 };
 

@@ -237,7 +237,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                     {plants.map(plant => {
                         const { currentStage, daysInCurrentStage } = getPlantMetrics(plant);
                         const rawStage = currentStage || plant.stage;
-                        const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plantula') ? 'Plántula' : rawStage;
+                        const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plántula') ? 'Plántula' : rawStage;
                         const stageInfo = getStageColor(displayStage);
 
                         return (
@@ -260,7 +260,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
             {plants.map(plant => {
                 const { currentStage } = getPlantMetrics(plant);
                 const rawStage = currentStage || plant.stage;
-                const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plantula') ? 'Plántula' : rawStage;
+                const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plántula') ? 'Plántula' : rawStage;
                 const stageInfo = getStageColor(displayStage);
 
                 return (

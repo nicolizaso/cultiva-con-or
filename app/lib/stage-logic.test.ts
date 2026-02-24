@@ -18,17 +18,23 @@ function createPlant(overrides: Partial<Plant> = {}): Plant {
 test('getStageSuggestion - suggests next stage when threshold is met (Germinación)', () => {
   const plant = createPlant({ stage: 'Germinación', current_age_days: 7 });
   const result = getStageSuggestion(plant);
-  assert.strictEqual(result, 'Plantula');
+  assert.strictEqual(result, 'Plántula');
+});
+
+test('getStageSuggestion - suggests next stage when threshold is met (Enraizamiento)', () => {
+  const plant = createPlant({ stage: 'Enraizamiento', current_age_days: 12 });
+  const result = getStageSuggestion(plant);
+  assert.strictEqual(result, 'Vegetativo');
 });
 
 test('getStageSuggestion - suggests next stage when threshold is exceeded', () => {
-  const plant = createPlant({ stage: 'Plantula', current_age_days: 25 });
+  const plant = createPlant({ stage: 'Plántula', current_age_days: 25 });
   const result = getStageSuggestion(plant);
   assert.strictEqual(result, 'Vegetativo');
 });
 
 test('getStageSuggestion - no suggestion when below threshold', () => {
-  const plant = createPlant({ stage: 'Plantula', current_age_days: 20 });
+  const plant = createPlant({ stage: 'Plántula', current_age_days: 20 });
   const result = getStageSuggestion(plant);
   assert.strictEqual(result, null);
 });
@@ -39,7 +45,7 @@ test('getStageSuggestion - handles planted_at calculation', () => {
   const plant = createPlant({ stage: 'Germinación', planted_at });
 
   const result = getStageSuggestion(plant, now);
-  assert.strictEqual(result, 'Plantula'); // 9 days >= 7 days
+  assert.strictEqual(result, 'Plántula'); // 9 days >= 7 days
 });
 
 test('getStageSuggestion - no suggestion for unknown stage', () => {
@@ -51,7 +57,7 @@ test('getStageSuggestion - no suggestion for unknown stage', () => {
 test('getFirstSuggestion - returns first matching plant', () => {
   const plants = [
     createPlant({ id: 1, name: 'P1', stage: 'Germinación', current_age_days: 1 }), // No
-    createPlant({ id: 2, name: 'P2', stage: 'Plantula', current_age_days: 21 }), // Yes
+    createPlant({ id: 2, name: 'P2', stage: 'Plántula', current_age_days: 21 }), // Yes
     createPlant({ id: 3, name: 'P3', stage: 'Vegetativo', current_age_days: 60 }), // Yes
   ];
 
