@@ -67,6 +67,24 @@ export default function AddPlantModal() {
     }
   }, [formData.strain, isNameManuallyEdited]);
 
+  // Preload Mother Data when a mother is selected
+  useEffect(() => {
+    if (formData.source_type === 'Esqueje' && formData.mother_id) {
+      const mother = potentialMothers.find(p => p.id.toString() === formData.mother_id.toString());
+
+      if (mother) {
+        setFormData(prev => ({
+          ...prev,
+          strain: mother.strain || '',
+          breeder: mother.breeder || '',
+          name: mother.name || '',
+        }));
+        // Prevent smart naming from overwriting the mother's name
+        setIsNameManuallyEdited(true);
+      }
+    }
+  }, [formData.mother_id, formData.source_type, potentialMothers]);
+
   // Stage Switch Effect based on Source Type
   useEffect(() => {
     if (formData.source_type === 'Esqueje') {
