@@ -110,7 +110,15 @@ export default function TaskPill({ task, onComplete, onDelete, onEdit, onClick, 
           )}
           <span className="text-[10px] opacity-70 truncate">
             {new Date(task.due_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
-            {task.cycleName ? ` • ${task.cycleName}` : ''}
+            {(() => {
+               if (task.task_plants && task.task_plants.length > 0) {
+                  const count = task.task_plants.length;
+                  const first = task.task_plants[0].plants?.name;
+                  if (count > 1) return ` • 🌿 ${first} +${count - 1}`;
+                  if (first) return ` • 🌿 ${first}`;
+               }
+               return task.cycleName ? ` • ${task.cycleName}` : '';
+            })()}
           </span>
         </div>
       </div>
