@@ -6,10 +6,9 @@ import { bulkChangeStage } from "@/app/cycles/actions";
 
 const stageColumnMap: Record<string, string> = {
   'Germinación': 'date_germinacion',
-  'Plantula': 'date_plantula',
-  'Plántula': 'date_plantula', // Handle both variations just in case
-  'Vegetación': 'date_vegetativo',
-  'Vegetativo': 'date_vegetativo', // Handle both variations just in case
+  'Plántula': 'date_plantula',
+  'Enraizamiento': 'date_enraizamiento',
+  'Vegetativo': 'date_vegetativo',
   'Floración': 'date_floracion',
   'Secado': 'date_secado',
   'Curado': 'date_curado'
@@ -77,8 +76,9 @@ export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess
               onChange={(e) => setStage(e.target.value)}
             >
               <option value="Germinación">🌱 Germinación</option>
-              <option value="Plantula">🌱 Plántula</option>
-              <option value="Vegetación">🌿 Vegetación</option>
+              <option value="Plántula">🌱 Plántula</option>
+              <option value="Enraizamiento">🧬 Enraizamiento</option>
+              <option value="Vegetativo">🌿 Vegetativo</option>
               <option value="Floración">🌸 Floración</option>
               <option value="Secado">🍂 Secado</option>
               <option value="Curado">🏺 Curado</option>

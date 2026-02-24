@@ -1,4 +1,5 @@
 import { Plant } from './types';
+import { Dna } from 'lucide-react';
 
 export function formatDateShort(dateString: string): string {
   if (!dateString) return '';
@@ -33,6 +34,15 @@ export function getStageColor(stage?: string) {
       textColor: 'text-green-300',
       borderColor: 'border-green-200/30',
       icon: '🌿'
+    };
+  }
+
+  if (s === 'enraizamiento') {
+    return {
+      bgColor: 'bg-cyan-200/20',
+      textColor: 'text-cyan-400',
+      borderColor: 'border-cyan-200/30',
+      icon: <Dna className="w-[1em] h-[1em]" />
     };
   }
 
@@ -91,6 +101,7 @@ export function getPlantMetrics(plant: Plant) {
     { key: 'date_secado', label: 'Secado' },
     { key: 'date_floracion', label: 'Floración' },
     { key: 'date_vegetativo', label: 'Vegetativo' },
+    { key: 'date_enraizamiento', label: 'Enraizamiento' },
     { key: 'date_plantula', label: 'Plántula' },
     { key: 'date_germinacion', label: 'Germinación' }
   ];
@@ -127,6 +138,7 @@ export function getPlantMetrics(plant: Plant) {
   const allDates = [
       plant.date_germinacion,
       plant.date_plantula,
+      plant.date_enraizamiento,
       plant.date_vegetativo,
       plant.date_floracion,
       plant.date_secado,

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import { Plant, Cycle } from "@/app/lib/types";
 import { getStageColor } from "@/app/lib/utils";
-import { Sprout, Leaf, Flower, Wind, Thermometer, Calendar, Save, ArrowLeft, Trash2 } from "lucide-react";
+import { Sprout, Leaf, Flower, Wind, Thermometer, Calendar, Save, ArrowLeft, Trash2, Dna } from "lucide-react";
 import Link from "next/link";
 
 interface EditPlantFormProps {
@@ -15,7 +15,8 @@ interface EditPlantFormProps {
 
 const STAGE_CONFIG = [
   { key: 'date_germinacion', label: 'Germinación', icon: Sprout, value: 'Germinación' },
-  { key: 'date_plantula', label: 'Plántula', icon: Sprout, value: 'Plantula' }, // Display as Plántula, Value as Plantula
+  { key: 'date_plantula', label: 'Plántula', icon: Sprout, value: 'Plántula' },
+  { key: 'date_enraizamiento', label: 'Enraizamiento', icon: Dna, value: 'Enraizamiento' },
   { key: 'date_vegetativo', label: 'Vegetativo', icon: Leaf, value: 'Vegetativo' },
   { key: 'date_floracion', label: 'Floración', icon: Flower, value: 'Floración' },
   { key: 'date_secado', label: 'Secado', icon: Wind, value: 'Secado' },
@@ -39,6 +40,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
   const [dates, setDates] = useState({
     date_germinacion: plant.date_germinacion || '',
     date_plantula: plant.date_plantula || '',
+    date_enraizamiento: plant.date_enraizamiento || '',
     date_vegetativo: plant.date_vegetativo || '',
     date_floracion: plant.date_floracion || '',
     date_secado: plant.date_secado || '',
@@ -234,7 +236,13 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
           </h2>
 
           <div className="relative space-y-6 before:absolute before:inset-0 before:ml-6 before:w-0.5 before:bg-white/5">
-            {STAGE_CONFIG.map((stage, index) => {
+            {STAGE_CONFIG.filter(stage => {
+              if (basicInfo.source_type === 'Esqueje') {
+                return !['Germinación', 'Plántula'].includes(stage.label);
+              } else {
+                return stage.label !== 'Enraizamiento';
+              }
+            }).map((stage, index) => {
               const dateKey = stage.key as keyof typeof dates;
               const dateValue = dates[dateKey];
               const isActive = !!dateValue;

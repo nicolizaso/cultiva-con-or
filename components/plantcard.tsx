@@ -92,7 +92,7 @@ export default function PlantCard({
   const { currentStage, daysInCurrentStage, totalAge } = getPlantMetrics(plant);
 
   const rawStage = currentStage || stage;
-  const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plantula') ? 'Plántula' : rawStage;
+  const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plántula') ? 'Plántula' : rawStage;
   const stageInfo = getStageColor(displayStage);
 
   // Content wrapper to handle Link vs Div based on selection mode
