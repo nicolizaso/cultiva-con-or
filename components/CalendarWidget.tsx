@@ -25,14 +25,14 @@ interface GroupedLog extends Log {
 }
 
 interface WidgetTask {
-  id: number;
-  created_at: string;
+  id: number | string;
+  created_at?: string;
   due_date: string;
   date?: string; // Fallback date
   type: string;
   title: string;
   description?: string;
-  status: 'pending' | 'completed';
+  status?: 'pending' | 'completed';
   plants?: any;
   task_plants?: any[];
   recurrence_id?: string;
