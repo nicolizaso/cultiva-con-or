@@ -14,20 +14,28 @@ interface AgendaModalProps {
 
 export default function AgendaModal({ isOpen, onClose, tasks, cycles }: AgendaModalProps) {
   const [selectedCycleId, setSelectedCycleId] = useState<number | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all')
 
   if (!isOpen) return null
 
   // Filter tasks logic
   // Include tasks where:
-  // 1. task.cycle_id matches selectedCycleId
-  // 2. OR task has plants in the selected cycle (via task_plants)
-  const filteredTasks = selectedCycleId === 'all'
-    ? tasks
-    : tasks.filter(t => {
-        if (t.cycle_id === selectedCycleId) return true;
-        if (t.task_plants && t.task_plants.some(tp => tp.plants?.cycle_id === selectedCycleId)) return true;
-        return false;
-      })
+  // 1. task.cycle_id matches selectedCycleId OR task has plants in the selected cycle
+  // 2. AND task status matches statusFilter (if not 'all')
+  const filteredTasks = tasks.filter(t => {
+    // Cycle Filter
+    const matchesCycle = selectedCycleId === 'all'
+      ? true
+      : (t.cycle_id === selectedCycleId ||
+         (t.task_plants && t.task_plants.some(tp => tp.plants?.cycle_id === selectedCycleId)))
+
+    // Status Filter
+    const matchesStatus = statusFilter === 'all'
+      ? true
+      : t.status === statusFilter
+
+    return matchesCycle && matchesStatus
+  })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -39,49 +47,53 @@ export default function AgendaModal({ isOpen, onClose, tasks, cycles }: AgendaMo
       <div className="relative bg-[#12141C] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
 
         {/* Header */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-[#12141C] z-20">
-          <h2 className="text-xl font-title text-white flex items-center gap-2">
-            <ClipboardList className="text-brand-primary" />
-            Agenda
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors">
-            <X size={20} />
-          </button>
-        </div>
+        <div className="bg-[#12141C] z-20 border-b border-white/5 sticky top-0">
+          <div className="p-4 flex items-center justify-between">
+            <h2 className="text-xl font-title text-white flex items-center gap-2">
+              <ClipboardList className="text-brand-primary" />
+              Agenda
+            </h2>
+            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors">
+              <X size={20} />
+            </button>
+          </div>
 
-        {/* Cycle Filter */}
-        {cycles.length > 0 && (
-          <div className="px-4 py-3 border-b border-white/5 overflow-x-auto whitespace-nowrap scrollbar-hide bg-[#0B0C10]">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedCycleId('all')}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors
-                  ${selectedCycleId === 'all'
-                    ? 'bg-brand-primary text-black'
-                    : 'bg-[#12141C] text-slate-400 border border-white/10 hover:border-brand-primary/50 hover:text-white'}
-                `}
+          {/* Filters Row */}
+          <div className="px-4 pb-4 flex gap-3">
+            {/* Cycle Selector */}
+            <div className="flex-1">
+              <select
+                value={selectedCycleId}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setSelectedCycleId(val === 'all' ? 'all' : Number(val))
+                }}
+                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50"
               >
-                Todos
-              </button>
-              {cycles.map(cycle => (
-                <button
-                  key={cycle.id}
-                  onClick={() => setSelectedCycleId(cycle.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors
-                    ${selectedCycleId === cycle.id
-                      ? 'bg-brand-primary text-black'
-                      : 'bg-[#12141C] text-slate-400 border border-white/10 hover:border-brand-primary/50 hover:text-white'}
-                  `}
-                >
-                  {cycle.name}
-                </button>
-              ))}
+                <option value="all">Todos los ciclos</option>
+                {cycles.map(cycle => (
+                  <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Selector */}
+            <div className="flex-1">
+               <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'completed')}
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50"
+               >
+                  <option value="all">Todas</option>
+                  <option value="pending">Pendientes</option>
+                  <option value="completed">Completadas</option>
+               </select>
             </div>
           </div>
-        )}
+        </div>
 
         {/* List Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 bg-[#0B0C10]/30">
            <AgendaList
               tasks={filteredTasks}
               disableDateFilter={true}
