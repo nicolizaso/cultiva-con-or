@@ -18,6 +18,7 @@ export interface CycleWithPlantsAndSpace {
   space_id: number;
   plants: Plant[];
   spaces: SpaceInfo | null; // Allow null just in case
+  cycle_images?: { public_url: string }[];
 }
 
 interface CycleStatusCardProps {
@@ -30,11 +31,23 @@ export default function CycleStatusCard({ cycle }: CycleStatusCardProps) {
   );
   
   const groupedPlants = groupPlants(cycle.plants || []);
+  const latestImage = cycle.cycle_images?.[0]?.public_url;
 
   return (
     <div className="group relative bg-[#12141C] rounded-3xl p-6 border border-white/5 hover:border-brand-primary/30 transition-all duration-300 overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+      {/* Background Decor or Image */}
+      {latestImage ? (
+        <>
+          <img
+            src={latestImage}
+            alt={cycle.name}
+            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity z-0"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C10] via-[#0B0C10]/95 to-black/30 z-0" />
+        </>
+      ) : (
+        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+      )}
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 relative z-10">

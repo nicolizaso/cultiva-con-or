@@ -11,11 +11,13 @@ interface CycleWithSpace {
   start_date: string;
   is_active: boolean;
   spaces: { name: string } | null;
+  cycle_images?: { public_url: string }[];
 }
 
 export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) { 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const latestImage = cycle.cycle_images?.[0]?.public_url;
 
   const handleCardClick = () => {
     router.push(`/cycles/${cycle.id}`);
@@ -39,12 +41,23 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
   return (
     <div 
         onClick={handleCardClick}
-        className={`group relative rounded-3xl p-6 border transition-all duration-300 cursor-pointer ${
+        className={`group relative rounded-3xl p-6 border transition-all duration-300 cursor-pointer overflow-hidden ${
         cycle.is_active 
         ? 'bg-[#12141C] border-white/5 hover:border-brand-primary/30' 
         : 'bg-[#0B0C10] border-white/5 opacity-60 hover:opacity-100'
     }`}>
       
+      {latestImage && (
+        <>
+          <img
+            src={latestImage}
+            alt={cycle.name}
+            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity z-0"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C10] via-[#0B0C10]/95 to-black/30 z-0" />
+        </>
+      )}
+
       {/* Botón Eliminar (Flotante) */}
       <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-20">
         <button onClick={handleDelete} className="p-2 bg-red-500/10 text-red-400 rounded-full hover:bg-red-500/20" title="Eliminar">
@@ -52,46 +65,48 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
         </button>
       </div>
 
-      <div className="flex justify-between items-start mb-4">
-        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
-            cycle.is_active 
-            ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' 
-            : 'bg-slate-800 text-slate-400 border-slate-700'
-        }`}>
-            {cycle.is_active ? <PlayCircle size={10} /> : <StopCircle size={10} />}
-            {cycle.is_active ? 'Activo' : 'Archivado'}
-        </span>
-      </div>
-        
-      <h3 className="text-2xl font-light font-title text-white mb-2 group-hover:text-brand-primary transition-colors">
-          {cycle.name}
-      </h3>
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-4">
+          <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
+              cycle.is_active
+              ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20'
+              : 'bg-slate-800 text-slate-400 border-slate-700'
+          }`}>
+              {cycle.is_active ? <PlayCircle size={10} /> : <StopCircle size={10} />}
+              {cycle.is_active ? 'Activo' : 'Archivado'}
+          </span>
+        </div>
 
-      <div className="space-y-2 mb-6">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
-              <MapPin size={14} />
-              <span>{cycle.spaces?.name || "Sin espacio"}</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
-              <Calendar size={14} />
-              <span>Inicio: {new Date(cycle.start_date).toLocaleDateString()}</span>
-          </div>
-      </div>
-      
-      <div className="flex items-center gap-2 text-xs font-bold text-brand-primary uppercase tracking-wider group-hover:translate-x-1 transition-transform">
-          Entrar al Panel <ArrowRight size={14} />
-      </div>
+        <h3 className="text-2xl font-light font-title text-white mb-2 group-hover:text-brand-primary transition-colors">
+            {cycle.name}
+        </h3>
 
-      {/* Acciones Rápidas Inferiores */}
-      <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
-        <button 
-            onClick={toggleStatus}
-            disabled={loading}
-            className="text-[10px] font-bold uppercase text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
-        >
-            {cycle.is_active ? <StopCircle size={12} /> : <PlayCircle size={12} />}
-            {cycle.is_active ? "Finalizar Ciclo" : "Reactivar Ciclo"}
-        </button>
+        <div className="space-y-2 mb-6">
+            <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
+                <MapPin size={14} />
+                <span>{cycle.spaces?.name || "Sin espacio"}</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-500 text-xs font-body">
+                <Calendar size={14} />
+                <span>Inicio: {new Date(cycle.start_date).toLocaleDateString()}</span>
+            </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs font-bold text-brand-primary uppercase tracking-wider group-hover:translate-x-1 transition-transform">
+            Entrar al Panel <ArrowRight size={14} />
+        </div>
+
+        {/* Acciones Rápidas Inferiores */}
+        <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+          <button
+              onClick={toggleStatus}
+              disabled={loading}
+              className="text-[10px] font-bold uppercase text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
+          >
+              {cycle.is_active ? <StopCircle size={12} /> : <PlayCircle size={12} />}
+              {cycle.is_active ? "Finalizar Ciclo" : "Reactivar Ciclo"}
+          </button>
+        </div>
       </div>
     </div>
   );
