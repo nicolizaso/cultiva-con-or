@@ -19,6 +19,7 @@ interface CycleWithPlantsAndSpace {
     space_id: number;
     plants: Plant[];
     spaces: SpaceInfo;
+    cycle_images?: { public_url: string }[];
 }
 
 export const dynamic = 'force-dynamic';
@@ -51,9 +52,11 @@ export default async function Home() {
     // Note: We explicitly select current_age_days (computed column)
     supabase
       .from('cycles')
-      .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage)`)
+      .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage), cycle_images(public_url)`)
       .eq('is_active', true)
-      .order('created_at', { ascending: true }),
+      .order('created_at', { ascending: true })
+      .order('taken_at', { foreignTable: 'cycle_images', ascending: false })
+      .limit(1, { foreignTable: 'cycle_images' }),
     // Tasks (Both pending and completed, broader range to fix timezone issues)
     supabase
       .from('tasks')
