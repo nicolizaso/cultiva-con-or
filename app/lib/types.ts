@@ -46,6 +46,19 @@ export interface Space {
   name: string;
   type: 'Indoor' | 'Outdoor' | 'Mixto';
   cycleCount?: number;
+  width?: number;
+  length?: number;
+  height?: number;
+  area_m2?: number;
+  light_type?: string;
+  light_brand_model?: string;
+  light_watts?: number;
+  light_ppfd?: number;
+  vent_extraction?: number;
+  vent_intraction?: number;
+  vent_filter_brand?: string;
+  vent_extra_equipment?: string;
+  pot_capacity?: number;
 }
 
 // ESTA ES LA INTERFAZ QUE FALTABA:
