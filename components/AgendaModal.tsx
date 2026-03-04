@@ -20,13 +20,13 @@ export default function AgendaModal({ isOpen, onClose, tasks, cycles }: AgendaMo
 
   // Filter tasks logic
   // Include tasks where:
-  // 1. task.cycle_id matches selectedCycleId OR task has plants in the selected cycle
+  // 1. selectedCycleId is in task.cycleIds OR task has plants in the selected cycle
   // 2. AND task status matches statusFilter (if not 'all')
   const filteredTasks = tasks.filter(t => {
     // Cycle Filter
     const matchesCycle = selectedCycleId === 'all'
       ? true
-      : (t.cycle_id === selectedCycleId ||
+      : (t.cycleIds?.includes(selectedCycleId) ||
          (t.task_plants && t.task_plants.some(tp => tp.plants?.cycle_id === selectedCycleId)))
 
     // Status Filter

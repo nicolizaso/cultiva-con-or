@@ -27,12 +27,13 @@ export async function createTask(formData: any) {
       if (plant?.cycle_id) encounteredCycleIds.add(plant.cycle_id);
       allPlantIds.add(Number(target.id));
     } else if (target.type === 'space') {
-      const { data: cycle } = await supabase.from('cycles').select('id').eq('space_id', target.id).eq('is_active', true).single();
-      const cycleId = cycle?.id || null;
-      if (cycleId) encounteredCycleIds.add(cycleId);
+      const { data: cycles } = await supabase.from('cycles').select('id').eq('space_id', target.id).eq('is_active', true);
 
-      if (cycleId) {
-        const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id).eq('cycle_id', cycleId);
+      const cycleIds = cycles?.map((c: any) => c.id) || [];
+      cycleIds.forEach((id: number) => encounteredCycleIds.add(id));
+
+      if (cycleIds.length > 0) {
+        const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id).in('cycle_id', cycleIds);
         plants?.forEach((p: any) => allPlantIds.add(p.id));
       } else {
          // Fallback: plants in space
@@ -43,7 +44,6 @@ export async function createTask(formData: any) {
   }));
 
   const uniqueCycleIds = Array.from(encounteredCycleIds);
-  const primaryCycleId = uniqueCycleIds.length === 1 ? uniqueCycleIds[0] : null;
   const linkedPlantIds = Array.from(allPlantIds);
 
   // 2. Generate Dates
@@ -88,26 +88,46 @@ export async function createTask(formData: any) {
       type: taskType.id,
       status: 'pending',
       recurrence_id: recurrenceId,
-      cycle_id: primaryCycleId
+      cycle_id: null
   }));
 
   const { data: insertedTasks, error } = await supabase.from('tasks').insert(tasksData).select('id');
   if (error) return { error: error.message };
 
-  // 4. Link Plants via Junction Table
-  if (linkedPlantIds.length > 0 && insertedTasks) {
-      const taskPlantsData = [];
-      for (const task of insertedTasks) {
-          for (const plantId of linkedPlantIds) {
-              taskPlantsData.push({
-                  task_id: task.id,
-                  plant_id: plantId
-              });
+  // 4. Link Plants and Cycles via Junction Tables
+  if (insertedTasks) {
+      // 4a. Link Cycles
+      if (uniqueCycleIds.length > 0) {
+          const taskCyclesData = [];
+          for (const task of insertedTasks) {
+              for (const cycleId of uniqueCycleIds) {
+                  taskCyclesData.push({
+                      task_id: task.id,
+                      cycle_id: cycleId
+                  });
+              }
+          }
+          if (taskCyclesData.length > 0) {
+              const { error: tcError } = await supabase.from('task_cycles').insert(taskCyclesData);
+              if (tcError) console.error('Error linking task_cycles:', tcError);
           }
       }
-      if (taskPlantsData.length > 0) {
-          const { error: tpError } = await supabase.from('task_plants').insert(taskPlantsData);
-          if (tpError) console.error('Error linking task_plants:', tpError);
+
+      // 4b. Link Plants
+      if (linkedPlantIds.length > 0) {
+          const taskPlantsData = [];
+          for (const task of insertedTasks) {
+              for (const plantId of linkedPlantIds) {
+                  taskPlantsData.push({
+                      task_id: task.id,
+                      plant_id: plantId
+                  });
+              }
+          }
+          if (taskPlantsData.length > 0) {
+              const { error: tpError } = await supabase.from('task_plants').insert(taskPlantsData);
+              if (tpError) console.error('Error linking task_plants:', tpError);
+          }
       }
   }
 
@@ -328,7 +348,7 @@ export async function getAllPendingTasks() {
   const [tasksResult, cyclesResult] = await Promise.all([
      supabase
       .from('tasks')
-      .select('*, task_plants(plants(id, name, cycle_id, cycles(id, name)))')
+      .select('*, task_cycles(cycles(id, name)), task_plants(plants(id, name, cycle_id, cycles(id, name)))')
       .eq('user_id', user.id)
       .eq('status', 'pending')
       .order('due_date', { ascending: true }),
@@ -343,29 +363,42 @@ export async function getAllPendingTasks() {
 
   // Map tasks to flatten cycleName
   const tasks = tasksResult.data.map((t: any) => {
-    // Handle both direct cycle_id on task (if set) and derived from plants
-    let cycleName = null;
-    let cycleId = t.cycle_id;
+    // Collect cycles
+    const cycleIdsSet = new Set<number>();
+    const cycleNamesSet = new Set<string>();
+
+    if (t.task_cycles && t.task_cycles.length > 0) {
+        t.task_cycles.forEach((tc: any) => {
+            if (tc.cycles) {
+                cycleIdsSet.add(tc.cycles.id);
+                cycleNamesSet.add(tc.cycles.name);
+            }
+        });
+    }
 
     if (t.task_plants && t.task_plants.length > 0) {
-        // Try to get cycle from the first plant if task doesn't have it, or just for display name
-        const firstPlant = t.task_plants[0].plants;
-        if (firstPlant?.cycles) {
-            cycleName = firstPlant.cycles.name;
-            if (!cycleId) cycleId = firstPlant.cycles.id;
-        }
+        t.task_plants.forEach((tp: any) => {
+            if (tp.plants?.cycles) {
+                cycleIdsSet.add(tp.plants.cycles.id);
+                cycleNamesSet.add(tp.plants.cycles.name);
+            }
+        });
     }
 
-    // Fallback: match cycleId with available cycles if name not found yet
-    if (!cycleName && cycleId) {
-        const matchingCycle = cyclesResult.data.find((c: any) => c.id === cycleId);
-        if (matchingCycle) cycleName = matchingCycle.name;
+    // Legacy fallback
+    if (t.cycle_id) {
+        cycleIdsSet.add(t.cycle_id);
+        const matchingCycle = cyclesResult.data.find((c: any) => c.id === t.cycle_id);
+        if (matchingCycle) cycleNamesSet.add(matchingCycle.name);
     }
+
+    const cycleIds = Array.from(cycleIdsSet);
+    const cycleNames = Array.from(cycleNamesSet).join(', ');
 
     return {
       ...t,
-      cycleName,
-      cycleId
+      cycleIds,
+      cycleNames
     }
   })
 
