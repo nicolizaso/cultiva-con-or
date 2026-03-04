@@ -26,7 +26,7 @@ export default function AgendaModal({ isOpen, onClose, tasks, cycles }: AgendaMo
     // Cycle Filter
     const matchesCycle = selectedCycleId === 'all'
       ? true
-      : (t.cycleIds?.includes(selectedCycleId) ||
+      : (t.cycleIds?.includes(selectedCycleId as number) ||
          (t.task_plants && t.task_plants.some(tp => tp.plants?.cycle_id === selectedCycleId)))
 
     // Status Filter

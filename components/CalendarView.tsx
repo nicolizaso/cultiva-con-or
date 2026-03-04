@@ -23,7 +23,7 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
   const filteredTasks = selectedCycleId === 'all'
     ? tasks
     : tasks.filter(t => {
-        if (t.cycle_id === selectedCycleId) return true;
+        if (t.cycleIds?.includes(selectedCycleId as number)) return true;
         if (t.task_plants && t.task_plants.some(tp => tp.plants?.cycle_id === selectedCycleId)) return true;
         return false;
       })

@@ -38,6 +38,7 @@ interface WidgetTask {
   recurrence_id?: string;
   cycleName?: string;
   cycleNames?: string;
+  cycleIds?: number[];
 }
 
 interface CalendarWidgetProps {
@@ -121,7 +122,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
       status: task.status,
       recurrence_id: task.recurrence_id,
       cycleName: task.cycleName,
-      cycleNames: task.cycleNames
+      cycleNames: task.cycleNames,
+      cycleIds: task.cycleIds
     }))
   ];
 
@@ -245,6 +247,7 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                       type: e.type,
                       cycleName: (e as any).cycleName,
                       cycleNames: (e as any).cycleNames,
+                      cycleIds: (e as any).cycleIds,
                       completed: e.status === 'completed',
                       description: e.notes,
                       recurrence_id: e.recurrence_id,
