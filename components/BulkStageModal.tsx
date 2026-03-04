@@ -1,16 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { bulkChangeStage } from "@/app/cycles/actions";
+
+const stageColumnMap: Record<string, string> = {
+  'Germinación': 'date_germinacion',
+  'Plántula': 'date_plantula',
+  'Enraizamiento': 'date_enraizamiento',
+  'Vegetativo': 'date_vegetativo',
+  'Floración': 'date_floracion',
+  'Secado': 'date_secado',
+  'Curado': 'date_curado'
+};
 
 interface BulkStageModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedIds: number[];
   onSuccess: () => void;
+  cycleId: number;
 }
 
-export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess }: BulkStageModalProps) {
+export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess, cycleId }: BulkStageModalProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState("Floración");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -21,11 +34,21 @@ export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess
     e.preventDefault();
     setLoading(true);
 
-    const res = await bulkChangeStage(selectedIds, stage, new Date(date).toISOString());
+    const dateCol = stageColumnMap[stage];
+
+    const res = await bulkChangeStage(
+      selectedIds,
+      stage,
+      new Date(date).toISOString(),
+      cycleId,
+      undefined,
+      dateCol
+    );
 
     setLoading(false);
 
     if (res?.success) {
+      router.refresh();
       onSuccess();
       onClose();
     } else {
@@ -53,8 +76,9 @@ export default function BulkStageModal({ isOpen, onClose, selectedIds, onSuccess
               onChange={(e) => setStage(e.target.value)}
             >
               <option value="Germinación">🌱 Germinación</option>
-              <option value="Esqueje">✂️ Esqueje</option>
-              <option value="Vegetación">🌿 Vegetación</option>
+              <option value="Plántula">🌱 Plántula</option>
+              <option value="Enraizamiento">🧬 Enraizamiento</option>
+              <option value="Vegetativo">🌿 Vegetativo</option>
               <option value="Floración">🌸 Floración</option>
               <option value="Secado">🍂 Secado</option>
               <option value="Curado">🏺 Curado</option>

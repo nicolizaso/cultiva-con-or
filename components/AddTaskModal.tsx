@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { 
-  X, Sprout, FileText, Droplets, FlaskConical, 
-  ShieldAlert, Shovel, Scissors, Activity, ArrowRightLeft, 
-  CloudRain, Flower, Skull, PenTool, Check, ChevronDown, Loader2
+  X, Sprout, FileText, Check, ChevronDown, Loader2
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { createTask } from '@/app/actions/tasks'
 import DatePicker from './DatePicker'
-import { useToast } from '@/app/context/ToastContext' // <--- Importamos el hook
+import { useToast } from '@/app/context/ToastContext'
+import { TASK_TYPES } from '@/app/lib/constants'
 
 // Interfaces
 interface Plant { id: string; name: string; }
@@ -19,30 +19,38 @@ interface AddTaskModalProps {
   onClose: () => void
   plants: Plant[]
   spaces: Space[]
+  initialDate?: Date
 }
 
-const TASK_TYPES = [
-  { id: 'riego', label: 'Riego', icon: Droplets, color: 'text-[#00a599]', border: 'border-[#00a599]/30', bg: 'bg-[#00a599]/10' },
-  { id: 'fertilizante', label: 'Fertilizante', icon: FlaskConical, color: 'text-green-500', border: 'border-green-500/30', bg: 'bg-green-500/10' },
-  { id: 'repelente', label: 'Repelente', icon: ShieldAlert, color: 'text-orange-500', border: 'border-orange-500/30', bg: 'bg-orange-500/10' },
-  { id: 'trasplante', label: 'Trasplante', icon: Shovel, color: 'text-amber-700', border: 'border-amber-700/30', bg: 'bg-amber-700/10' },
-  { id: 'poda', label: 'Poda', icon: Scissors, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
-  { id: 'entrenamiento', label: 'Entrenamiento', icon: Activity, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
-  { id: 'ambiente', label: 'Cambiar Ambiente', icon: ArrowRightLeft, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
-  { id: 'lavado', label: 'Lavado de Raíces', icon: CloudRain, color: 'text-slate-500', border: 'border-slate-500/30', bg: 'bg-slate-500/10' },
-  { id: 'cosechar', label: 'Cosechar', icon: Flower, color: 'text-violet-500', border: 'border-violet-500/30', bg: 'bg-violet-500/10' },
-  { id: 'muerta', label: 'Declarar Muerta', icon: Skull, color: 'text-white', border: 'border-white/30', bg: 'bg-black' },
-  { id: 'otro', label: 'Otro', icon: PenTool, color: 'text-slate-400', border: 'border-slate-400/30', bg: 'bg-slate-400/10' },
-]
-
-export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTaskModalProps) {
-  const { showToast } = useToast() // <--- Inicializamos el toast
+export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialDate }: AddTaskModalProps) {
+  const router = useRouter()
+  const { showToast } = useToast()
 
   const [selectedTargets, setSelectedTargets] = useState<{ id: string | number, name: string, type: 'plant' | 'space' }[]>([])
   const [selectedTaskType, setSelectedTaskType] = useState<typeof TASK_TYPES[0] | null>(null)
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  // Inicializar con fecha local en formato YYYY-MM-DD
+  const [date, setDate] = useState(() => {
+    const d = initialDate || new Date()
+    return d.toLocaleDateString('en-CA')
+  })
+
+  useEffect(() => {
+    if (initialDate) {
+      setDate(initialDate.toLocaleDateString('en-CA'))
+    }
+  }, [initialDate])
+
   const [description, setDescription] = useState('')
   const [otherText, setOtherText] = useState('') 
+
+  // Estados de recurrencia
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [frequency, setFrequency] = useState('daily')
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() + 1)
+    return d.toLocaleDateString('en-CA')
+  })
 
   const [isTargetOpen, setIsTargetOpen] = useState(false)
   const [isTypeOpen, setIsTypeOpen] = useState(false)
@@ -80,6 +88,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
     if (selectedTargets.length === 0) return showToast('Selecciona al menos una planta o espacio.', 'error')
     if (!selectedTaskType) return showToast('Debes seleccionar un tipo de tarea.', 'error')
     if (selectedTaskType.id === 'otro' && !otherText.trim()) return showToast('Escribe el nombre de la tarea personalizada.', 'error')
+    if (isRecurring && !endDate) return showToast('Debes seleccionar una fecha de fin.', 'error')
 
     setIsSubmitting(true)
 
@@ -91,9 +100,13 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
     const result = await createTask({
       targets: selectedTargets,
       taskType: cleanTaskType, 
-      date,
+      date: `${date}T12:00:00`, // Forzar mediodía para evitar desfases de zona horaria
       description,
-      otherText
+      otherText,
+      // Recurrencia
+      isRecurring,
+      frequency,
+      endDate: isRecurring ? `${endDate}T12:00:00` : null
     })
 
     setIsSubmitting(false)
@@ -104,18 +117,20 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
     } else {
       // Éxito
       showToast('¡Tarea agendada correctamente!', 'success') // <--- Toast de Éxito
+      router.refresh()
       
       // Limpiar y cerrar
       setSelectedTargets([])
       setSelectedTaskType(null)
       setDescription('')
       setOtherText('')
+      setIsRecurring(false)
       onClose()
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-[#12141C] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
@@ -264,6 +279,38 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces }: AddTas
           <div className="space-y-1.5">
             <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Fecha</label>
             <DatePicker selectedDate={date} onChange={setDate} />
+
+            {/* RECURRENCIA */}
+            <div className="mt-2 flex items-center justify-between bg-[#0B0C10] border border-white/10 rounded-xl p-3">
+               <span className="text-sm text-slate-300 font-bold">Repetir</span>
+               <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+               </label>
+            </div>
+
+            {isRecurring && (
+              <div className="grid grid-cols-2 gap-2 animate-in slide-in-from-top-2">
+                 <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Frecuencia</label>
+                    <select
+                      value={frequency}
+                      onChange={(e) => setFrequency(e.target.value)}
+                      className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50"
+                    >
+                      <option value="daily">Diario</option>
+                      <option value="every2days">Cada 2 días</option>
+                      <option value="weekly">Semanal</option>
+                      <option value="biweekly">Quincenal</option>
+                      <option value="monthly">Mensual</option>
+                    </select>
+                 </div>
+                 <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Termina el...</label>
+                    <DatePicker selectedDate={endDate} onChange={setEndDate} />
+                 </div>
+              </div>
+            )}
           </div>
 
           {/* 4. DETALLES */}

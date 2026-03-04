@@ -8,9 +8,10 @@ interface BulkWaterModalProps {
   onClose: () => void;
   selectedIds: number[];
   onSuccess: () => void; // Para limpiar la selección después
+  cycleId: number;
 }
 
-export default function BulkWaterModal({ isOpen, onClose, selectedIds, onSuccess }: BulkWaterModalProps) {
+export default function BulkWaterModal({ isOpen, onClose, selectedIds, onSuccess, cycleId }: BulkWaterModalProps) {
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [amount, setAmount] = useState("");
@@ -25,7 +26,7 @@ export default function BulkWaterModal({ isOpen, onClose, selectedIds, onSuccess
     // Construimos una nota automática con los detalles
     const noteDetails = `Riego registrado para ${selectedIds.length} plantas.\nCantidad: ${amount || 'No especificada'}\nNutrientes: ${nutrients || 'Solo agua'}`;
 
-    const res = await bulkWaterPlants(selectedIds, new Date(date).toISOString(), noteDetails);
+    const res = await bulkWaterPlants(selectedIds, new Date(date).toISOString(), noteDetails, cycleId);
 
     setLoading(false);
 

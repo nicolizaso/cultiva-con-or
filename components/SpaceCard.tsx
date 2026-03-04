@@ -4,13 +4,19 @@ import { useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Space } from "@/app/lib/types";
-import { Warehouse, Sun, Trash2, Tent } from "lucide-react";
+import { Warehouse, Sun, Trash2, Tent, Maximize, Wind } from "lucide-react";
 
-export default function SpaceCard({ space }: { space: Space }) {
+interface SpaceCardProps {
+  space: Space;
+  onClick?: () => void;
+}
+
+export default function SpaceCard({ space, onClick }: SpaceCardProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!confirm(`¿Eliminar "${space.name}"?`)) return;
     setIsDeleting(true);
     try {
@@ -30,8 +36,56 @@ export default function SpaceCard({ space }: { space: Space }) {
     }
   };
 
+  // Generate Summary Component
+  const renderTechnicalSummary = () => {
+    const hasLight = space.light_type || space.light_watts;
+    const hasDims = space.width || space.length || space.area_m2;
+    const hasVent = space.vent_extraction || space.vent_intraction;
+
+    if (!hasLight && !hasDims && !hasVent) {
+      return <p className="text-xs text-slate-500 mt-1 font-body">Configurar espacio</p>;
+    }
+
+    return (
+       <div className="flex flex-wrap gap-3 mt-2">
+          {/* Light */}
+          {hasLight && (
+             <div className="flex items-center gap-1 text-amber-400/80" title="Iluminación">
+                <Sun size={14} />
+                <span className="text-xs font-mono">
+                   {[space.light_type, space.light_watts ? `${space.light_watts}W` : ''].filter(Boolean).join(' ')}
+                </span>
+             </div>
+          )}
+
+          {/* Dimensions */}
+          {hasDims && (
+             <div className="flex items-center gap-1 text-brand-primary/80" title="Dimensiones">
+                <Maximize size={14} />
+                <span className="text-xs font-mono">
+                   {space.width && space.length ? `${space.width}x${space.length}m` : `${space.area_m2}m²`}
+                </span>
+             </div>
+          )}
+
+          {/* Ventilation */}
+           {hasVent && (
+             <div className="flex items-center gap-1 text-blue-400/80" title="Ventilación">
+                <Wind size={14} />
+                <span className="text-xs font-mono">
+                   {space.vent_extraction || space.vent_intraction}m³/h
+                </span>
+             </div>
+          )}
+       </div>
+    );
+  };
+
   return (
-    <div className="group bg-[#12141C] border border-white/5 rounded-3xl p-6 hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden">
+    <div
+      onClick={onClick}
+      className={`group bg-[#12141C] border border-white/5 rounded-3xl p-6 hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
+    >
         
         {/* Fondo decorativo */}
         <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
@@ -46,15 +100,16 @@ export default function SpaceCard({ space }: { space: Space }) {
           </div>
           <div>
             <h3 className="text-xl font-light font-title text-white">{space.name}</h3>
-            <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 border border-white/5 px-2 py-0.5 rounded-md">
-                {space.type}
-            </span>
+            {/* Summary Line */}
+            {renderTechnicalSummary()}
           </div>
         </div>
         
         {/* Barra decorativa */}
         <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
-            <span className="text-xs text-slate-500 font-body">Estado: Activo</span>
+             <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-slate-500 border border-white/5 px-2 py-0.5 rounded-md">
+                {space.type}
+            </span>
             <div className="flex gap-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></div>
             </div>

@@ -5,17 +5,11 @@ import { Plant } from "@/app/lib/types";
 import { supabase } from "@/app/lib/supabase";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { getFirstSuggestion } from "@/app/lib/stage-logic";
 
 // I'll assume Toast.tsx is a component I can't just call imperatively unless it has a context or similar.
 // Since I don't see a ToastContext, I'll build a simple dismissible alert inside this component
 // and render it fixed on the screen.
-
-// Thresholds configuration
-const STAGE_THRESHOLDS: Record<string, { nextStage: string; days: number }> = {
-  'Plántula': { nextStage: 'Vegetativo', days: 21 },
-  'Vegetativo': { nextStage: 'Floración', days: 60 }, // Example
-  'Germinación': { nextStage: 'Plántula', days: 7 }, // Example
-};
 
 interface StageSuggesterProps {
   plants: Plant[];
@@ -34,24 +28,9 @@ export default function StageSuggester({ plants }: StageSuggesterProps) {
         // Check local storage to see if we dismissed this recently (optional requirement)
         // For now, I'll skip the "remembers not to ask again" part to keep it simple as per "optional".
 
-        for (const plant of plants) {
-            // Calculate age locally if planted_at is available, otherwise fall back to DB computed or static days
-            let age = plant.current_age_days ?? plant.days ?? 0;
-
-            if (plant.planted_at) {
-                const planted = new Date(plant.planted_at);
-                const now = new Date();
-                const diffTime = Math.abs(now.getTime() - planted.getTime());
-                age = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            }
-
-            const threshold = STAGE_THRESHOLDS[plant.stage];
-
-            if (threshold && age >= threshold.days) {
-                // Found a candidate
-                setSuggestion({ plant, nextStage: threshold.nextStage });
-                return; // Stop after finding one
-            }
+        const foundSuggestion = getFirstSuggestion(plants);
+        if (foundSuggestion) {
+            setSuggestion(foundSuggestion);
         }
     };
 
@@ -102,12 +81,12 @@ export default function StageSuggester({ plants }: StageSuggesterProps) {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 50, x: '-50%' }}
-        animate={{ opacity: 1, y: 0, x: '-50%' }}
-        exit={{ opacity: 0, y: 50, x: '-50%' }}
-        className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 50 }}
+        className="fixed z-50 bottom-24 left-0 right-0 mx-auto w-[92%] md:bottom-8 md:right-8 md:left-auto md:mx-0 md:w-96"
       >
-        <div className="bg-brand-card border border-brand-primary/50 shadow-2xl rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
+        <div className="bg-[#1A1D26] border border-brand-primary/20 shadow-xl rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
             {/* Background effect */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
 

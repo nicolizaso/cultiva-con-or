@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Ubuntu, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import DesktopNavbar from "@/components/DesktopNavbar";
 import { ToastProvider } from "@/app/context/ToastContext"; // <--- Importamos el Provider
 
 const ubuntu = Ubuntu({
@@ -41,6 +42,7 @@ export default function RootLayout({
         
         {/* Envolvemos la app en el ToastProvider */}
         <ToastProvider>
+          <DesktopNavbar />
           {/* Contenedor principal */}
           <div className="pb-24 md:pb-0"> 
               {children}

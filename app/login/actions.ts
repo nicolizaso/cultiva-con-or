@@ -16,18 +16,15 @@ export async function login(formData: FormData) {
   if (!loginInput.includes('@')) {
     // Buscamos el email en la tabla 'profiles'
     // Usamos .ilike() para ignorar mayúsculas (ej: 'Nico' es igual a 'nico')
-    const { data: profile, error } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('email')
       .ilike('username', loginInput)
       .single()
 
-    if (error || !profile || !profile.email) {
-      console.error('Error buscando usuario:', error) // Esto aparecerá en tu terminal si falla
-      return { error: 'Usuario desconocido. Intenta con tu email.' }
-    }
-    
-    email = profile.email
+    // Si no existe el perfil, usamos un email ficticio para continuar el flujo
+    // y evitar ataques de tiempo o enumeración simple.
+    email = profile?.email || 'non-existent-user@example.com'
   }
 
   // 2. Login con el email (el ingresado o el que encontramos por usuario)
@@ -37,7 +34,7 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    return { error: 'Contraseña incorrecta.' }
+    return { error: 'Credenciales inválidas.' }
   }
 
   revalidatePath('/', 'layout')
@@ -57,17 +54,6 @@ export async function signup(formData: FormData) {
   if (password !== confirmPassword) return { error: 'Las contraseñas no coinciden.' }
   if (password.length < 6) return { error: 'Mínimo 6 caracteres para la contraseña.' }
 
-  // Verificar si ya existe el usuario (case-insensitive)
-  const { data: existingUser } = await supabase
-    .from('profiles')
-    .select('username')
-    .ilike('username', username)
-    .single()
-  
-  if (existingUser) {
-    return { error: 'Ese nombre de usuario ya está en uso.' }
-  }
-
   // Crear usuario
   const { error, data } = await supabase.auth.signUp({
     email,
@@ -78,7 +64,7 @@ export async function signup(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: 'No se pudo completar el registro. Por favor, verifica tus datos.' }
   }
 
   // Auto-Login post registro

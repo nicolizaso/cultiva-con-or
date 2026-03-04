@@ -17,11 +17,18 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
 
   if (error || !cycle) return notFound();
 
-  const { data: plants } = await supabase.from('plants').select('*, current_age_days').eq('cycle_id', id).order('id', { ascending: true });
+  const { data: plants } = await supabase.from('plants').select('*, current_age_days, days_in_stage').eq('cycle_id', id).order('id', { ascending: true });
 
   // Consultas de datos ambientales (igual que antes)...
   const { data: lastMeasurement } = await supabase.from('measurements').select('*').eq('cycle_id', id).order('date', { ascending: false }).limit(1).single();
   const { data: history } = await supabase.from('measurements').select('*').eq('cycle_id', id).order('date', { ascending: true }).limit(20);
+
+  // Fetch Cycle Images (Gallery)
+  const { data: cycleImages } = await supabase
+    .from('cycle_images')
+    .select('*')
+    .eq('cycle_id', id)
+    .order('taken_at', { ascending: false });
 
   const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
 
@@ -76,6 +83,7 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
         plants={plants || []} 
         lastMeasurement={lastMeasurement}
         history={history || []}
+        cycleImages={cycleImages || []}
       />
     </main>
   );

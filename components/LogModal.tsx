@@ -3,7 +3,9 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/app/context/ToastContext";
 import imageCompression from 'browser-image-compression';
+import { Camera } from "lucide-react";
 
 interface Props {
   plantId: number;
@@ -11,6 +13,7 @@ interface Props {
 }
 
 export default function LogModal({ plantId, plantName }: Props) {
+  const { showToast } = useToast();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,11 +48,7 @@ export default function LogModal({ plantId, plantName }: Props) {
             // 2. COMPRIMIR
             // "compressedFile" será mucho más ligero
             const compressedFile = await imageCompression(file, options);
-            
-            // Debug: Ver cuánto ahorramos (Opcional, sale en consola)
-            console.log(`Original: ${file.size / 1024 / 1024} MB`);
-            console.log(`Comprimido: ${compressedFile.size / 1024 / 1024} MB`);
-  
+
             // 3. PREPARAR NOMBRE Y RUTA
             const fileExt = file.name.split('.').pop();
             const fileName = `plant_${plantId}_${Date.now()}.${fileExt}`;
@@ -105,7 +104,7 @@ export default function LogModal({ plantId, plantName }: Props) {
       setIsOpen(false);
       setNote("");
       setFile(null);
-      alert("¡Bitácora actualizada!");
+      showToast('Imagen Actualizada', 'success');
       router.refresh();
 
     } catch (error) {
@@ -124,7 +123,7 @@ export default function LogModal({ plantId, plantName }: Props) {
         className="text-brand-muted hover:text-brand-primary transition-colors p-2 rounded-full hover:bg-brand-card border border-transparent hover:border-brand-primary/30"
         title="Agregar Foto/Nota"
       >
-        📷
+        <Camera className="w-6 h-6 text-brand-primary" />
       </button>
 
       {/* MODAL */}
@@ -154,7 +153,6 @@ export default function LogModal({ plantId, plantName }: Props) {
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   accept="image/*"
-                  capture="environment" // <--- TRUCO: Abre la cámara trasera en el celular
                   className="hidden"
                 />
                 

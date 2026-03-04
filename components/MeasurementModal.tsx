@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { addMeasurement } from "@/app/cycles/actions";
 
 interface MeasurementModalProps {
@@ -10,6 +11,7 @@ interface MeasurementModalProps {
 }
 
 export default function MeasurementModal({ isOpen, onClose, cycleId }: MeasurementModalProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [temp, setTemp] = useState("");
   const [hum, setHum] = useState("");
@@ -31,6 +33,7 @@ export default function MeasurementModal({ isOpen, onClose, cycleId }: Measureme
     setLoading(false);
 
     if (res?.success) {
+      router.refresh();
       onClose();
       setTemp("");
       setHum("");

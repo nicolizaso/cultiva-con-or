@@ -4,6 +4,8 @@ import GlobalHeader from "@/components/GlobalHeader";
 import DashboardFab from "@/components/DashboardFab";
 import HomeTaskCard from "@/components/HomeTaskCard";
 import AgendaList from "@/components/AgendaList";
+import TaskManagerModal from "@/components/TaskManagerModal";
+import CycleStatusCard from "@/components/CycleStatusCard";
 import { Plant, Task } from "./lib/types";
 import { Leaf, RefreshCw, Warehouse, Sprout, Plus, ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -17,7 +19,10 @@ interface CycleWithPlantsAndSpace {
     space_id: number;
     plants: Plant[];
     spaces: SpaceInfo;
+    cycle_images?: { public_url: string }[];
 }
+
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -25,32 +30,52 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', user.id)
-    .single();
+  // Get yesterday's date to ensure we catch tasks regardless of timezone shifts
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+
+  // Parallel fetch of all independent dashboard data
+  const [
+    { data: profile },
+    { data: cyclesData },
+    { data: tasksData },
+    { data: allSpaces }
+  ] = await Promise.all([
+    // Profile info
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single(),
+    // Active cycles with plants and spaces info
+    // Note: We explicitly select current_age_days (computed column)
+    supabase
+      .from('cycles')
+      .select(`*, spaces (id, name, type), plants (*, current_age_days, days_in_stage), cycle_images(public_url)`)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .order('taken_at', { foreignTable: 'cycle_images', ascending: false })
+      .limit(1, { foreignTable: 'cycle_images' }),
+    // Tasks (Both pending and completed, broader range to fix timezone issues)
+    supabase
+      .from('tasks')
+      .select('*, cycles(id, name), task_plants(plants(name))')
+      .eq('user_id', user.id)
+      .gte('due_date', yesterdayStr)
+      .order('created_at', { ascending: true }),
+    // All available spaces for the UI
+    supabase
+      .from('spaces')
+      .select('id, name')
+  ]);
+
   const username = profile?.username;
 
-  // DATOS: Ciclos
-  // Note: We explicitly select current_age_days (computed column)
-  const { data: cyclesData } = await supabase
-    .from('cycles')
-    .select(`*, spaces (id, name, type), plants (*, current_age_days)`)
-    .eq('is_active', true)
-    .order('created_at', { ascending: true });
-
-  // DATOS: Tareas para HOY
-  const todayStr = new Date().toISOString().split('T')[0];
-  const { data: tasksData } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('status', 'pending')
-    .eq('due_date', todayStr)
-    .order('created_at', { ascending: true });
-
-  const todayTask = tasksData && tasksData.length > 0 ? (tasksData[0] as Task) : undefined;
+  const allTodayTasks = (tasksData || []).map((t: any) => ({
+    ...t,
+    cycleName: t.cycles?.name
+  })) as Task[];
 
   // Procesamiento
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
@@ -62,9 +87,6 @@ export default async function Home() {
     if (c.spaces) activeSpacesMap.set(c.spaces.id, c.spaces);
   });
   const activeSpacesCount = activeSpacesMap.size;
-
-  // Datos para el FAB
-  const { data: allSpaces } = await supabase.from('spaces').select('id, name');
   const allPlants: { id: string, name: string }[] = [];
   activeCycles.forEach(cycle => {
     cycle.plants?.forEach(p => {
@@ -97,7 +119,7 @@ export default async function Home() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         
         {/* TARJETA 1: Tareas para hoy */}
-        <HomeTaskCard task={todayTask} />
+        <HomeTaskCard tasks={allTodayTasks} />
         
         {/* TARJETA 2: Ciclos (Condicional) */}
         {totalCycles > 0 ? (
@@ -156,49 +178,9 @@ export default async function Home() {
           </div>
 
           {activeCycles.length > 0 ? (
-            activeCycles.map((cycle) => {
-               const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
-               return (
-                <div key={cycle.id} className="group relative bg-[#12141C] rounded-3xl p-6 border border-white/5 hover:border-brand-primary/30 transition-all duration-300 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 relative z-10">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        {cycle.spaces && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 uppercase font-body">
-                            {cycle.spaces.name}
-                          </span>
-                        )}
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase font-body">
-                          Día {daysDiff}
-                        </span>
-                      </div>
-                      <h3 className="text-2xl md:text-3xl font-light font-title text-white">{cycle.name}</h3>
-                    </div>
-                    <Link href={`/cycles/${cycle.id}`} className="mt-4 md:mt-0 bg-white text-black px-6 py-2 rounded-full text-sm font-bold font-body hover:bg-brand-primary hover:text-white transition-all shadow-lg shadow-brand-primary/10 flex items-center gap-2">
-                      Ver Ciclo <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-                  <div className="relative z-10">
-                    <p className="text-xs text-slate-500 uppercase font-bold mb-3 font-body">Plantas ({cycle.plants?.length})</p>
-                    <div className="flex flex-wrap gap-2">
-                      {cycle.plants?.slice(0, 6).map(plant => (
-                        <div key={plant.id} className="flex items-center gap-2 bg-[#0B0C10] border border-white/10 rounded-full pr-3 pl-1 py-1">
-                          <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400">
-                             <Leaf className="w-3 h-3" />
-                          </div>
-                          <span className="text-xs text-slate-300 font-body">{plant.name}</span>
-                          <span className={`w-1.5 h-1.5 rounded-full ${plant.stage === 'Floración' ? 'bg-purple-500' : 'bg-brand-primary'}`}></span>
-                        </div>
-                      ))}
-                      {cycle.plants && cycle.plants.length > 6 && (
-                        <span className="text-xs text-slate-500 self-center ml-2 font-body">+{cycle.plants.length - 6} más</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-               );
-            })
+            activeCycles.map((cycle) => (
+              <CycleStatusCard key={cycle.id} cycle={cycle} />
+            ))
           ) : (
             <div className="bg-[#12141C] rounded-3xl p-10 text-center border border-dashed border-white/10 flex flex-col items-center justify-center">
               <Sprout className="w-12 h-12 text-slate-600 mb-4 opacity-50" />
@@ -212,9 +194,10 @@ export default async function Home() {
         <div className="space-y-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-medium text-white font-title">Agenda</h2>
+            <TaskManagerModal />
           </div>
           <div className="bg-[#12141C] rounded-3xl p-4 border border-white/5 h-80 overflow-y-auto custom-scrollbar">
-             <AgendaList tasks={tasksData as Task[] || []} />
+             <AgendaList tasks={allTodayTasks} />
           </div>
         </div>
       </div>
