@@ -117,7 +117,7 @@ export default function TaskPill({ task, onComplete, onDelete, onEdit, onClick, 
                   if (count > 1) return ` • 🌿 ${first} +${count - 1}`;
                   if (first) return ` • 🌿 ${first}`;
                }
-               return task.cycleNames ? ` • ${task.cycleNames}` : (task.cycleName ? ` • ${task.cycleName}` : '');
+               return (task.cycleNames || task.cycleName) ? ` • ${task.cycleNames || task.cycleName}` : '';
             })()}
           </span>
         </div>
