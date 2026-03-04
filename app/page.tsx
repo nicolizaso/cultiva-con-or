@@ -60,7 +60,7 @@ export default async function Home() {
     // Tasks (Both pending and completed, broader range to fix timezone issues)
     supabase
       .from('tasks')
-      .select('*, cycles(id, name), task_plants(plants(name))')
+      .select('*, cycles(id, name), task_cycles(cycles(id, name)), task_plants(plants(name, cycle_id, cycles(id, name)))')
       .eq('user_id', user.id)
       .gte('due_date', yesterdayStr)
       .order('created_at', { ascending: true }),
@@ -72,10 +72,45 @@ export default async function Home() {
 
   const username = profile?.username;
 
-  const allTodayTasks = (tasksData || []).map((t: any) => ({
-    ...t,
-    cycleName: t.cycles?.name
-  })) as Task[];
+  const allTodayTasks = (tasksData || []).map((t: any) => {
+    const cycleIdsSet = new Set<number>();
+    const cycleNamesSet = new Set<string>();
+
+    if (t.task_cycles && t.task_cycles.length > 0) {
+        t.task_cycles.forEach((tc: any) => {
+            if (tc.cycles) {
+                cycleIdsSet.add(tc.cycles.id);
+                cycleNamesSet.add(tc.cycles.name);
+            }
+        });
+    }
+
+    if (t.task_plants && t.task_plants.length > 0) {
+        t.task_plants.forEach((tp: any) => {
+            if (tp.plants?.cycles) {
+                cycleIdsSet.add(tp.plants.cycles.id);
+                cycleNamesSet.add(tp.plants.cycles.name);
+            }
+        });
+    }
+
+    // Legacy fallback
+    if (t.cycle_id) {
+        cycleIdsSet.add(t.cycle_id);
+    }
+    if (t.cycles) {
+        cycleNamesSet.add(t.cycles.name);
+    }
+
+    const cycleIds = Array.from(cycleIdsSet);
+    const cycleNames = Array.from(cycleNamesSet).join(', ');
+
+    return {
+      ...t,
+      cycleIds,
+      cycleNames
+    };
+  }) as Task[];
 
   // Procesamiento
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
