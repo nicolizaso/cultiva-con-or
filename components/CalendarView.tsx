@@ -20,13 +20,8 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
   const [selectedCycleId, setSelectedCycleId] = useState<number | 'all'>('all')
   const [isAgendaOpen, setIsAgendaOpen] = useState(false)
 
-  const filteredTasks = selectedCycleId === 'all'
-    ? tasks
-    : tasks.filter(t => {
-        if (t.cycleIds?.includes(selectedCycleId as number)) return true;
-        if (t.task_plants && t.task_plants.some(tp => tp.plants?.cycle_id === selectedCycleId)) return true;
-        return false;
-      })
+  const isAll = selectedCycleId === 'all'
+  const filteredTasks = tasks.filter(t => isAll || (t.cycleIds && t.cycleIds.includes(selectedCycleId as number)))
 
   const filteredLogs = selectedCycleId === 'all'
     ? logs
