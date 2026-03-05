@@ -19,28 +19,25 @@ export async function createTask(formData: any) {
   const recurrenceId = isRecurring ? randomUUID() : null
 
   // 1. Resolve Target Metadata (cycle_id and linked plants)
-  const allPlantIds = new Set<number>();
+  const allPlantIds = new Set<string>();
   const encounteredCycleIds = new Set<number>();
 
   await Promise.all(targets.map(async (target: any) => {
     if (target.type === 'plant') {
       const { data: plant } = await supabase.from('plants').select('cycle_id').eq('id', target.id).single();
       if (plant?.cycle_id) encounteredCycleIds.add(plant.cycle_id);
-      allPlantIds.add(Number(target.id));
+      allPlantIds.add(String(target.id));
     } else if (target.type === 'space') {
+      // Buscamos ciclos activos asociados al espacio para vincular la tarea
       const { data: cycles } = await supabase.from('cycles').select('id').eq('space_id', target.id).eq('is_active', true);
+      cycles?.forEach((c: any) => encounteredCycleIds.add(c.id));
 
-      const cycleIds = cycles?.map((c: any) => c.id) || [];
-      cycleIds.forEach((id: number) => encounteredCycleIds.add(id));
-
-      if (cycleIds.length > 0) {
-        const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id).in('cycle_id', cycleIds);
-        plants?.forEach((p: any) => allPlantIds.add(p.id));
-      } else {
-         // Fallback: plants in space
-         const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id);
-         plants?.forEach((p: any) => allPlantIds.add(p.id));
-      }
+      // Obtenemos todas las plantas que pertenecen físicamente al espacio para afectarlas a todas.
+      const { data: plants } = await supabase.from('plants').select('id, cycle_id').eq('space_id', target.id);
+      plants?.forEach((p: any) => {
+        allPlantIds.add(p.id);
+        if (p.cycle_id) encounteredCycleIds.add(p.cycle_id); // Recolectamos ciclos asociados
+      });
     }
   }));
 
