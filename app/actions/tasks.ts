@@ -10,7 +10,7 @@ export async function createTask(formData: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Debes iniciar sesión.' }
 
-  const { targets, taskType, date, description, otherText, isRecurring, frequency, endDate } = formData
+  const { targets, taskType, applicationType, date, description, otherText, isRecurring, frequency, endDate } = formData
   if (!targets || targets.length === 0) return { error: 'Selecciona un objetivo.' }
 
   const title = taskType.id === 'otro' ? otherText : taskType.label
@@ -87,6 +87,7 @@ export async function createTask(formData: any) {
       due_date: d,
       date: d, // Keep for compatibility
       type: taskType.id,
+      application_type: taskType.id === 'fertilizante' ? applicationType : null,
       status: 'pending',
       recurrence_id: recurrenceId,
       cycle_id: null
@@ -148,6 +149,7 @@ export async function updateTask(taskId: string | number, updates: any, scope: '
       .update({
         title: updates.title,
         description: updates.description,
+        application_type: updates.application_type !== undefined ? updates.application_type : null,
         due_date: updates.date,
         date: updates.date
       })
@@ -198,6 +200,7 @@ export async function updateTask(taskId: string | number, updates: any, scope: '
       return supabase.from('tasks').update({
         title: updates.title || task.title,
         description: updates.description !== undefined ? updates.description : task.description,
+        application_type: updates.application_type !== undefined ? updates.application_type : task.application_type,
         due_date: shiftedDateFull,
         date: shiftedDateFull
       }).eq('id', task.id)
@@ -272,7 +275,7 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
       const { error: logError } = await supabase.from('logs').insert(logsToInsert)
       if (logError) console.error('Error creating logs:', logError)
 
-      if (task.type === 'riego') {
+      if (task.type === 'riego' || (task.type === 'fertilizante' && task.application_type === 'Riego')) {
         const plantIds = task.task_plants.map((tp: any) => tp.plant_id)
         const { error: waterError } = await supabase
           .from('plants')

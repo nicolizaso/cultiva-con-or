@@ -74,6 +74,7 @@ export interface Task {
   cycleName?: string; // Deprecated
   cycleNames?: string;
   type: string; // 'riego', 'poda', etc.
+  application_type?: string;
   description?: string;
   recurrence_id?: string;
   task_plants?: {
