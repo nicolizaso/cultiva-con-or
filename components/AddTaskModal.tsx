@@ -41,7 +41,8 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
   }, [initialDate])
 
   const [description, setDescription] = useState('')
-  const [otherText, setOtherText] = useState('') 
+  const [otherText, setOtherText] = useState('')
+  const [applicationType, setApplicationType] = useState('Riego')
 
   // Estados de recurrencia
   const [isRecurring, setIsRecurring] = useState(false)
@@ -99,7 +100,8 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
 
     const result = await createTask({
       targets: selectedTargets,
-      taskType: cleanTaskType, 
+      taskType: cleanTaskType,
+      applicationType,
       date: `${date}T12:00:00`, // Forzar mediodía para evitar desfases de zona horaria
       description,
       otherText,
@@ -272,6 +274,24 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
                  className="w-full mt-2 bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50 animate-in slide-in-from-top-1"
                  autoFocus
                />
+            )}
+
+            {selectedTaskType?.id === 'fertilizante' && (
+               <div className="mt-2 animate-in slide-in-from-top-1">
+                 <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Tipo de Aplicación</label>
+                 <div className="relative">
+                   <select
+                     value={applicationType}
+                     onChange={(e) => setApplicationType(e.target.value)}
+                     className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-3 text-white text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                   >
+                     <option value="Riego">Riego</option>
+                     <option value="Foliar">Foliar</option>
+                     <option value="Directo al Sustrato">Directo al Sustrato</option>
+                   </select>
+                   <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 </div>
+               </div>
             )}
           </div>
 
