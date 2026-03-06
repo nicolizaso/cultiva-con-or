@@ -38,6 +38,13 @@ export async function createTask(formData: any) {
         allPlantIds.add(p.id);
         if (p.cycle_id) encounteredCycleIds.add(p.cycle_id); // Recolectamos ciclos asociados
       });
+    } else if (target.type === 'cycle') {
+      encounteredCycleIds.add(target.id);
+      // Obtenemos todas las plantas que pertenecen a este ciclo
+      const { data: plants } = await supabase.from('plants').select('id').eq('cycle_id', target.id);
+      plants?.forEach((p: any) => {
+        allPlantIds.add(String(p.id));
+      });
     }
   }));
 

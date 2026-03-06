@@ -212,6 +212,7 @@ export default async function Home() {
       <DashboardFab 
         plants={allPlants}
         spaces={allSpaces || []}
+        cycles={mappedCyclesList}
       />
 
     </main>
