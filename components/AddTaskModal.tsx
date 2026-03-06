@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { 
-  X, Sprout, FileText, Check, ChevronDown, Loader2
+  X, Sprout, FileText, Check, ChevronDown, Loader2, RefreshCw
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createTask } from '@/app/actions/tasks'
@@ -19,14 +19,15 @@ interface AddTaskModalProps {
   onClose: () => void
   plants: Plant[]
   spaces: Space[]
+  cycles?: { id: number; name: string }[]
   initialDate?: Date
 }
 
-export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialDate }: AddTaskModalProps) {
+export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles = [], initialDate }: AddTaskModalProps) {
   const router = useRouter()
   const { showToast } = useToast()
 
-  const [selectedTargets, setSelectedTargets] = useState<{ id: string | number, name: string, type: 'plant' | 'space' }[]>([])
+  const [selectedTargets, setSelectedTargets] = useState<{ id: string | number, name: string, type: 'plant' | 'space' | 'cycle' }[]>([])
   const [selectedTaskType, setSelectedTaskType] = useState<typeof TASK_TYPES[0] | null>(null)
   // Inicializar con fecha local en formato YYYY-MM-DD
   const [date, setDate] = useState(() => {
@@ -71,7 +72,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
 
   if (!isOpen) return null
 
-  const toggleTarget = (item: { id: string | number, name: string, type: 'plant' | 'space' }) => {
+  const toggleTarget = (item: { id: string | number, name: string, type: 'plant' | 'space' | 'cycle' }) => {
     const exists = selectedTargets.find(t => t.id === item.id && t.type === item.type)
     if (exists) {
       setSelectedTargets(prev => prev.filter(t => !(t.id === item.id && t.type === item.type)))
@@ -178,6 +179,28 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
 
             {isTargetOpen && (
               <div className="absolute top-full left-0 w-full bg-[#1A1C25] border border-white/10 rounded-xl mt-2 z-20 shadow-xl max-h-60 overflow-y-auto">
+                {cycles.length > 0 && (
+                   <div className="p-2 border-b border-white/5">
+                     <p className="text-[10px] uppercase font-bold text-slate-500 px-2 py-1">Ciclos</p>
+                     {cycles.map(cycle => {
+                       const isSelected = selectedTargets.some(t => t.id === cycle.id && t.type === 'cycle')
+                       return (
+                         <div
+                           key={`cycle-${cycle.id}`}
+                           onClick={() => toggleTarget({ id: cycle.id, name: cycle.name, type: 'cycle' })}
+                           className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-300 hover:bg-white/5'}`}
+                         >
+                           <div className="flex items-center gap-2">
+                             <RefreshCw size={14} className={isSelected ? 'text-brand-primary' : 'text-slate-500'} />
+                             <span>{cycle.name}</span>
+                           </div>
+                           {isSelected && <Check size={14} />}
+                         </div>
+                       )
+                     })}
+                   </div>
+                )}
+
                 {spaces.length > 0 && (
                    <div className="p-2">
                      <p className="text-[10px] uppercase font-bold text-slate-500 px-2 py-1">Espacios</p>

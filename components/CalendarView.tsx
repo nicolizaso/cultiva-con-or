@@ -88,6 +88,7 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
       <DashboardFab
         plants={plants}
         spaces={spaces}
+        cycles={cycles}
         initialDate={selectedDate}
       />
     </>
