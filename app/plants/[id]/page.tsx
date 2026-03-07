@@ -95,8 +95,8 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
   })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // ASC for pending
 
   const historyTimelineItems: TimelineItem[] = [
-    // Logs
-    ...logs.map((log: any) => ({
+    // Logs (Only photos)
+    ...logs.filter((log: any) => log.type === 'foto').map((log: any) => ({
       id: `log-${log.id}`,
       originalId: log.id,
       date: log.created_at,
@@ -111,7 +111,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
     ...completedTasksList.map((task: any) => ({
       id: `task-${task.id}`,
       originalId: task.id,
-      date: task.due_date,
+      date: task.completed_at || task.due_date,
       title: task.title,
       type: task.type,
       notes: task.description,
