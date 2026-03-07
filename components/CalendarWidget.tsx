@@ -128,7 +128,7 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
         cycleName: task.cycleName,
         cycleNames: task.cycleNames,
         cycleIds: task.cycleIds,
-        hideInCalendar: task.status === 'completed' && hasPlants
+        hideInCalendar: false
       };
     })
   ];
@@ -198,7 +198,7 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
 
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((day) => {
-            const dayEvents = allEvents.filter(event => isSameDay(event.date, day) && !event.hideInCalendar);
+            const dayEvents = allEvents.filter(event => isSameDay(event.date, day) && !event.hideInCalendar && (event.isTask || event.type === 'foto'));
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isSelected = selectedDate && isSameDay(day, selectedDate);
             const isToday = isSameDay(day, new Date());
