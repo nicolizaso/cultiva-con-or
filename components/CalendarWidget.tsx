@@ -92,8 +92,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  // Unificar eventos (con agrupación de logs)
-  const groupedLogs = groupLogs(logs);
+  // Unificar eventos (con agrupación de logs, filtrando solo los de tipo foto)
+  const groupedLogs = groupLogs(logs.filter(log => log.type === 'foto'));
 
   const allEvents = [
     ...groupedLogs.map(log => ({

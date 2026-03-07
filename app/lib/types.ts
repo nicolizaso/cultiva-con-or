@@ -68,6 +68,7 @@ export interface Task {
   due_date: string; // ISO string YYYY-MM-DD
   completed?: boolean;
   status?: 'pending' | 'completed';
+  completed_at?: string;
   cycle_id?: number; // Deprecated
   cycleId?: string;
   cycleIds?: number[];

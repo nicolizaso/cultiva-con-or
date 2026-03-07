@@ -246,9 +246,16 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
   if (fetchError) return { error: fetchError.message }
   if (currentTask.status === newStatus) return { success: true }
 
+  const updateData: any = { status: newStatus }
+  if (newStatus === 'completed') {
+    updateData.completed_at = new Date().toISOString()
+  } else {
+    updateData.completed_at = null
+  }
+
   const { error } = await supabase
     .from('tasks')
-    .update({ status: newStatus })
+    .update(updateData)
     .eq('id', taskId)
 
   if (error) return { error: error.message }
@@ -267,18 +274,6 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
       .single()
 
     if (task && task.task_plants && task.task_plants.length > 0) {
-      const logsToInsert = task.task_plants.map((tp: any) => ({
-        plant_id: tp.plant_id,
-        cycle_id: tp.plants?.cycle_id || task.cycle_id,
-        type: task.type,
-        title: task.title,
-        notes: task.description,
-        created_at: new Date().toISOString()
-      }))
-
-      const { error: logError } = await supabase.from('logs').insert(logsToInsert)
-      if (logError) console.error('Error creating logs:', logError)
-
       if (task.type === 'riego' || (task.type === 'fertilizante' && task.application_type === 'Riego')) {
         const plantIds = task.task_plants.map((tp: any) => tp.plant_id)
         const { error: waterError } = await supabase
