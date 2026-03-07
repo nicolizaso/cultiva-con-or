@@ -108,23 +108,29 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
       status: undefined,
       recurrence_id: undefined,
       isGroup: log.isGroup,
-      count: log.count
+      count: log.count,
+      hideInCalendar: false
     })),
-    ...tasks.map(task => ({
-      id: `task-${task.id}`,
-      originalId: task.id,
-      date: parseISO(task.due_date || task.date!),
-      type: task.type,
-      title: task.title,
-      notes: task.description,
-      plants: task.task_plants || task.plants,
-      isTask: true,
-      status: task.status,
-      recurrence_id: task.recurrence_id,
-      cycleName: task.cycleName,
-      cycleNames: task.cycleNames,
-      cycleIds: task.cycleIds
-    }))
+    ...tasks.map(task => {
+      const hasPlants = (task.task_plants && task.task_plants.length > 0) ||
+                        (Array.isArray(task.plants) ? task.plants.length > 0 : !!task.plants);
+      return {
+        id: `task-${task.id}`,
+        originalId: task.id,
+        date: parseISO(task.due_date || task.date!),
+        type: task.type,
+        title: task.title,
+        notes: task.description,
+        plants: task.task_plants || task.plants,
+        isTask: true,
+        status: task.status,
+        recurrence_id: task.recurrence_id,
+        cycleName: task.cycleName,
+        cycleNames: task.cycleNames,
+        cycleIds: task.cycleIds,
+        hideInCalendar: task.status === 'completed' && hasPlants
+      };
+    })
   ];
 
   const eventsForSelectedDate = allEvents.filter(event => selectedDate && isSameDay(event.date, selectedDate));
@@ -192,7 +198,7 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
 
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((day) => {
-            const dayEvents = allEvents.filter(event => isSameDay(event.date, day));
+            const dayEvents = allEvents.filter(event => isSameDay(event.date, day) && !event.hideInCalendar);
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isSelected = selectedDate && isSameDay(day, selectedDate);
             const isToday = isSameDay(day, new Date());
