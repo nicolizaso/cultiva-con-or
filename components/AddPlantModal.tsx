@@ -213,7 +213,7 @@ export default function AddPlantModal() {
                  {/* Origen */}
                  <div>
                   <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Origen</label>
-                  <div className="flex bg-[#F5F5F1] p-1 rounded-lg border border-slate-200">
+                  <div className="flex bg-brand-bg p-1 rounded-lg border border-slate-200">
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, source_type: 'Semilla', mother_id: ""})}
