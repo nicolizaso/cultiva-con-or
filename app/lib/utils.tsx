@@ -85,7 +85,7 @@ export function getStageColor(stage?: string) {
   // Default fallback
   return {
     bgColor: 'bg-slate-200/10',
-    textColor: 'text-slate-400',
+    textColor: 'text-slate-500',
     borderColor: 'border-slate-200/30',
     icon: '❓'
   };

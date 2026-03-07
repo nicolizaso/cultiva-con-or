@@ -25,7 +25,7 @@ export default function SpacesGridManager({ initialSpaces }: SpacesGridManagerPr
             />
           ))
         ) : (
-          <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-3xl bg-[#12141C]">
+          <div className="col-span-full py-20 text-center border border-dashed border-slate-200 rounded-2xl bg-white">
             <Warehouse className="mx-auto text-slate-600 mb-4" size={48} />
             <p className="text-slate-500">No hay espacios configurados.</p>
           </div>

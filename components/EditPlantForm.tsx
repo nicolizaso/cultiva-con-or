@@ -147,7 +147,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       <div className="flex items-center justify-between">
-        <Link href={`/plants/${plant.id}`} className="text-slate-400 hover:text-white flex items-center gap-2 text-sm font-bold uppercase tracking-wider transition-colors">
+        <Link href={`/plants/${plant.id}`} className="text-slate-500 hover:text-slate-800 flex items-center gap-2 text-sm font-bold uppercase tracking-wider transition-colors">
           <ArrowLeft size={16} /> Volver
         </Link>
         <button
@@ -161,8 +161,8 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
       <form onSubmit={handleSave} className="space-y-8">
 
         {/* TOP SECTION: Basic Info */}
-        <section className="bg-[#12141C] p-6 rounded-3xl border border-white/5 space-y-4">
-          <h2 className="text-lg font-title text-white mb-4 flex items-center gap-2">
+        <section className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
+          <h2 className="text-lg font-title text-slate-800 mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-brand-primary"></span>
             Información Básica
           </h2>
@@ -173,7 +173,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
               <input
                 type="text"
                 required
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white focus:border-brand-primary outline-none transition-colors"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-primary outline-none transition-colors"
                 value={basicInfo.name}
                 onChange={(e) => handleBasicChange('name', e.target.value)}
               />
@@ -183,7 +183,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
               <label className="block text-slate-500 mb-1 text-xs font-bold uppercase tracking-wider">Genética (Strain)</label>
               <input
                 type="text"
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white focus:border-brand-primary outline-none transition-colors"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-primary outline-none transition-colors"
                 value={basicInfo.strain}
                 onChange={(e) => handleBasicChange('strain', e.target.value)}
               />
@@ -193,7 +193,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
               <label className="block text-slate-500 mb-1 text-xs font-bold uppercase tracking-wider">Banco (Breeder)</label>
               <input
                 type="text"
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white focus:border-brand-primary outline-none transition-colors"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-primary outline-none transition-colors"
                 value={basicInfo.breeder}
                 onChange={(e) => handleBasicChange('breeder', e.target.value)}
               />
@@ -202,7 +202,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
             <div>
               <label className="block text-slate-500 mb-1 text-xs font-bold uppercase tracking-wider">Origen</label>
               <select
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white focus:border-brand-primary outline-none transition-colors appearance-none"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-primary outline-none transition-colors appearance-none"
                 value={basicInfo.source_type}
                 onChange={(e) => handleBasicChange('source_type', e.target.value)}
               >
@@ -214,7 +214,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
             <div className="md:col-span-2">
               <label className="block text-slate-500 mb-1 text-xs font-bold uppercase tracking-wider">Ciclo / Armario</label>
               <select
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white focus:border-brand-primary outline-none transition-colors appearance-none"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-primary outline-none transition-colors appearance-none"
                 value={basicInfo.cycle_id || ''}
                 onChange={(e) => handleBasicChange('cycle_id', Number(e.target.value))}
               >
@@ -229,8 +229,8 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
         </section>
 
         {/* TIMELINE SECTION */}
-        <section className="bg-[#12141C] p-6 rounded-3xl border border-white/5">
-           <h2 className="text-lg font-title text-white mb-6 flex items-center gap-2">
+        <section className="bg-white p-6 rounded-2xl border border-slate-100">
+           <h2 className="text-lg font-title text-slate-800 mb-6 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-brand-primary"></span>
             Línea de Tiempo
           </h2>
@@ -258,7 +258,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
                     className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center border-2 z-10 transition-all duration-300 ${
                         isActive
                         ? `${colors.bgColor} ${colors.textColor} ${colors.borderColor}`
-                        : 'bg-[#0B0C10] text-slate-600 border-white/10 hover:border-brand-primary/50 hover:text-brand-primary'
+                        : 'bg-[#F5F5F1] text-slate-600 border-slate-200 hover:border-brand-primary/50 hover:text-brand-primary'
                     }`}
                   >
                     <Icon size={20} strokeWidth={isActive ? 2 : 1.5} />
@@ -269,12 +269,12 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
                     onClick={() => activateStage(dateKey)}
                     className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${
                         isActive
-                        ? `bg-[#0B0C10] ${colors.borderColor}`
+                        ? `bg-[#F5F5F1] ${colors.borderColor}`
                         : 'bg-transparent border-transparent hover:bg-white/5'
                     }`}
                   >
                     <div>
-                        <span className={`text-sm font-bold uppercase tracking-wider block ${isActive ? 'text-white' : 'text-slate-500'}`}>
+                        <span className={`text-sm font-bold uppercase tracking-wider block ${isActive ? 'text-slate-800' : 'text-slate-500'}`}>
                             {stage.label}
                         </span>
                         {!isActive && <span className="text-[10px] text-slate-600">Click para activar</span>}
@@ -284,7 +284,7 @@ export default function EditPlantForm({ plant, cycles }: EditPlantFormProps) {
                         {isActive ? (
                              <input
                                 type="date"
-                                className="bg-[#12141C] border border-white/10 rounded-lg px-3 py-1 text-sm text-slate-300 focus:border-brand-primary outline-none w-36"
+                                className="bg-white border border-slate-200 rounded-lg px-3 py-1 text-sm text-slate-700 focus:border-brand-primary outline-none w-36"
                                 value={dateValue ? dateValue.split('T')[0] : ''}
                                 onChange={(e) => handleDateChange(dateKey, e.target.value)}
                              />

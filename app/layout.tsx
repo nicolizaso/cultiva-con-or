@@ -1,24 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Ubuntu, IBM_Plex_Sans } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import DesktopNavbar from "@/components/DesktopNavbar";
 import { ToastProvider } from "@/app/context/ToastContext"; // <--- Importamos el Provider
 
-const ubuntu = Ubuntu({
+const inter = Inter({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin"],
-  variable: "--font-ubuntu",
+  variable: "--font-inter",
 });
 
-const ibm = IBM_Plex_Sans({
+const playfair = Playfair_Display({
   weight: ["700"],
   subsets: ["latin"],
-  variable: "--font-ibm",
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: "Cultiva con Ojitos",
+  title: "Cultivapp",
   description: "Gestión inteligente de cultivos",
   manifest: "/manifest.webmanifest",
 };
@@ -38,7 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${ubuntu.variable} ${ibm.variable} antialiased bg-[#0B0C10] text-slate-200`}>
+      <body className={`${inter.variable} ${playfair.variable} antialiased bg-[#F5F5F1] text-slate-800`}>
         
         {/* Envolvemos la app en el ToastProvider */}
         <ToastProvider>

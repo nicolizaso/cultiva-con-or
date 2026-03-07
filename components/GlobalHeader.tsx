@@ -17,13 +17,13 @@ export default function GlobalHeader({ title, subtitle, userEmail }: GlobalHeade
             {/* Icono Vectorial Institucional */}
             <Sprout className="text-brand-primary w-6 h-6" strokeWidth={2.5} />
             
-            <span className="font-title text-white text-lg tracking-wider uppercase">
-                Cultiva con <span className="text-brand-primary">Ojitos</span>
+            <span className="font-title text-slate-800 text-lg tracking-wider uppercase">
+                Cultivapp
             </span>
         </div>
         
         {title && (
-            <h1 className="text-sm font-bold font-body text-slate-400 hidden md:block">
+            <h1 className="text-sm font-bold font-body text-slate-500 hidden md:block">
                 {title} {subtitle && <span className="font-normal opacity-50">| {subtitle}</span>}
             </h1>
         )}

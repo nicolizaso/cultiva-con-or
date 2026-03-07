@@ -22,7 +22,7 @@ export default function BottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       
-      <nav className="bg-[#0B0C10]/95 backdrop-blur-xl border-t border-white/10 pb-safe pt-2 px-2 flex justify-around items-end shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+      <nav className="bg-[#F5F5F1]/95 backdrop-blur-xl border-t border-slate-200 pb-safe pt-2 px-2 flex justify-around items-end shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
         
         {links.map((link) => {
           const isActive = pathname === link.href;
@@ -36,15 +36,15 @@ export default function BottomNav() {
               className={`group flex flex-col items-center justify-center w-full py-3 transition-all duration-300 relative outline-none tap-highlight-transparent`}
             >
               {isActive && (
-                <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-primary rounded-full shadow-[0_0_10px_2px_rgba(0,165,153,0.5)]"></span>
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-primary rounded-full "></span>
               )}
 
               {/* Renderizamos el componente del icono */}
               <IconComponent 
                 className={`w-6 h-6 mb-1 transition-all duration-300 filter ${
                   isActive 
-                    ? 'text-brand-primary scale-110 drop-shadow-[0_0_8px_rgba(0,165,153,0.6)]' 
-                    : 'text-slate-500 group-hover:text-slate-300 scale-100'
+                    ? 'text-brand-primary scale-110 '
+                    : 'text-slate-500 group-hover:text-slate-700 scale-100'
                 }`}
                 // strokeWidth controla el grosor. 2 es normal, 2.5 es bold.
                 strokeWidth={isActive ? 2.5 : 1.5} 
@@ -65,7 +65,7 @@ export default function BottomNav() {
         })}
       </nav>
       
-      <div className="h-6 bg-[#0B0C10]/95 md:hidden"></div>
+      <div className="h-6 bg-[#F5F5F1]/95 md:hidden"></div>
     </div>
   );
 }

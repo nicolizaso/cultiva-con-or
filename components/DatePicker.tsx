@@ -72,10 +72,10 @@ export default function DatePicker({ selectedDate, onChange }: DatePickerProps) 
         onClick={(e) => { e.stopPropagation(); handleDayClick(d); }}
         className={`h-8 w-8 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
           isSelected 
-            ? 'bg-brand-primary text-[#0B0C10] shadow-[0_0_10px_rgba(0,165,153,0.4)] scale-110' 
+            ? 'bg-brand-primary text-white shadow-[0_0_10px_rgba(0,165,153,0.4)] scale-110'
             : isToday 
               ? 'border border-brand-primary text-brand-primary' 
-              : 'text-slate-300 hover:bg-white/10'
+              : 'text-slate-700 hover:bg-white/10'
         }`}
       >
         {d}
@@ -89,11 +89,11 @@ export default function DatePicker({ selectedDate, onChange }: DatePickerProps) 
       <div 
         ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-3 flex items-center justify-between cursor-pointer hover:border-brand-primary/50 transition-colors"
+        className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 flex items-center justify-between cursor-pointer hover:border-brand-primary/50 transition-colors"
       >
         <div className="flex items-center gap-3">
           <CalendarIcon className="text-slate-500" size={18} />
-          <span className="text-slate-200 text-sm font-bold">
+          <span className="text-slate-800 text-sm font-bold">
             {selectedDate.split('-').reverse().join('/')}
           </span>
         </div>
@@ -106,18 +106,18 @@ export default function DatePicker({ selectedDate, onChange }: DatePickerProps) 
           <div className="fixed inset-0 z-60" onClick={() => setIsOpen(false)} />
           
           <div 
-            className="fixed bg-[#1A1C25] border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] p-4 z-70 animate-in zoom-in-95 duration-200 w-[280px]"
+            className="fixed bg-white border border-slate-200 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] p-4 z-70 animate-in zoom-in-95 duration-200 w-[280px]"
             style={{ top: position.top, left: position.left }}
           >
             {/* Header Calendario */}
             <div className="flex justify-between items-center mb-4">
-              <button onClick={(e) => { e.stopPropagation(); setCurrentMonth(new Date(year, month - 1, 1)); }} className="p-1 hover:bg-white/5 rounded-full text-slate-400 hover:text-white">
+              <button onClick={(e) => { e.stopPropagation(); setCurrentMonth(new Date(year, month - 1, 1)); }} className="p-1 hover:bg-white/5 rounded-full text-slate-500 hover:text-slate-800">
                 <ChevronLeft size={20} />
               </button>
-              <span className="text-white font-bold capitalize text-sm">
+              <span className="text-slate-800 font-bold capitalize text-sm">
                 {MONTHS[month]} {year}
               </span>
-              <button onClick={(e) => { e.stopPropagation(); setCurrentMonth(new Date(year, month + 1, 1)); }} className="p-1 hover:bg-white/5 rounded-full text-slate-400 hover:text-white">
+              <button onClick={(e) => { e.stopPropagation(); setCurrentMonth(new Date(year, month + 1, 1)); }} className="p-1 hover:bg-white/5 rounded-full text-slate-500 hover:text-slate-800">
                 <ChevronRight size={20} />
               </button>
             </div>

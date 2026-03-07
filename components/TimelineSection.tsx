@@ -39,22 +39,22 @@ export default function TimelineSection({ pendingTasks, historyItems }: Timeline
     <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group mb-8 last:mb-0">
 
       {/* Icon */}
-      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-dashed border-slate-500 text-slate-400 bg-[#0B0C10] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-dashed border-slate-500 text-slate-500 bg-[#F5F5F1] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
         {getTaskIcon(item.type)}
       </div>
 
       {/* Card */}
-      <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#12141C] p-5 rounded-2xl border border-dashed ${isNext ? 'border-brand-primary/50 bg-brand-primary/5' : 'border-slate-700'} hover:border-brand-primary/30 transition-colors shadow-lg`}>
+      <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-5 rounded-2xl border border-dashed ${isNext ? 'border-brand-primary/50 bg-brand-primary/5' : 'border-slate-200'} hover:border-brand-primary/30 transition-colors shadow-sm`}>
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-white text-sm">{item.title}</span>
-            <span className="text-[9px] uppercase font-bold bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">Pendiente</span>
+            <span className="font-bold text-slate-800 text-sm">{item.title}</span>
+            <span className="text-[9px] uppercase font-bold bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded">Pendiente</span>
           </div>
           <time className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
             {formatDateShort(item.date)}
           </time>
         </div>
-        {item.notes && <p className="text-slate-400 text-xs leading-relaxed">"{item.notes}"</p>}
+        {item.notes && <p className="text-slate-500 text-xs leading-relaxed">"{item.notes}"</p>}
       </div>
     </div>
   );
@@ -78,7 +78,7 @@ export default function TimelineSection({ pendingTasks, historyItems }: Timeline
             <div className="relative flex items-center justify-center md:my-4 z-10 mb-8">
               <button
                 onClick={() => setShowAllPending(!showAllPending)}
-                className="flex items-center gap-2 bg-[#1A1C25] border border-white/10 text-slate-400 hover:text-white px-4 py-2 rounded-full text-xs font-bold transition-all hover:border-white/20"
+                className="flex items-center gap-2 bg-white border border-slate-200 text-slate-500 hover:text-slate-800 px-4 py-2 rounded-full text-xs font-bold transition-all hover:border-slate-300"
               >
                 {showAllPending ? (
                   <>
@@ -104,15 +104,15 @@ export default function TimelineSection({ pendingTasks, historyItems }: Timeline
         <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
 
           {/* Icon */}
-          <div className={`flex items-center justify-center w-10 h-10 rounded-full border ${item.type === 'image' ? 'border-brand-primary text-brand-primary' : 'border-[#333] text-brand-primary'} bg-[#0B0C10] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10`}>
+          <div className={`flex items-center justify-center w-10 h-10 rounded-full border ${item.type === 'image' ? 'border-brand-primary text-brand-primary' : 'border-slate-200 text-brand-primary'} bg-[#F5F5F1] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10`}>
             {getTaskIcon(item.type)}
           </div>
 
           {/* Card */}
-          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#12141C] p-5 rounded-2xl border border-white/5 hover:border-brand-primary/30 transition-colors shadow-lg">
+          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-5 rounded-2xl border border-slate-100 hover:border-brand-primary/30 transition-colors shadow-sm">
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-sm">{item.title}</span>
+                <span className="font-bold text-slate-800 text-sm">{item.title}</span>
                 {item.type === 'image' && <span className="text-[9px] uppercase font-bold bg-brand-primary/20 text-brand-primary px-1.5 py-0.5 rounded">Foto</span>}
               </div>
               <time className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
@@ -120,13 +120,13 @@ export default function TimelineSection({ pendingTasks, historyItems }: Timeline
               </time>
             </div>
 
-            {item.notes && <p className="text-slate-400 text-xs leading-relaxed mb-3">"{item.notes}"</p>}
+            {item.notes && <p className="text-slate-500 text-xs leading-relaxed mb-3">"{item.notes}"</p>}
 
             {/* Render Images (Log media OR Cycle Image public_url) */}
             {item.media_url && item.media_url.length > 0 && (
               <div className={`grid gap-2 mt-2 ${item.media_url.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {item.media_url.map((url: string, i: number) => (
-                  <div key={i} className="relative h-32 w-full rounded-lg overflow-hidden border border-white/5 group-hover:border-white/10 transition-colors">
+                  <div key={i} className="relative h-32 w-full rounded-lg overflow-hidden border border-slate-100 group-hover:border-slate-200 transition-colors">
                     <Image src={url} alt="Timeline Media" fill className="object-cover" />
                   </div>
                 ))}

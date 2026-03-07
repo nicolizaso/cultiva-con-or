@@ -33,12 +33,12 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
   const daysDiff = Math.floor((new Date().getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <main className="min-h-screen bg-[#0B0C10] pb-24 text-slate-200 p-4 md:p-8 font-body">
+    <main className="min-h-screen bg-[#F5F5F1] pb-24 text-slate-800 p-4 md:p-8 font-body">
       
       <GlobalHeader userEmail={user?.email} title="Panel de Ciclo" subtitle={cycle.name} />
 
       {/* --- HERO SECTION --- */}
-      <div className="bg-[#12141C] border border-white/5 rounded-3xl p-6 mb-8 relative overflow-hidden">
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 mb-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 relative z-10">
@@ -47,16 +47,16 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
                         cycle.is_active 
                         ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' 
-                        : 'bg-slate-800 text-slate-400 border-slate-700'
+                        : 'bg-slate-800 text-slate-500 border-slate-200'
                     }`}>
                         {cycle.is_active ? <PlayCircle size={10} /> : <StopCircle size={10} />}
                         {cycle.is_active ? 'Activo' : 'Archivado'}
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-700 border border-slate-200">
                         {cycle.spaces?.type}
                     </span>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-light font-title text-white mb-2">
+                <h1 className="text-3xl md:text-5xl font-light font-title text-slate-800 mb-2">
                     {cycle.name}
                 </h1>
                 <div className="flex items-center gap-4 text-slate-500 text-sm font-body">
@@ -67,12 +67,12 @@ export default async function CycleDetailPage({ params }: { params: Promise<{ id
             </div>
 
             {/* KPI Rápido */}
-            <div className="flex gap-8 text-right bg-[#0B0C10]/50 p-4 rounded-2xl border border-white/5 backdrop-blur-sm">
+            <div className="flex gap-8 text-right bg-[#F5F5F1]/50 p-4 rounded-2xl border border-slate-100 backdrop-blur-sm">
                 <div>
                     <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1 flex items-center justify-end gap-1">
                         Plantas <Sprout size={10} />
                     </p>
-                    <p className="text-2xl font-light font-title text-white">{plants?.length || 0}</p>
+                    <p className="text-2xl font-light font-title text-slate-800">{plants?.length || 0}</p>
                 </div>
             </div>
         </div>

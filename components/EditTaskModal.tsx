@@ -112,19 +112,19 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
   if (showDeleteOptions) {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-        <div className="bg-[#12141C] border border-white/10 w-full max-w-sm rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="bg-white border border-slate-200 w-full max-w-sm rounded-2xl shadow-sm flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
            <div className="p-6 text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-2">
                  <AlertTriangle size={24} />
               </div>
-              <h3 className="text-lg font-bold text-white">Tarea Recurrente</h3>
-              <p className="text-sm text-slate-400">Esta tarea se repite en el tiempo. ¿Qué deseas eliminar?</p>
+              <h3 className="text-lg font-bold text-slate-800">Tarea Recurrente</h3>
+              <p className="text-sm text-slate-500">Esta tarea se repite en el tiempo. ¿Qué deseas eliminar?</p>
 
               <div className="space-y-2 mt-4 flex flex-col">
                  <button
                    onClick={() => handleSeriesDelete('this')}
                    disabled={isDeleting}
-                   className="w-full bg-[#0B0C10] hover:bg-white/5 border border-white/10 text-white font-medium py-3 rounded-xl transition-colors disabled:opacity-50"
+                   className="w-full bg-[#F5F5F1] hover:bg-white/5 border border-slate-200 text-slate-800 font-medium py-3 rounded-xl transition-colors disabled:opacity-50"
                  >
                    Solo esta tarea
                  </button>
@@ -140,7 +140,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
               <button
                 onClick={() => setShowDeleteOptions(false)}
                 disabled={isDeleting}
-                className="mt-4 text-sm text-slate-500 hover:text-white transition-colors"
+                className="mt-4 text-sm text-slate-500 hover:text-slate-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -152,12 +152,12 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#12141C] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-sm flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
 
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-white/5">
-          <h2 className="text-xl font-bold text-white tracking-wide">Editar Tarea</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+        <div className="flex justify-between items-center p-6 border-b border-slate-100">
+          <h2 className="text-xl font-bold text-slate-800 tracking-wide">Editar Tarea</h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -172,7 +172,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-4 text-white text-sm outline-none focus:border-brand-primary/50 transition-colors"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-4 text-slate-800 text-sm outline-none focus:border-brand-primary/50 transition-colors"
                 placeholder="Nombre de la tarea"
               />
            </div>
@@ -191,7 +191,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
                  <select
                    value={applicationType}
                    onChange={(e) => setApplicationType(e.target.value)}
-                   className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-3 text-white text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                   className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
                  >
                    <option value="Riego">Riego</option>
                    <option value="Foliar">Foliar</option>
@@ -209,7 +209,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
                value={description}
                onChange={(e) => setDescription(e.target.value)}
                rows={3}
-               className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-4 text-white text-sm outline-none focus:border-brand-primary/50 transition-colors resize-none"
+               className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-4 text-slate-800 text-sm outline-none focus:border-brand-primary/50 transition-colors resize-none"
                placeholder="Notas adicionales..."
              />
            </div>
@@ -221,10 +221,10 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
                    <Repeat size={18} />
                    <span className="text-sm font-bold">Serie Recurrente</span>
                 </div>
-                <p className="text-xs text-slate-400">Esta tarea es parte de una serie. ¿Cómo quieres aplicar los cambios?</p>
+                <p className="text-xs text-slate-500">Esta tarea es parte de una serie. ¿Cómo quieres aplicar los cambios?</p>
 
                 <div className="space-y-2">
-                   <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${scope === 'single' ? 'bg-brand-primary/20 border-brand-primary/50' : 'bg-[#0B0C10] border-white/10 hover:border-white/20'}`}>
+                   <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${scope === 'single' ? 'bg-brand-primary/20 border-brand-primary/50' : 'bg-[#F5F5F1] border-slate-200 hover:border-slate-300'}`}>
                       <input
                         type="radio"
                         name="scope"
@@ -236,10 +236,10 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${scope === 'single' ? 'border-brand-primary' : 'border-slate-500'}`}>
                          {scope === 'single' && <div className="w-2 h-2 rounded-full bg-brand-primary" />}
                       </div>
-                      <span className={`text-sm ${scope === 'single' ? 'text-white font-bold' : 'text-slate-300'}`}>Solo esta tarea</span>
+                      <span className={`text-sm ${scope === 'single' ? 'text-slate-800 font-bold' : 'text-slate-700'}`}>Solo esta tarea</span>
                    </label>
 
-                   <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${scope === 'all_future' ? 'bg-brand-primary/20 border-brand-primary/50' : 'bg-[#0B0C10] border-white/10 hover:border-white/20'}`}>
+                   <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${scope === 'all_future' ? 'bg-brand-primary/20 border-brand-primary/50' : 'bg-[#F5F5F1] border-slate-200 hover:border-slate-300'}`}>
                       <input
                         type="radio"
                         name="scope"
@@ -252,7 +252,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
                          {scope === 'all_future' && <div className="w-2 h-2 rounded-full bg-brand-primary" />}
                       </div>
                       <div className="flex flex-col">
-                         <span className={`text-sm ${scope === 'all_future' ? 'text-white font-bold' : 'text-slate-300'}`}>Esta y todas las futuras</span>
+                         <span className={`text-sm ${scope === 'all_future' ? 'text-slate-800 font-bold' : 'text-slate-700'}`}>Esta y todas las futuras</span>
                          <span className="text-[10px] text-slate-500">Moverá todas las fechas proporcionalmente</span>
                       </div>
                    </label>
@@ -263,7 +263,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/5 bg-[#0B0C10]/50 flex gap-3">
+        <div className="p-6 border-t border-slate-100 bg-[#F5F5F1]/50 flex gap-3">
           <button
             onClick={handleDeleteClick}
             disabled={isSubmitting || isDeleting}
@@ -276,7 +276,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || isDeleting}
-            className="flex-1 bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(0,165,153,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-white font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(0,165,153,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'GUARDAR CAMBIOS'}
           </button>

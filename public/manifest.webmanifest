@@ -1,6 +1,6 @@
 {
-    "name": "Cultiva con Ojitos",
-    "short_name": "Ojitos",
+    "name": "Cultivapp",
+    "short_name": "Cultivapp",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0B0C10",

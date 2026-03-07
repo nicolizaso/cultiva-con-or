@@ -166,10 +166,10 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
       {/* 1. DASHBOARD AMBIENTAL (KPIs con Iconos) */}
       <div className="grid grid-cols-3 gap-2">
         {/* Temperatura */}
-        <div onClick={() => setIsMeasureModalOpen(true)} className="bg-[#12141C] border border-white/5 p-5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary/50 transition-colors group">
+        <div onClick={() => setIsMeasureModalOpen(true)} className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary/50 transition-colors group">
             <div>
                 <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold mb-1">Temperatura</p>
-                <div className="text-3xl font-light font-title text-white">
+                <div className="text-3xl font-light font-title text-slate-800">
                     {lastMeasurement ? `${lastMeasurement.temperature}°C` : "--"}
                 </div>
             </div>
@@ -177,10 +177,10 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
         </div>
 
         {/* Humedad */}
-        <div className="bg-[#12141C] border border-white/5 p-5 rounded-2xl flex items-center justify-between">
+        <div className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center justify-between">
             <div>
                 <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold mb-1">Humedad</p>
-                <div className="text-3xl font-light font-title text-white">
+                <div className="text-3xl font-light font-title text-slate-800">
                     {lastMeasurement ? `${lastMeasurement.humidity}%` : "--"}
                 </div>
             </div>
@@ -188,7 +188,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
         </div>
 
         {/* VPD */}
-        <div className="bg-[#12141C] border border-white/5 p-5 rounded-2xl flex items-center justify-between">
+        <div className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center justify-between">
             <div>
                 <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold mb-1">VPD (kPa)</p>
                 <div className={`text-3xl font-light font-title ${!lastMeasurement ? 'text-slate-500' : parseFloat(vpd) < 0.4 || parseFloat(vpd) > 1.6 ? 'text-red-400' : 'text-emerald-400'}`}>
@@ -200,9 +200,9 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
       </div>
 
       {/* 2. TOOLBAR & LISTA */}
-      <div className="bg-[#12141C] border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 sticky top-4 z-30 shadow-2xl shadow-black/50">
+      <div className="bg-white border border-slate-100 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 sticky top-4 z-30 shadow-sm shadow-black/50">
         <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto">
-            <h2 className="text-white font-bold whitespace-nowrap text-sm">{selectedPlants.length} seleccionadas</h2>
+            <h2 className="text-slate-800 font-bold whitespace-nowrap text-sm">{selectedPlants.length} seleccionadas</h2>
             <div className="h-6 w-px bg-white/10"></div>
             <div className="flex gap-2">
                 <button disabled={selectedPlants.length === 0} onClick={() => setIsWaterModalOpen(true)} className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors disabled:opacity-30 flex items-center gap-1">
@@ -214,19 +214,19 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
             </div>
         </div>
 
-        <div className="flex bg-[#0B0C10] p-1 rounded-lg border border-white/5">
-            <button onClick={() => setViewMode('table')} className={`p-2 rounded transition-all ${viewMode === 'table' ? 'bg-[#1a1a1a] text-white' : 'text-slate-500 hover:text-white'}`}><ListIcon size={16} /></button>
-            <button onClick={() => setViewMode('grid')} className={`p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-[#1a1a1a] text-white' : 'text-slate-500 hover:text-white'}`}><LayoutGrid size={16} /></button>
+        <div className="flex bg-[#F5F5F1] p-1 rounded-lg border border-slate-100">
+            <button onClick={() => setViewMode('table')} className={`p-2 rounded transition-all ${viewMode === 'table' ? 'bg-slate-50 text-slate-800' : 'text-slate-500 hover:text-slate-800'}`}><ListIcon size={16} /></button>
+            <button onClick={() => setViewMode('grid')} className={`p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-slate-50 text-slate-800' : 'text-slate-500 hover:text-slate-800'}`}><LayoutGrid size={16} /></button>
         </div>
       </div>
 
       {/* 3. LISTA (TABLE) */}
       {viewMode === 'table' ? (
-        <div className="overflow-x-auto bg-[#12141C] border border-white/5 rounded-2xl">
+        <div className="overflow-x-auto bg-white border border-slate-100 rounded-2xl">
             <table className="w-full text-left text-sm">
-                <thead className="bg-[#0B0C10] text-slate-500 uppercase text-[10px] font-bold tracking-widest">
+                <thead className="bg-[#F5F5F1] text-slate-500 uppercase text-[10px] font-bold tracking-widest">
                     <tr>
-                        <th className="p-4 w-10"><input type="checkbox" onChange={toggleSelectAll} checked={selectedPlants.length === plants.length && plants.length > 0} className="rounded border-slate-700 bg-[#1a1a1a] accent-brand-primary" /></th>
+                        <th className="p-4 w-10"><input type="checkbox" onChange={toggleSelectAll} checked={selectedPlants.length === plants.length && plants.length > 0} className="rounded border-slate-200 bg-slate-50 accent-brand-primary" /></th>
                         <th className="p-4">Planta</th>
                         <th className="p-4">Etapa</th>
                         <th className="p-4">Días en Etapa</th>
@@ -242,13 +242,13 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
 
                         return (
                             <tr key={plant.id} className={`hover:bg-white/5 transition-colors ${selectedPlants.includes(plant.id) ? 'bg-brand-primary/5' : ''}`}>
-                                <td className="p-4"><input type="checkbox" checked={selectedPlants.includes(plant.id)} onChange={() => toggleSelectPlant(plant.id)} className="rounded border-slate-700 bg-[#1a1a1a] accent-brand-primary" /></td>
-                                <td className="p-4 font-bold text-white flex items-center gap-3">
+                                <td className="p-4"><input type="checkbox" checked={selectedPlants.includes(plant.id)} onChange={() => toggleSelectPlant(plant.id)} className="rounded border-slate-200 bg-slate-50 accent-brand-primary" /></td>
+                                <td className="p-4 font-bold text-slate-800 flex items-center gap-3">
                                     <Link href={`/plants/${plant.id}`} className="hover:text-brand-primary hover:underline">{plant.name}</Link>
                                 </td>
                                 <td className="p-4"><span className={`text-[10px] px-2 py-1 rounded border uppercase font-bold ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>{displayStage}</span></td>
-                                <td className="p-4 text-slate-400 font-body">{isMounted ? daysInCurrentStage : <span className="opacity-0">0</span>} d</td>
-                                <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-white flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
+                                <td className="p-4 text-slate-500 font-body">{isMounted ? daysInCurrentStage : <span className="opacity-0">0</span>} d</td>
+                                <td className="p-4 text-right"><Link href={`/plants/${plant.id}`} className="text-xs font-bold text-brand-primary hover:text-slate-800 flex items-center justify-end gap-1">VER <ArrowRight size={10} /></Link></td>
                             </tr>
                         );
                     })}
@@ -264,9 +264,9 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                 const stageInfo = getStageColor(displayStage);
 
                 return (
-                    <div key={plant.id} onClick={() => toggleSelectPlant(plant.id)} className={`relative group bg-[#12141C] border rounded-2xl overflow-hidden cursor-pointer transition-all ${selectedPlants.includes(plant.id) ? 'border-brand-primary ring-1 ring-brand-primary' : 'border-white/5 hover:border-slate-500'}`}>
+                    <div key={plant.id} onClick={() => toggleSelectPlant(plant.id)} className={`relative group bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all ${selectedPlants.includes(plant.id) ? 'border-brand-primary ring-1 ring-brand-primary' : 'border-slate-100 hover:border-slate-500'}`}>
                         <div className="absolute top-2 left-2 z-10"><input type="checkbox" checked={selectedPlants.includes(plant.id)} readOnly className="w-5 h-5 accent-brand-primary" /></div>
-                        <div className="aspect-square bg-[#050608] relative">
+                        <div className="aspect-square bg-slate-50 relative">
                              {(plant as any).image_url ? (
                                 <Image src={(plant as any).image_url} alt="" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                              ) : (
@@ -274,7 +274,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                              )}
                         </div>
                         <div className="p-3">
-                            <p className="font-bold text-white text-sm truncate">{plant.name}</p>
+                            <p className="font-bold text-slate-800 text-sm truncate">{plant.name}</p>
                             <p className={`text-[10px] uppercase font-bold ${stageInfo.textColor}`}>{displayStage}</p>
                         </div>
                     </div>
@@ -284,9 +284,9 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
       )}
 
       {/* 4. GALERÍA DE CICLO (NUEVA SECCIÓN) */}
-      <div className="bg-[#12141C] border border-white/5 p-6 rounded-2xl">
+      <div className="bg-white border border-slate-100 p-6 rounded-2xl">
         <div className="flex justify-between items-center mb-4">
-            <h3 className="text-white font-bold text-lg">Seguimiento del Indoor</h3>
+            <h3 className="text-slate-800 font-bold text-lg">Seguimiento del Indoor</h3>
             <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
@@ -313,7 +313,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                         onTouchEnd={handleImageTouchEnd}
                         onMouseUp={handleImageTouchEnd}
                         onClick={() => handleImageClick(img)}
-                        className={`relative flex-shrink-0 w-40 md:w-48 aspect-[3/4] bg-black rounded-xl overflow-hidden border snap-center cursor-pointer group transition-all duration-300 ${selectedImages.includes(img.id) ? 'border-brand-primary ring-2 ring-brand-primary' : 'border-white/10 hover:border-brand-primary/50'}`}
+                        className={`relative flex-shrink-0 w-40 md:w-48 aspect-[3/4] bg-black rounded-xl overflow-hidden border snap-center cursor-pointer group transition-all duration-300 ${selectedImages.includes(img.id) ? 'border-brand-primary ring-2 ring-brand-primary' : 'border-slate-200 hover:border-brand-primary/50'}`}
                     >
                          {/* Selection Overlay */}
                          {isSelectionMode && (
@@ -322,7 +322,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                                     type="checkbox"
                                     checked={selectedImages.includes(img.id)}
                                     readOnly
-                                    className="w-5 h-5 accent-brand-primary rounded border-white/20 bg-black/50 backdrop-blur-sm"
+                                    className="w-5 h-5 accent-brand-primary rounded border-slate-300 bg-black/50 backdrop-blur-sm"
                                 />
                             </div>
                          )}
@@ -334,14 +334,14 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                                 className={`object-cover transition-transform duration-500 ${selectedImages.includes(img.id) ? 'scale-105 opacity-60' : 'group-hover:scale-105'}`}
                          />
                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                            <p className="text-white text-xs font-bold">{new Date(img.taken_at).toLocaleDateString()}</p>
-                            <p className="text-slate-400 text-[10px]">Día {Math.floor((new Date(img.taken_at).getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24))}</p>
+                            <p className="text-slate-800 text-xs font-bold">{new Date(img.taken_at).toLocaleDateString()}</p>
+                            <p className="text-slate-500 text-[10px]">Día {Math.floor((new Date(img.taken_at).getTime() - new Date(cycle.start_date).getTime()) / (1000 * 60 * 60 * 24))}</p>
                          </div>
                     </div>
                 ))}
             </div>
         ) : (
-            <div className="text-center py-10 border border-dashed border-white/10 rounded-xl bg-white/5 flex flex-col items-center justify-center">
+            <div className="text-center py-10 border border-dashed border-slate-200 rounded-xl bg-white/5 flex flex-col items-center justify-center">
                 <Camera className="text-slate-600 mb-2 opacity-50" size={32} />
                 <p className="text-slate-500 text-sm mb-1 font-bold">Sin fotos del ciclo</p>
                 <p className="text-slate-600 text-xs">Sube una foto para ver el progreso visual</p>
@@ -352,7 +352,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
       {/* Lightbox / Detail Modal */}
       {selectedImage && (
         <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
-            <div className="bg-[#12141C] border border-white/10 rounded-2xl w-[90%] md:w-full max-w-md md:max-w-5xl h-auto md:h-[80vh] max-h-[85vh] overflow-y-auto md:overflow-hidden flex flex-col md:flex-row shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white border border-slate-200 rounded-2xl w-[90%] md:w-full max-w-md md:max-w-5xl h-auto md:h-[80vh] max-h-[85vh] overflow-y-auto md:overflow-hidden flex flex-col md:flex-row shadow-sm" onClick={(e) => e.stopPropagation()}>
 
                 {/* Image Section */}
                 <div className="relative w-full md:w-2/3 h-64 md:h-full shrink-0 bg-black flex items-center justify-center">
@@ -362,15 +362,15 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                         fill
                         className="object-contain"
                     />
-                     <button type="button" onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white z-10 hover:bg-white/20 transition-colors">
+                     <button type="button" onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-slate-800 z-10 hover:bg-white/20 transition-colors">
                         <X size={20} />
                      </button>
                 </div>
 
                 {/* Form Section */}
-                <div className="w-full md:w-1/3 p-4 md:p-6 flex flex-col h-auto md:h-full bg-[#12141C] border-l border-white/5">
+                <div className="w-full md:w-1/3 p-4 md:p-6 flex flex-col h-auto md:h-full bg-white border-l border-slate-100">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-white font-bold text-lg font-title">Detalles de la Foto</h3>
+                        <h3 className="text-slate-800 font-bold text-lg font-title">Detalles de la Foto</h3>
                     </div>
 
                     <form onSubmit={handleSaveImageDetails} className="flex flex-col gap-6 flex-1 h-full">
@@ -380,7 +380,7 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                                 type="date"
                                 name="date"
                                 defaultValue={new Date(selectedImage.taken_at).toLocaleDateString('en-CA')}
-                                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-primary/50 transition-colors font-body text-sm"
+                                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-4 text-slate-800 focus:outline-none focus:border-brand-primary/50 transition-colors font-body text-sm"
                             />
                         </div>
 
@@ -391,13 +391,13 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
                                 defaultValue={selectedImage.description || ''}
                                 placeholder="Escribe una nota sobre esta foto..."
                                 rows={3}
-                                className="w-full h-20 md:h-auto md:flex-1 bg-[#0B0C10] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-primary/50 transition-colors resize-none font-body text-sm leading-relaxed"
+                                className="w-full h-20 md:h-auto md:flex-1 bg-[#F5F5F1] border border-slate-200 rounded-xl p-4 text-slate-800 focus:outline-none focus:border-brand-primary/50 transition-colors resize-none font-body text-sm leading-relaxed"
                             />
                         </div>
 
                         <button
                             type="submit"
-                            className="bg-brand-primary hover:bg-brand-primary/80 text-black font-bold py-4 rounded-xl transition-colors w-full mt-auto shadow-lg shadow-brand-primary/20"
+                            className="bg-brand-primary hover:bg-brand-primary/80 text-black font-bold py-4 rounded-xl transition-colors w-full mt-auto shadow-sm shadow-brand-primary/20"
                         >
                             Guardar Cambios
                         </button>
@@ -410,12 +410,12 @@ export default function CycleDetailView({ cycle, plants, lastMeasurement, cycleI
       {/* SELECTION FAB */}
       {isSelectionMode && (
         <div className="fixed bottom-24 md:bottom-12 left-0 right-0 z-50 flex justify-center px-4 animate-in slide-in-from-bottom-4 duration-300">
-            <div className="bg-[#1a1a1a] border border-white/10 shadow-2xl shadow-black rounded-full px-6 py-3 flex items-center gap-6 backdrop-blur-md">
-                <span className="text-white font-bold text-sm">{selectedImages.length} seleccionadas</span>
+            <div className="bg-slate-50 border border-slate-200 shadow-sm shadow-black rounded-full px-6 py-3 flex items-center gap-6 backdrop-blur-md">
+                <span className="text-slate-800 font-bold text-sm">{selectedImages.length} seleccionadas</span>
                 <div className="h-4 w-px bg-white/10"></div>
                 <button
                     onClick={() => { setIsSelectionMode(false); setSelectedImages([]); }}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="text-slate-500 hover:text-slate-800 transition-colors"
                 >
                     <X size={20} />
                 </button>
