@@ -7,7 +7,7 @@ import LogModal from "@/components/LogModal";
 import PlantMetricsDisplay from "@/components/PlantMetricsDisplay";
 import TimelineSection, { TimelineItem } from "@/components/TimelineSection"; // Updated import
 import { getPlantMetrics, getStageColor } from "@/app/lib/utils";
-import { Calendar, Droplets, History, Sprout, Edit } from "lucide-react";
+import { Calendar, Droplets, History, Sprout, Edit, AlertTriangle } from "lucide-react";
 
 export default async function PlantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
@@ -95,8 +95,8 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
   })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // ASC for pending
 
   const historyTimelineItems: TimelineItem[] = [
-    // Logs
-    ...logs.map((log: any) => ({
+    // Logs (Only photos)
+    ...logs.filter((log: any) => log.type === 'foto').map((log: any) => ({
       id: `log-${log.id}`,
       originalId: log.id,
       date: log.created_at,
@@ -111,7 +111,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
     ...completedTasksList.map((task: any) => ({
       id: `task-${task.id}`,
       originalId: task.id,
-      date: task.due_date,
+      date: task.completed_at || task.due_date,
       title: task.title,
       type: task.type,
       notes: task.description,
@@ -136,6 +136,28 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
   const rawStage = currentStage || plant.stage;
   const displayStage = (rawStage === 'Esqueje' || rawStage === 'Plántula') ? 'Plántula' : rawStage;
   const stageInfo = getStageColor(displayStage);
+
+  let daysSinceWater: number | null = null;
+  if (plant.last_water) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const lastWaterDate = new Date(plant.last_water);
+    lastWaterDate.setHours(0, 0, 0, 0);
+    const diffMs = today.getTime() - lastWaterDate.getTime();
+    daysSinceWater = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  let waterCardClasses = "bg-[#12141C] border-white/5";
+  let waterTextClasses = "text-white";
+  if (daysSinceWater !== null) {
+    if (daysSinceWater >= 4) {
+      waterCardClasses = "bg-red-500/5 border-red-500/50";
+      waterTextClasses = "text-red-400";
+    } else if (daysSinceWater === 3) {
+      waterCardClasses = "bg-[#12141C] border-yellow-500/40";
+      waterTextClasses = "text-yellow-200";
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#0B0C10] pb-24 text-slate-200 p-4 md:p-8 font-body">
@@ -188,19 +210,28 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                     </div>
                     <p className="text-2xl font-light text-white"><PlantMetricsDisplay plant={plant} type="totalAge" /> <span className="text-sm text-slate-500">días</span></p>
                 </div>
-                <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
-                    <div className="flex items-center gap-2 mb-1 text-slate-500">
+                <div className={`p-4 rounded-2xl border flex flex-col justify-center ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>
+                    <div className={`flex items-center gap-2 mb-1 opacity-80`}>
                         <History size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">En Etapa</span>
                     </div>
-                    <p className="text-2xl font-light text-white"><PlantMetricsDisplay plant={plant} type="daysInCurrentStage" /> <span className="text-sm text-slate-500">días</span></p>
+                    <p className={`text-2xl font-light`}><PlantMetricsDisplay plant={plant} type="daysInCurrentStage" /> <span className="text-sm opacity-60">días</span></p>
                 </div>
-                <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5 col-span-2 md:col-span-1">
-                    <div className="flex items-center gap-2 mb-1 text-slate-500">
+                <div className={`p-4 rounded-2xl border flex flex-col justify-center col-span-2 md:col-span-1 ${waterCardClasses}`}>
+                    <div className="flex items-center gap-2 mb-1 opacity-80">
                         <Droplets size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">Riego</span>
                     </div>
-                    <p className="text-xl font-light text-white truncate">{plant.last_water || '-'}</p>
+                    <div className={`flex items-center gap-2 text-xl font-light ${waterTextClasses} truncate`}>
+                        {daysSinceWater !== null && daysSinceWater >= 4 && <AlertTriangle size={18} />}
+                        <span>
+                            {daysSinceWater === null
+                                ? '-'
+                                : daysSinceWater === 0
+                                    ? 'Hoy'
+                                    : `Hace ${daysSinceWater} días`}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

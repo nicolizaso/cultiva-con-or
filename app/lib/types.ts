@@ -68,10 +68,14 @@ export interface Task {
   due_date: string; // ISO string YYYY-MM-DD
   completed?: boolean;
   status?: 'pending' | 'completed';
-  cycle_id?: number;
+  completed_at?: string;
+  cycle_id?: number; // Deprecated
   cycleId?: string;
-  cycleName?: string;
+  cycleIds?: number[];
+  cycleName?: string; // Deprecated
+  cycleNames?: string;
   type: string; // 'riego', 'poda', etc.
+  application_type?: string;
   description?: string;
   recurrence_id?: string;
   task_plants?: {
@@ -82,6 +86,9 @@ export interface Task {
       cycle_id?: number;
       cycles?: { id: number; name: string; };
     };
+  }[];
+  task_cycles?: {
+    cycles?: { id: number; name: string; };
   }[];
   plants?: any;
 }

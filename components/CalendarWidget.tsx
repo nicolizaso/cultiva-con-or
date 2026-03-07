@@ -37,6 +37,8 @@ interface WidgetTask {
   task_plants?: any[];
   recurrence_id?: string;
   cycleName?: string;
+  cycleNames?: string;
+  cycleIds?: number[];
 }
 
 interface CalendarWidgetProps {
@@ -90,8 +92,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  // Unificar eventos (con agrupación de logs)
-  const groupedLogs = groupLogs(logs);
+  // Unificar eventos (con agrupación de logs, filtrando solo los de tipo foto)
+  const groupedLogs = groupLogs(logs.filter(log => log.type === 'foto'));
 
   const allEvents = [
     ...groupedLogs.map(log => ({
@@ -106,21 +108,29 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
       status: undefined,
       recurrence_id: undefined,
       isGroup: log.isGroup,
-      count: log.count
+      count: log.count,
+      hideInCalendar: false
     })),
-    ...tasks.map(task => ({
-      id: `task-${task.id}`,
-      originalId: task.id,
-      date: parseISO(task.due_date || task.date!),
-      type: task.type,
-      title: task.title,
-      notes: task.description,
-      plants: task.task_plants || task.plants,
-      isTask: true,
-      status: task.status,
-      recurrence_id: task.recurrence_id,
-      cycleName: task.cycleName
-    }))
+    ...tasks.map(task => {
+      const hasPlants = (task.task_plants && task.task_plants.length > 0) ||
+                        (Array.isArray(task.plants) ? task.plants.length > 0 : !!task.plants);
+      return {
+        id: `task-${task.id}`,
+        originalId: task.id,
+        date: parseISO(task.due_date || task.date!),
+        type: task.type,
+        title: task.title,
+        notes: task.description,
+        plants: task.task_plants || task.plants,
+        isTask: true,
+        status: task.status,
+        recurrence_id: task.recurrence_id,
+        cycleName: task.cycleName,
+        cycleNames: task.cycleNames,
+        cycleIds: task.cycleIds,
+        hideInCalendar: false
+      };
+    })
   ];
 
   const eventsForSelectedDate = allEvents.filter(event => selectedDate && isSameDay(event.date, selectedDate));
@@ -188,7 +198,7 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
 
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((day) => {
-            const dayEvents = allEvents.filter(event => isSameDay(event.date, day));
+            const dayEvents = allEvents.filter(event => isSameDay(event.date, day) && !event.hideInCalendar && (event.isTask || event.type === 'foto'));
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isSelected = selectedDate && isSameDay(day, selectedDate);
             const isToday = isSameDay(day, new Date());
@@ -242,6 +252,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                       status: e.status || 'pending',
                       type: e.type,
                       cycleName: (e as any).cycleName,
+                      cycleNames: (e as any).cycleNames,
+                      cycleIds: (e as any).cycleIds,
                       completed: e.status === 'completed',
                       description: e.notes,
                       recurrence_id: e.recurrence_id,

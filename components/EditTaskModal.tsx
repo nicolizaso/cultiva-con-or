@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2, Repeat, Trash2, AlertTriangle } from 'lucide-react'
+import { X, Loader2, Repeat, Trash2, AlertTriangle, ChevronDown } from 'lucide-react'
 import { updateTask, deleteTask, deleteTaskSeries } from '@/app/actions/tasks'
 import { Task } from '@/app/lib/types'
 import { useToast } from '@/app/context/ToastContext'
@@ -20,6 +20,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
 
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description || '')
+  const [applicationType, setApplicationType] = useState(task.application_type || 'Riego')
   // Initial date state, updated in useEffect
   const [date, setDate] = useState(() => {
     return new Date(task.due_date).toLocaleDateString('en-CA')
@@ -34,6 +35,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
     if (isOpen && task) {
        setTitle(task.title)
        setDescription(task.description || '')
+       setApplicationType(task.application_type || 'Riego')
        // Ensure we get YYYY-MM-DD from the task date
        const d = new Date(task.due_date)
        setDate(d.toLocaleDateString('en-CA'))
@@ -56,6 +58,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
     const updates = {
        title,
        description,
+       application_type: task.type === 'fertilizante' ? applicationType : undefined,
        date: `${date}T12:00:00` // Append noon to avoid timezone shifts
     }
 
@@ -179,6 +182,25 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
               <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Fecha</label>
               <DatePicker selectedDate={date} onChange={setDate} />
            </div>
+
+           {/* Application Type */}
+           {task.type === 'fertilizante' && (
+             <div className="space-y-1.5 animate-in slide-in-from-top-1">
+               <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Tipo de Aplicación</label>
+               <div className="relative">
+                 <select
+                   value={applicationType}
+                   onChange={(e) => setApplicationType(e.target.value)}
+                   className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-3 text-white text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                 >
+                   <option value="Riego">Riego</option>
+                   <option value="Foliar">Foliar</option>
+                   <option value="Directo al Sustrato">Directo al Sustrato</option>
+                 </select>
+                 <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+               </div>
+             </div>
+           )}
 
            {/* Description */}
            <div className="space-y-1.5">

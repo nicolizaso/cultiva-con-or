@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { 
-  X, Sprout, FileText, Check, ChevronDown, Loader2
+  X, Sprout, FileText, Check, ChevronDown, Loader2, RefreshCw
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createTask } from '@/app/actions/tasks'
@@ -19,14 +19,15 @@ interface AddTaskModalProps {
   onClose: () => void
   plants: Plant[]
   spaces: Space[]
+  cycles?: { id: number; name: string }[]
   initialDate?: Date
 }
 
-export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialDate }: AddTaskModalProps) {
+export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles = [], initialDate }: AddTaskModalProps) {
   const router = useRouter()
   const { showToast } = useToast()
 
-  const [selectedTargets, setSelectedTargets] = useState<{ id: string | number, name: string, type: 'plant' | 'space' }[]>([])
+  const [selectedTargets, setSelectedTargets] = useState<{ id: string | number, name: string, type: 'plant' | 'space' | 'cycle' }[]>([])
   const [selectedTaskType, setSelectedTaskType] = useState<typeof TASK_TYPES[0] | null>(null)
   // Inicializar con fecha local en formato YYYY-MM-DD
   const [date, setDate] = useState(() => {
@@ -41,7 +42,8 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
   }, [initialDate])
 
   const [description, setDescription] = useState('')
-  const [otherText, setOtherText] = useState('') 
+  const [otherText, setOtherText] = useState('')
+  const [applicationType, setApplicationType] = useState('Riego')
 
   // Estados de recurrencia
   const [isRecurring, setIsRecurring] = useState(false)
@@ -70,7 +72,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
 
   if (!isOpen) return null
 
-  const toggleTarget = (item: { id: string | number, name: string, type: 'plant' | 'space' }) => {
+  const toggleTarget = (item: { id: string | number, name: string, type: 'plant' | 'space' | 'cycle' }) => {
     const exists = selectedTargets.find(t => t.id === item.id && t.type === item.type)
     if (exists) {
       setSelectedTargets(prev => prev.filter(t => !(t.id === item.id && t.type === item.type)))
@@ -99,7 +101,8 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
 
     const result = await createTask({
       targets: selectedTargets,
-      taskType: cleanTaskType, 
+      taskType: cleanTaskType,
+      applicationType,
       date: `${date}T12:00:00`, // Forzar mediodía para evitar desfases de zona horaria
       description,
       otherText,
@@ -176,6 +179,28 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
 
             {isTargetOpen && (
               <div className="absolute top-full left-0 w-full bg-[#1A1C25] border border-white/10 rounded-xl mt-2 z-20 shadow-xl max-h-60 overflow-y-auto">
+                {cycles.length > 0 && (
+                   <div className="p-2 border-b border-white/5">
+                     <p className="text-[10px] uppercase font-bold text-slate-500 px-2 py-1">Ciclos</p>
+                     {cycles.map(cycle => {
+                       const isSelected = selectedTargets.some(t => t.id === cycle.id && t.type === 'cycle')
+                       return (
+                         <div
+                           key={`cycle-${cycle.id}`}
+                           onClick={() => toggleTarget({ id: cycle.id, name: cycle.name, type: 'cycle' })}
+                           className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-300 hover:bg-white/5'}`}
+                         >
+                           <div className="flex items-center gap-2">
+                             <RefreshCw size={14} className={isSelected ? 'text-brand-primary' : 'text-slate-500'} />
+                             <span>{cycle.name}</span>
+                           </div>
+                           {isSelected && <Check size={14} />}
+                         </div>
+                       )
+                     })}
+                   </div>
+                )}
+
                 {spaces.length > 0 && (
                    <div className="p-2">
                      <p className="text-[10px] uppercase font-bold text-slate-500 px-2 py-1">Espacios</p>
@@ -272,6 +297,24 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, initialD
                  className="w-full mt-2 bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50 animate-in slide-in-from-top-1"
                  autoFocus
                />
+            )}
+
+            {selectedTaskType?.id === 'fertilizante' && (
+               <div className="mt-2 animate-in slide-in-from-top-1">
+                 <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Tipo de Aplicación</label>
+                 <div className="relative">
+                   <select
+                     value={applicationType}
+                     onChange={(e) => setApplicationType(e.target.value)}
+                     className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-3 text-white text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                   >
+                     <option value="Riego">Riego</option>
+                     <option value="Foliar">Foliar</option>
+                     <option value="Directo al Sustrato">Directo al Sustrato</option>
+                   </select>
+                   <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 </div>
+               </div>
             )}
           </div>
 

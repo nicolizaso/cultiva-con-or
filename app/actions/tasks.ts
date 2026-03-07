@@ -3,13 +3,14 @@
 import { createClient } from "@/app/lib/supabase-server"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from 'crypto'
+import { mapTaskCycles } from "../lib/utils"
 
 export async function createTask(formData: any) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Debes iniciar sesión.' }
 
-  const { targets, taskType, date, description, otherText, isRecurring, frequency, endDate } = formData
+  const { targets, taskType, applicationType, date, description, otherText, isRecurring, frequency, endDate } = formData
   if (!targets || targets.length === 0) return { error: 'Selecciona un objetivo.' }
 
   const title = taskType.id === 'otro' ? otherText : taskType.label
@@ -18,32 +19,36 @@ export async function createTask(formData: any) {
   const recurrenceId = isRecurring ? randomUUID() : null
 
   // 1. Resolve Target Metadata (cycle_id and linked plants)
-  const allPlantIds = new Set<number>();
+  const allPlantIds = new Set<string>();
   const encounteredCycleIds = new Set<number>();
 
   await Promise.all(targets.map(async (target: any) => {
     if (target.type === 'plant') {
       const { data: plant } = await supabase.from('plants').select('cycle_id').eq('id', target.id).single();
       if (plant?.cycle_id) encounteredCycleIds.add(plant.cycle_id);
-      allPlantIds.add(Number(target.id));
+      allPlantIds.add(String(target.id));
     } else if (target.type === 'space') {
-      const { data: cycle } = await supabase.from('cycles').select('id').eq('space_id', target.id).eq('is_active', true).single();
-      const cycleId = cycle?.id || null;
-      if (cycleId) encounteredCycleIds.add(cycleId);
+      // Buscamos ciclos activos asociados al espacio para vincular la tarea
+      const { data: cycles } = await supabase.from('cycles').select('id').eq('space_id', target.id).eq('is_active', true);
+      cycles?.forEach((c: any) => encounteredCycleIds.add(c.id));
 
-      if (cycleId) {
-        const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id).eq('cycle_id', cycleId);
-        plants?.forEach((p: any) => allPlantIds.add(p.id));
-      } else {
-         // Fallback: plants in space
-         const { data: plants } = await supabase.from('plants').select('id').eq('space_id', target.id);
-         plants?.forEach((p: any) => allPlantIds.add(p.id));
-      }
+      // Obtenemos todas las plantas que pertenecen físicamente al espacio para afectarlas a todas.
+      const { data: plants } = await supabase.from('plants').select('id, cycle_id').eq('space_id', target.id);
+      plants?.forEach((p: any) => {
+        allPlantIds.add(p.id);
+        if (p.cycle_id) encounteredCycleIds.add(p.cycle_id); // Recolectamos ciclos asociados
+      });
+    } else if (target.type === 'cycle') {
+      encounteredCycleIds.add(target.id);
+      // Obtenemos todas las plantas que pertenecen a este ciclo
+      const { data: plants } = await supabase.from('plants').select('id').eq('cycle_id', target.id);
+      plants?.forEach((p: any) => {
+        allPlantIds.add(String(p.id));
+      });
     }
   }));
 
   const uniqueCycleIds = Array.from(encounteredCycleIds);
-  const primaryCycleId = uniqueCycleIds.length === 1 ? uniqueCycleIds[0] : null;
   const linkedPlantIds = Array.from(allPlantIds);
 
   // 2. Generate Dates
@@ -86,28 +91,49 @@ export async function createTask(formData: any) {
       due_date: d,
       date: d, // Keep for compatibility
       type: taskType.id,
+      application_type: taskType.id === 'fertilizante' ? applicationType : null,
       status: 'pending',
       recurrence_id: recurrenceId,
-      cycle_id: primaryCycleId
+      cycle_id: null
   }));
 
   const { data: insertedTasks, error } = await supabase.from('tasks').insert(tasksData).select('id');
   if (error) return { error: error.message };
 
-  // 4. Link Plants via Junction Table
-  if (linkedPlantIds.length > 0 && insertedTasks) {
-      const taskPlantsData = [];
-      for (const task of insertedTasks) {
-          for (const plantId of linkedPlantIds) {
-              taskPlantsData.push({
-                  task_id: task.id,
-                  plant_id: plantId
-              });
+  // 4. Link Plants and Cycles via Junction Tables
+  if (insertedTasks) {
+      // 4a. Link Cycles
+      if (uniqueCycleIds.length > 0) {
+          const taskCyclesData = [];
+          for (const task of insertedTasks) {
+              for (const cycleId of uniqueCycleIds) {
+                  taskCyclesData.push({
+                      task_id: task.id,
+                      cycle_id: cycleId
+                  });
+              }
+          }
+          if (taskCyclesData.length > 0) {
+              const { error: tcError } = await supabase.from('task_cycles').insert(taskCyclesData);
+              if (tcError) console.error('Error linking task_cycles:', tcError);
           }
       }
-      if (taskPlantsData.length > 0) {
-          const { error: tpError } = await supabase.from('task_plants').insert(taskPlantsData);
-          if (tpError) console.error('Error linking task_plants:', tpError);
+
+      // 4b. Link Plants
+      if (linkedPlantIds.length > 0) {
+          const taskPlantsData = [];
+          for (const task of insertedTasks) {
+              for (const plantId of linkedPlantIds) {
+                  taskPlantsData.push({
+                      task_id: task.id,
+                      plant_id: plantId
+                  });
+              }
+          }
+          if (taskPlantsData.length > 0) {
+              const { error: tpError } = await supabase.from('task_plants').insert(taskPlantsData);
+              if (tpError) console.error('Error linking task_plants:', tpError);
+          }
       }
   }
 
@@ -127,6 +153,7 @@ export async function updateTask(taskId: string | number, updates: any, scope: '
       .update({
         title: updates.title,
         description: updates.description,
+        application_type: updates.application_type !== undefined ? updates.application_type : null,
         due_date: updates.date,
         date: updates.date
       })
@@ -177,6 +204,7 @@ export async function updateTask(taskId: string | number, updates: any, scope: '
       return supabase.from('tasks').update({
         title: updates.title || task.title,
         description: updates.description !== undefined ? updates.description : task.description,
+        application_type: updates.application_type !== undefined ? updates.application_type : task.application_type,
         due_date: shiftedDateFull,
         date: shiftedDateFull
       }).eq('id', task.id)
@@ -218,9 +246,16 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
   if (fetchError) return { error: fetchError.message }
   if (currentTask.status === newStatus) return { success: true }
 
+  const updateData: any = { status: newStatus }
+  if (newStatus === 'completed') {
+    updateData.completed_at = new Date().toISOString()
+  } else {
+    updateData.completed_at = null
+  }
+
   const { error } = await supabase
     .from('tasks')
-    .update({ status: newStatus })
+    .update(updateData)
     .eq('id', taskId)
 
   if (error) return { error: error.message }
@@ -239,19 +274,7 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
       .single()
 
     if (task && task.task_plants && task.task_plants.length > 0) {
-      const logsToInsert = task.task_plants.map((tp: any) => ({
-        plant_id: tp.plant_id,
-        cycle_id: tp.plants?.cycle_id || task.cycle_id,
-        type: task.type,
-        title: task.title,
-        notes: task.description,
-        created_at: new Date().toISOString()
-      }))
-
-      const { error: logError } = await supabase.from('logs').insert(logsToInsert)
-      if (logError) console.error('Error creating logs:', logError)
-
-      if (task.type === 'riego') {
+      if (task.type === 'riego' || (task.type === 'fertilizante' && task.application_type === 'Riego')) {
         const plantIds = task.task_plants.map((tp: any) => tp.plant_id)
         const { error: waterError } = await supabase
           .from('plants')
@@ -328,7 +351,7 @@ export async function getAllPendingTasks() {
   const [tasksResult, cyclesResult] = await Promise.all([
      supabase
       .from('tasks')
-      .select('*, task_plants(plants(id, name, cycle_id, cycles(id, name)))')
+      .select('*, task_cycles(cycles(id, name)), task_plants(plants(id, name, cycle_id, cycles(id, name)))')
       .eq('user_id', user.id)
       .eq('status', 'pending')
       .order('due_date', { ascending: true }),
@@ -343,29 +366,12 @@ export async function getAllPendingTasks() {
 
   // Map tasks to flatten cycleName
   const tasks = tasksResult.data.map((t: any) => {
-    // Handle both direct cycle_id on task (if set) and derived from plants
-    let cycleName = null;
-    let cycleId = t.cycle_id;
-
-    if (t.task_plants && t.task_plants.length > 0) {
-        // Try to get cycle from the first plant if task doesn't have it, or just for display name
-        const firstPlant = t.task_plants[0].plants;
-        if (firstPlant?.cycles) {
-            cycleName = firstPlant.cycles.name;
-            if (!cycleId) cycleId = firstPlant.cycles.id;
-        }
-    }
-
-    // Fallback: match cycleId with available cycles if name not found yet
-    if (!cycleName && cycleId) {
-        const matchingCycle = cyclesResult.data.find((c: any) => c.id === cycleId);
-        if (matchingCycle) cycleName = matchingCycle.name;
-    }
+    const { cycleIds, cycleNames } = mapTaskCycles(t, cyclesResult.data);
 
     return {
       ...t,
-      cycleName,
-      cycleId
+      cycleIds,
+      cycleNames
     }
   })
 

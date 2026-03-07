@@ -10,6 +10,7 @@ import { Plant, Task } from "./lib/types";
 import { Leaf, RefreshCw, Warehouse, Sprout, Plus, ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import StageSuggester from "@/components/StageSuggester";
+import { mapTaskCycles } from "./lib/utils";
 
 interface SpaceInfo { id: number; name: string; type: string; }
 interface CycleWithPlantsAndSpace {
@@ -60,7 +61,7 @@ export default async function Home() {
     // Tasks (Both pending and completed, broader range to fix timezone issues)
     supabase
       .from('tasks')
-      .select('*, cycles(id, name), task_plants(plants(name))')
+      .select('*, task_cycles(cycles(id, name)), task_plants(plants(id, name, cycle_id, cycles(id, name)))')
       .eq('user_id', user.id)
       .gte('due_date', yesterdayStr)
       .order('created_at', { ascending: true }),
@@ -72,13 +73,19 @@ export default async function Home() {
 
   const username = profile?.username;
 
-  const allTodayTasks = (tasksData || []).map((t: any) => ({
-    ...t,
-    cycleName: t.cycles?.name
-  })) as Task[];
+  const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
+  const mappedCyclesList = activeCycles.map(c => ({ id: c.id, name: c.name }));
+
+  const allTodayTasks = (tasksData || []).map((t: any) => {
+    const { cycleIds, cycleNames } = mapTaskCycles(t, mappedCyclesList);
+    return {
+      ...t,
+      cycleIds,
+      cycleNames
+    };
+  }) as Task[];
 
   // Procesamiento
-  const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
   const totalPlants = activeCycles.reduce((acc, cycle) => acc + (cycle.plants?.length || 0), 0);
   const totalCycles = activeCycles.length;
   
@@ -205,6 +212,7 @@ export default async function Home() {
       <DashboardFab 
         plants={allPlants}
         spaces={allSpaces || []}
+        cycles={mappedCyclesList}
       />
 
     </main>

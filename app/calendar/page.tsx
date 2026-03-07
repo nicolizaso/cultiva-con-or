@@ -2,6 +2,7 @@ import { createClient } from "@/app/lib/supabase-server";
 import CalendarView from "@/components/CalendarView";
 import GlobalHeader from "@/components/GlobalHeader";
 import { Plant } from "../lib/types";
+import { mapTaskCycles } from "../lib/utils";
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ export default async function CalendarPage() {
       .order('created_at', { ascending: true }),
     supabase
       .from('tasks')
-      .select(`*, description, cycles(id, name), task_plants(plants(name))`)
+      .select(`*, task_cycles(cycles(id, name)), task_plants(plants(id, name, cycle_id, cycles(id, name)))`)
       .order('due_date', { ascending: true }),
     supabase
       .from('cycles')
@@ -56,10 +57,15 @@ export default async function CalendarPage() {
   const allPlants = Array.from(allPlantsMap.values());
 
   const viewCycles = cycles.map(c => ({ id: c.id, name: c.name }));
-  const mappedTasks = (tasks || []).map((t: any) => ({
-    ...t,
-    cycleName: t.cycles?.name
-  }));
+  const mappedTasks = (tasks || []).map((t: any) => {
+    const { cycleIds, cycleNames } = mapTaskCycles(t, viewCycles);
+
+    return {
+      ...t,
+      cycleIds,
+      cycleNames
+    };
+  });
 
   return (
     <main className="min-h-screen bg-[#0B0C10] text-slate-200 p-4 md:p-8 pb-24 font-body">

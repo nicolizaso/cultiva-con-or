@@ -165,3 +165,42 @@ export function getPlantMetrics(plant: Plant) {
       totalAge
   };
 }
+
+export function mapTaskCycles(t: any, allCycles?: { id: number; name: string }[]): { cycleIds: number[], cycleNames: string } {
+    const cycleIdsSet = new Set<number>();
+    const cycleNamesSet = new Set<string>();
+
+    if (t.task_cycles && t.task_cycles.length > 0) {
+        t.task_cycles.forEach((tc: any) => {
+            if (tc.cycles) {
+                cycleIdsSet.add(tc.cycles.id);
+                cycleNamesSet.add(tc.cycles.name);
+            }
+        });
+    }
+
+    if (t.task_plants && t.task_plants.length > 0) {
+        t.task_plants.forEach((tp: any) => {
+            if (tp.plants?.cycles) {
+                cycleIdsSet.add(tp.plants.cycles.id);
+                cycleNamesSet.add(tp.plants.cycles.name);
+            }
+        });
+    }
+
+    // Legacy fallback
+    if (t.cycle_id) {
+        cycleIdsSet.add(t.cycle_id);
+        if (allCycles) {
+            const matchingCycle = allCycles.find((c: any) => c.id === t.cycle_id);
+            if (matchingCycle) cycleNamesSet.add(matchingCycle.name);
+        } else if (t.cycles && typeof t.cycles === 'object') {
+            cycleNamesSet.add(t.cycles.name);
+        }
+    }
+
+    return {
+      cycleIds: Array.from(cycleIdsSet),
+      cycleNames: Array.from(cycleNamesSet).join(', ')
+    };
+}
