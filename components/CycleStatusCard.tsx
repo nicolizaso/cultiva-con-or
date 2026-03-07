@@ -34,7 +34,7 @@ export default function CycleStatusCard({ cycle }: CycleStatusCardProps) {
   const latestImage = cycle.cycle_images?.[0]?.public_url;
 
   return (
-    <div className="group relative bg-[#12141C] rounded-3xl p-6 border border-white/5 hover:border-brand-primary/30 transition-all duration-300 overflow-hidden">
+    <div className="group relative bg-white rounded-2xl p-6 border border-slate-100 hover:border-brand-primary/30 transition-all duration-300 overflow-hidden">
       {/* Background Decor or Image */}
       {latestImage ? (
         <>
@@ -54,7 +54,7 @@ export default function CycleStatusCard({ cycle }: CycleStatusCardProps) {
         <div>
           <div className="flex items-center gap-2 mb-2">
             {cycle.spaces && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 uppercase font-body">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-700 border border-slate-200 uppercase font-body">
                 {cycle.spaces.name}
               </span>
             )}
@@ -62,11 +62,11 @@ export default function CycleStatusCard({ cycle }: CycleStatusCardProps) {
               Día {daysDiff}
             </span>
           </div>
-          <h3 className="text-2xl md:text-3xl font-light font-title text-white">{cycle.name}</h3>
+          <h3 className="text-2xl md:text-3xl font-light font-title text-slate-800">{cycle.name}</h3>
         </div>
         <Link
           href={`/cycles/${cycle.id}`}
-          className="mt-4 md:mt-0 bg-white text-black px-6 py-2 rounded-full text-sm font-bold font-body hover:bg-brand-primary hover:text-white transition-all shadow-lg shadow-brand-primary/10 flex items-center gap-2"
+          className="mt-4 md:mt-0 bg-white text-black px-6 py-2 rounded-full text-sm font-bold font-body hover:bg-brand-primary hover:text-slate-800 transition-all shadow-sm shadow-brand-primary/10 flex items-center gap-2"
         >
           Ver Ciclo <ArrowRight className="w-4 h-4" />
         </Link>
@@ -83,12 +83,12 @@ export default function CycleStatusCard({ cycle }: CycleStatusCardProps) {
               <Link
                 key={group.id}
                 href={group.href}
-                className="flex items-center gap-2 bg-[#0B0C10] border border-white/10 rounded-full pr-3 pl-1 py-1 hover:border-brand-primary/50 transition-colors group/badge"
+                className="flex items-center gap-2 bg-[#F5F5F1] border border-slate-200 rounded-full pr-3 pl-1 py-1 hover:border-brand-primary/50 transition-colors group/badge"
               >
-                <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400 group-hover/badge:bg-slate-700 transition-colors">
+                <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-500 group-hover/badge:bg-slate-700 transition-colors">
                   <Leaf className="w-3 h-3" />
                 </div>
-                <span className="text-xs text-slate-300 font-body group-hover/badge:text-white transition-colors">
+                <span className="text-xs text-slate-700 font-body group-hover/badge:text-slate-800 transition-colors">
                   {group.label}
                 </span>
               </Link>

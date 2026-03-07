@@ -38,27 +38,27 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0B0C10] flex flex-col items-center justify-center p-6 relative">
+    <main className="min-h-screen bg-[#F5F5F1] flex flex-col items-center justify-center p-6 relative">
       
       {/* Logo y Título */}
       <div className="flex flex-col items-center mb-8 text-center z-10">
-        <div className="bg-[#12141C] p-4 mb-4 rounded-3xl border border-white/5 shadow-2xl">
+        <div className="bg-white p-4 mb-4 rounded-2xl border border-slate-100 shadow-sm">
           <Image src="/logo-login.png" alt="Logo" width={60} height={60} className="w-12 h-12 object-contain" />
         </div>
-        <h1 className="text-xl font-bold text-white tracking-widest uppercase">
-          CULTIVA CON <span className="text-brand-primary">OJITOS</span>
+        <h1 className="text-xl font-bold text-slate-800 tracking-widest uppercase">
+          CULTIVAPP
         </h1>
       </div>
 
       {/* Tarjeta Bento */}
-      <div className="w-full max-w-sm bg-[#12141C] border border-white/5 rounded-3xl p-6 shadow-xl backdrop-blur-md z-10">
+      <div className="w-full max-w-sm bg-white border border-slate-100 rounded-2xl p-6 shadow-sm backdrop-blur-md z-10">
         
         {/* Toggle Login/Registro */}
-        <div className="flex bg-[#0B0C10] p-1 rounded-xl mb-6 border border-white/5">
+        <div className="flex bg-[#F5F5F1] p-1 rounded-xl mb-6 border border-slate-100">
           <button
             onClick={() => { setIsLogin(true); setMsg(null); }}
             className={`flex-1 text-xs font-bold py-3 rounded-lg transition-all ${
-              isLogin ? 'bg-[#1e2029] text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'
+              isLogin ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             INGRESAR
@@ -66,7 +66,7 @@ export default function LoginPage() {
           <button
             onClick={() => { setIsLogin(false); setMsg(null); }}
             className={`flex-1 text-xs font-bold py-3 rounded-lg transition-all ${
-              !isLogin ? 'bg-[#1e2029] text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'
+              !isLogin ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             REGISTRARSE
@@ -93,7 +93,7 @@ export default function LoginPage() {
                   type="text"
                   required={!isLogin}
                   placeholder="Nombre de Usuario"
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-brand-primary transition-colors"
+                  className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-slate-800 text-sm outline-none focus:border-brand-primary transition-colors"
                 />
               </div>
             </div>
@@ -111,7 +111,7 @@ export default function LoginPage() {
                 type="text"
                 required
                 placeholder={isLogin ? "Email o Usuario" : "tu@email.com"}
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-brand-primary transition-colors"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-slate-800 text-sm outline-none focus:border-brand-primary transition-colors"
               />
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 placeholder="••••••••"
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-brand-primary transition-colors"
+                className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-slate-800 text-sm outline-none focus:border-brand-primary transition-colors"
               />
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function LoginPage() {
                   type="password"
                   required={!isLogin}
                   placeholder="••••••••"
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-brand-primary transition-colors"
+                  className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-slate-800 text-sm outline-none focus:border-brand-primary transition-colors"
                 />
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : (
               <>

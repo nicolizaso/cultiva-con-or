@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { Plant, Cycle } from "@/app/lib/types";
 import { Sprout, Fingerprint, Calendar, Layers, Hash } from "lucide-react";
 
-const BASE_INPUT_CLASSES = "w-full bg-[#0B0C10] rounded-lg p-3 text-white focus:border-brand-primary outline-none transition";
-const INPUT_CLASSES = `${BASE_INPUT_CLASSES} border border-white/10`;
+const BASE_INPUT_CLASSES = "w-full bg-[#F5F5F1] rounded-lg p-3 text-slate-800 focus:border-brand-primary outline-none transition";
+const INPUT_CLASSES = `${BASE_INPUT_CLASSES} border border-slate-200`;
 
 export default function AddPlantModal() {
   const router = useRouter();
@@ -167,7 +167,7 @@ export default function AddPlantModal() {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-4 py-2 rounded-lg font-title tracking-wide transition-colors text-sm md:text-base shadow-lg shadow-brand-primary/20 flex items-center gap-2"
+        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-bg px-4 py-2 rounded-lg font-title tracking-wide transition-colors text-sm md:text-base shadow-sm shadow-brand-primary/20 flex items-center gap-2"
       >
         <Sprout size={18} />
         NUEVA PLANTA
@@ -180,12 +180,12 @@ export default function AddPlantModal() {
             onClick={() => setIsOpen(false)}
           ></div>
 
-          <div className="relative bg-[#12141C] w-full max-w-2xl rounded-2xl border border-white/10 shadow-2xl p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-sm p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             
             <h2 className="text-2xl font-title text-brand-primary mb-1 uppercase flex items-center gap-2">
               <Sprout className="text-brand-primary" /> Nueva Planta
             </h2>
-            <p className="text-xs text-slate-400 mb-6">Completa los datos para registrar nuevos ejemplares.</p>
+            <p className="text-xs text-slate-500 mb-6">Completa los datos para registrar nuevos ejemplares.</p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               
@@ -193,7 +193,7 @@ export default function AddPlantModal() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Ciclo (Required) */}
                 <div>
-                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Ciclo Activo *</label>
+                  <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Ciclo Activo *</label>
                   <div className="relative">
                     <select 
                       required
@@ -212,19 +212,19 @@ export default function AddPlantModal() {
 
                  {/* Origen */}
                  <div>
-                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Origen</label>
-                  <div className="flex bg-[#0B0C10] p-1 rounded-lg border border-white/10">
+                  <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Origen</label>
+                  <div className="flex bg-[#F5F5F1] p-1 rounded-lg border border-slate-200">
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, source_type: 'Semilla', mother_id: ""})}
-                      className={`flex-1 py-2 rounded text-xs font-bold uppercase transition-all ${formData.source_type === 'Semilla' ? 'bg-brand-primary text-brand-bg shadow' : 'text-slate-500 hover:text-white'}`}
+                      className={`flex-1 py-2 rounded text-xs font-bold uppercase transition-all ${formData.source_type === 'Semilla' ? 'bg-brand-primary text-brand-bg shadow' : 'text-slate-500 hover:text-slate-800'}`}
                     >
                       Semilla
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, source_type: 'Esqueje'})}
-                      className={`flex-1 py-2 rounded text-xs font-bold uppercase transition-all ${formData.source_type === 'Esqueje' ? 'bg-brand-primary text-brand-bg shadow' : 'text-slate-500 hover:text-white'}`}
+                      className={`flex-1 py-2 rounded text-xs font-bold uppercase transition-all ${formData.source_type === 'Esqueje' ? 'bg-brand-primary text-brand-bg shadow' : 'text-slate-500 hover:text-slate-800'}`}
                     >
                       Esqueje
                     </button>
@@ -252,7 +252,7 @@ export default function AddPlantModal() {
               {/* SECTION 2: GENÉTICA */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Genética (Strain) *</label>
+                  <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Genética (Strain) *</label>
                   <div className="relative">
                     <input 
                       type="text"
@@ -266,7 +266,7 @@ export default function AddPlantModal() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Banco (Breeder)</label>
+                  <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Banco (Breeder)</label>
                   <input
                     type="text"
                     placeholder="Ej: Green House Seeds"
@@ -280,7 +280,7 @@ export default function AddPlantModal() {
               {/* SECTION 3: DATOS INDIVIDUALES */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Nombre Identificador</label>
+                  <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Nombre Identificador</label>
                   <input
                     type="text"
                     required
@@ -296,7 +296,7 @@ export default function AddPlantModal() {
 
                 <div className="grid grid-cols-2 gap-2">
                    <div>
-                      <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Cantidad</label>
+                      <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Cantidad</label>
                       <div className="relative">
                         <input
                           type="number"
@@ -310,7 +310,7 @@ export default function AddPlantModal() {
                       </div>
                    </div>
                    <div>
-                      <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Fecha Inicio</label>
+                      <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Fecha Inicio</label>
                       <input
                         type="date"
                         required
@@ -323,7 +323,7 @@ export default function AddPlantModal() {
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 text-xs font-bold uppercase">Etapa Inicial</label>
+                <label className="block text-slate-500 mb-1 text-xs font-bold uppercase">Etapa Inicial</label>
                 <select
                   className={INPUT_CLASSES}
                   value={formData.stage}
@@ -349,18 +349,18 @@ export default function AddPlantModal() {
               </div>
 
               {/* ACTIONS */}
-              <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
+              <div className="flex gap-3 mt-6 pt-4 border-t border-slate-200">
                 <button 
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="flex-1 py-3 text-slate-400 hover:text-white font-bold text-xs uppercase transition-colors"
+                  className="flex-1 py-3 text-slate-500 hover:text-slate-800 font-bold text-xs uppercase transition-colors"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-brand-bg py-3 rounded-lg font-title tracking-wide transition disabled:opacity-50 shadow-lg shadow-brand-primary/20"
+                  className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-brand-bg py-3 rounded-lg font-title tracking-wide transition disabled:opacity-50 shadow-sm shadow-brand-primary/20"
                 >
                   {loading ? "GUARDANDO..." : `CREAR ${formData.quantity > 1 ? `(${formData.quantity})` : ''}`}
                 </button>

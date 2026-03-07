@@ -28,12 +28,12 @@ export default function UserMenu({ email }: { email?: string }) {
         onClick={() => setIsOpen(!isOpen)}
         className={`group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full transition-all border ${
             isOpen 
-            ? 'bg-[#12141C] border-brand-primary text-white shadow-[0_0_15px_rgba(0,165,153,0.3)]' 
-            : 'bg-[#12141C] border-white/10 text-slate-400 hover:border-brand-primary/50 hover:text-white'
+            ? 'bg-white border-brand-primary text-slate-800 shadow-[0_0_15px_rgba(0,165,153,0.3)]'
+            : 'bg-white border-slate-200 text-slate-500 hover:border-brand-primary/50 hover:text-slate-800'
         }`}
       >
         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-            isOpen ? 'bg-brand-primary text-[#0B0C10]' : 'bg-[#1a1a1a] text-brand-primary group-hover:bg-brand-primary group-hover:text-[#0B0C10]'
+            isOpen ? 'bg-brand-primary text-white' : 'bg-slate-50 text-brand-primary group-hover:bg-brand-primary group-hover:text-white'
         }`}>
             {initial}
         </div>
@@ -42,17 +42,17 @@ export default function UserMenu({ email }: { email?: string }) {
 
       {/* DROPDOWN MODAL (Estilo Bento) */}
       {isOpen && (
-        <div className="absolute right-0 top-14 w-64 bg-[#12141C] border border-white/5 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 top-14 w-64 bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           
           {/* Header del Modal */}
-          <div className="p-4 border-b border-white/5 bg-[#1a1a1a]/50">
+          <div className="p-4 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center gap-3 mb-1">
                 <div className="p-1.5 bg-brand-primary/10 rounded-lg text-brand-primary">
                     <User size={16} />
                 </div>
                 <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Cuenta</span>
             </div>
-            <p className="text-sm text-white font-medium truncate font-body pl-1" title={email}>
+            <p className="text-sm text-slate-800 font-medium truncate font-body pl-1" title={email}>
                 {email || "Usuario"}
             </p>
           </div>
@@ -61,7 +61,7 @@ export default function UserMenu({ email }: { email?: string }) {
           <div className="p-2 space-y-1">
             {/* Botón Fake de Configuración (para futuro) */}
             <button 
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors group text-left"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-500 hover:text-slate-800 hover:bg-white/5 transition-colors group text-left"
                 onClick={() => alert("Próximamente: Ajustes de cuenta")}
             >
                 <Settings size={16} className="text-slate-500 group-hover:text-brand-primary transition-colors" />

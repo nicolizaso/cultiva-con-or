@@ -31,7 +31,7 @@ export default async function PlantsPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-[#0B0C10] text-slate-200 p-4 md:p-8 pb-24 font-body">
+    <main className="min-h-screen bg-[#F5F5F1] text-slate-800 p-4 md:p-8 pb-24 font-body">
       
       <GlobalHeader 
         userEmail={user?.email} 

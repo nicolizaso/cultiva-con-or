@@ -67,16 +67,16 @@ export default function SpaceConfigModal({ isOpen, onClose, space }: SpaceConfig
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="bg-[#12141C] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl">
+      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col shadow-sm">
 
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-white/5 sticky top-0 bg-[#12141C] z-10">
+        <div className="flex justify-between items-center p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
           <div>
-            <h2 className="text-xl font-light text-white flex items-center gap-2">
+            <h2 className="text-xl font-light text-slate-800 flex items-center gap-2">
               Configuración Técnica <span className="text-slate-500 text-base">| {space.name}</span>
             </h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -88,7 +88,7 @@ export default function SpaceConfigModal({ isOpen, onClose, space }: SpaceConfig
           <section>
             <div className="flex items-center gap-2 mb-4 text-brand-primary">
               <Maximize size={20} />
-              <h3 className="font-semibold text-lg text-white">Dimensiones</h3>
+              <h3 className="font-semibold text-lg text-slate-800">Dimensiones</h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <InputGroup
@@ -126,7 +126,7 @@ export default function SpaceConfigModal({ isOpen, onClose, space }: SpaceConfig
           <section>
             <div className="flex items-center gap-2 mb-4 text-amber-400">
               <Sun size={20} />
-              <h3 className="font-semibold text-lg text-white">Iluminación</h3>
+              <h3 className="font-semibold text-lg text-slate-800">Iluminación</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <InputGroup
@@ -161,7 +161,7 @@ export default function SpaceConfigModal({ isOpen, onClose, space }: SpaceConfig
           <section>
             <div className="flex items-center gap-2 mb-4 text-blue-400">
               <Wind size={20} />
-              <h3 className="font-semibold text-lg text-white">Clima y Capacidad</h3>
+              <h3 className="font-semibold text-lg text-slate-800">Clima y Capacidad</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <InputGroup
@@ -204,14 +204,14 @@ export default function SpaceConfigModal({ isOpen, onClose, space }: SpaceConfig
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/5 bg-[#0B0C10] flex justify-end gap-3 rounded-b-2xl">
-          <button onClick={onClose} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">
+        <div className="p-6 border-t border-slate-100 bg-[#F5F5F1] flex justify-end gap-3 rounded-b-2xl">
+          <button onClick={onClose} className="px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors">
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={isPending}
-            className="px-6 py-2 bg-brand-primary hover:bg-brand-primary/80 text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-2 bg-brand-primary hover:bg-brand-primary/80 text-slate-800 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
           >
             {isPending ? "Guardando..." : <><Save size={18} /> Guardar Configuración</>}
           </button>
@@ -239,7 +239,7 @@ function InputGroup({ label, type, value, onChange, placeholder, step }: {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         step={step}
-        className="bg-[#0B0C10] border border-white/10 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-brand-primary/50 transition-colors"
+        className="bg-[#F5F5F1] border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-brand-primary/50 transition-colors"
       />
     </div>
   );

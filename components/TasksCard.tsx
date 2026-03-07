@@ -33,11 +33,11 @@ export default async function TasksCard() {
            <div className="p-1.5 rounded-lg bg-brand-primary/10">
               <CalendarIcon size={16} className="text-brand-primary" />
            </div>
-           <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Próximas Tareas</span>
+           <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Próximas Tareas</span>
         </div>
         <Link 
           href="/calendar" 
-          className="text-[10px] font-bold text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
+          className="text-[10px] font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors"
         >
           VER TODO <ArrowRight size={12} />
         </Link>
@@ -62,7 +62,7 @@ export default async function TasksCard() {
       
       {/* Nota al pie */}
       {tasks.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-white/5 text-center">
+        <div className="mt-4 pt-3 border-t border-slate-100 text-center">
            <p className="text-[10px] text-slate-500">
              Tienes {tasks.length} pendiente{tasks.length !== 1 ? 's' : ''} visible{tasks.length !== 1 ? 's' : ''}.
            </p>
