@@ -21,6 +21,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description || '')
   const [applicationType, setApplicationType] = useState(task.application_type || 'Riego')
+  const [targetStage, setTargetStage] = useState(task.target_stage || 'Vegetativo')
   // Initial date state, updated in useEffect
   const [date, setDate] = useState(() => {
     return new Date(task.due_date).toLocaleDateString('en-CA')
@@ -36,6 +37,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
        setTitle(task.title)
        setDescription(task.description || '')
        setApplicationType(task.application_type || 'Riego')
+       setTargetStage(task.target_stage || 'Vegetativo')
        // Ensure we get YYYY-MM-DD from the task date
        const d = new Date(task.due_date)
        setDate(d.toLocaleDateString('en-CA'))
@@ -59,6 +61,7 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
        title,
        description,
        application_type: task.type === 'fertilizante' ? applicationType : undefined,
+       target_stage: task.type === 'cambio_etapa' ? targetStage : undefined,
        date: `${date}T12:00:00` // Append noon to avoid timezone shifts
     }
 
@@ -196,6 +199,29 @@ export default function EditTaskModal({ isOpen, onClose, task }: EditTaskModalPr
                    <option value="Riego">Riego</option>
                    <option value="Foliar">Foliar</option>
                    <option value="Directo al Sustrato">Directo al Sustrato</option>
+                 </select>
+                 <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+               </div>
+             </div>
+           )}
+
+           {/* Target Stage */}
+           {task.type === 'cambio_etapa' && (
+             <div className="space-y-1.5 animate-in slide-in-from-top-1">
+               <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Etapa Destino</label>
+               <div className="relative">
+                 <select
+                   value={targetStage}
+                   onChange={(e) => setTargetStage(e.target.value)}
+                   className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                 >
+                   <option value="Germinación">Germinación</option>
+                   <option value="Plántula">Plántula</option>
+                   <option value="Vegetativo">Vegetativo</option>
+                   <option value="Enraizamiento">Enraizamiento</option>
+                   <option value="Floración">Floración</option>
+                   <option value="Secado">Secado</option>
+                   <option value="Curado">Curado</option>
                  </select>
                  <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                </div>
