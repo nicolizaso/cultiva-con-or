@@ -44,6 +44,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
   const [description, setDescription] = useState('')
   const [otherText, setOtherText] = useState('')
   const [applicationType, setApplicationType] = useState('Riego')
+  const [targetStage, setTargetStage] = useState('Vegetativo')
 
   // Estados de recurrencia
   const [isRecurring, setIsRecurring] = useState(false)
@@ -103,6 +104,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
       targets: selectedTargets,
       taskType: cleanTaskType,
       applicationType,
+      targetStage,
       date: `${date}T12:00:00`, // Forzar mediodía para evitar desfases de zona horaria
       description,
       otherText,
@@ -311,6 +313,28 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                      <option value="Riego">Riego</option>
                      <option value="Foliar">Foliar</option>
                      <option value="Directo al Sustrato">Directo al Sustrato</option>
+                   </select>
+                   <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 </div>
+               </div>
+            )}
+
+            {selectedTaskType?.id === 'cambio_etapa' && (
+               <div className="mt-2 animate-in slide-in-from-top-1">
+                 <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Etapa Destino</label>
+                 <div className="relative">
+                   <select
+                     value={targetStage}
+                     onChange={(e) => setTargetStage(e.target.value)}
+                     className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                   >
+                     <option value="Germinación">Germinación</option>
+                     <option value="Plántula">Plántula</option>
+                     <option value="Vegetativo">Vegetativo</option>
+                     <option value="Enraizamiento">Enraizamiento</option>
+                     <option value="Floración">Floración</option>
+                     <option value="Secado">Secado</option>
+                     <option value="Curado">Curado</option>
                    </select>
                    <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                  </div>

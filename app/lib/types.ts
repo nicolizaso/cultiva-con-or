@@ -76,6 +76,7 @@ export interface Task {
   cycleNames?: string;
   type: string; // 'riego', 'poda', etc.
   application_type?: string;
+  target_stage?: string;
   description?: string;
   recurrence_id?: string;
   task_plants?: {
