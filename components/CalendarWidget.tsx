@@ -140,17 +140,17 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
     if (t.includes('riego')) return <Droplets size={14} className="text-[#00a599]" />;
     if (t === 'foto') return <Camera size={14} className="text-yellow-400" />;
     if (t.includes('etapa')) return <Rocket size={14} className="text-purple-400" />;
-    if (t.includes('poda') || t.includes('defoliación') || t.includes('scissors')) return <Scissors size={14} className="text-slate-400" />;
+    if (t.includes('poda') || t.includes('defoliación') || t.includes('scissors')) return <Scissors size={14} className="text-slate-500" />;
     if (t.includes('fertilizante')) return <FlaskConical size={14} className="text-green-500" />;
     if (t.includes('repelente')) return <ShieldAlert size={14} className="text-orange-500" />;
     if (t.includes('trasplante')) return <Shovel size={14} className="text-amber-700" />;
-    if (t.includes('entrenamiento')) return <Activity size={14} className="text-slate-400" />;
-    if (t.includes('ambiente')) return <ArrowRightLeft size={14} className="text-slate-400" />;
+    if (t.includes('entrenamiento')) return <Activity size={14} className="text-slate-500" />;
+    if (t.includes('ambiente')) return <ArrowRightLeft size={14} className="text-slate-500" />;
     if (t.includes('lavado')) return <CloudRain size={14} className="text-slate-500" />;
     if (t.includes('cosechar')) return <Flower size={14} className="text-violet-500" />;
-    if (t.includes('muerta')) return <Skull size={14} className="text-white" />;
-    if (t.includes('otro')) return <PenTool size={14} className="text-slate-400" />;
-    return <StickyNote size={14} className="text-slate-400" />;
+    if (t.includes('muerta')) return <Skull size={14} className="text-slate-800" />;
+    if (t.includes('otro')) return <PenTool size={14} className="text-slate-500" />;
+    return <StickyNote size={14} className="text-slate-500" />;
   };
 
   const getPlantName = (plants: any) => {
@@ -178,15 +178,15 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       {/* CALENDARIO */}
-      <div className="flex-1 bg-[#12141C] border border-white/5 rounded-3xl p-6 shadow-xl">
+      <div className="flex-1 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-title font-light text-white capitalize">
+          <h2 className="text-xl font-title font-light text-slate-800 capitalize">
             {format(currentDate, 'MMMM yyyy', { locale: es })}
           </h2>
           <div className="flex gap-2">
-            <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-2 hover:bg-white/5 rounded-full text-white"><ChevronLeft size={20} /></button>
+            <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-2 hover:bg-white/5 rounded-full text-slate-800"><ChevronLeft size={20} /></button>
             <button onClick={() => setCurrentDate(new Date())} className="text-xs font-bold uppercase text-brand-primary hover:underline px-2 font-body">Hoy</button>
-            <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-2 hover:bg-white/5 rounded-full text-white"><ChevronRight size={20} /></button>
+            <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-2 hover:bg-white/5 rounded-full text-slate-800"><ChevronRight size={20} /></button>
           </div>
         </div>
 
@@ -208,8 +208,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                 key={day.toString()}
                 onClick={() => onDateSelect(day)}
                 className={`min-h-[80px] p-2 rounded-xl border cursor-pointer transition-all relative flex flex-col justify-between
-                  ${!isCurrentMonth ? 'bg-transparent border-transparent opacity-20' : 'bg-[#0B0C10] border-white/5'}
-                  ${isSelected ? 'ring-1 ring-brand-primary border-brand-primary z-10 bg-[#1a1a1a]' : 'hover:border-slate-600'}
+                  ${!isCurrentMonth ? 'bg-transparent border-transparent opacity-20' : 'bg-[#F5F5F1] border-slate-100'}
+                  ${isSelected ? 'ring-1 ring-brand-primary border-brand-primary z-10 bg-slate-50' : 'hover:border-slate-600'}
                 `}
               >
                 <div className={`text-[10px] font-bold mb-1 flex justify-between ${isToday ? 'text-brand-primary' : 'text-slate-500'}`}>
@@ -237,8 +237,8 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
 
       {/* DETALLE LATERAL */}
       <div className="w-full lg:w-80 shrink-0">
-        <div className="bg-[#12141C] border border-white/5 rounded-3xl p-6 sticky top-6">
-            <h3 className="text-xl font-title font-light text-white mb-1 capitalize">
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 sticky top-6">
+            <h3 className="text-xl font-title font-light text-slate-800 mb-1 capitalize">
                 {selectedDate ? format(selectedDate, 'EEEE d', { locale: es }) : 'Selecciona un día'}
             </h3>
             <div className="space-y-4 mt-6">
@@ -271,17 +271,17 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                         const count = (event as any).count;
 
                         return (
-                            <div key={event.id} className="bg-[#0B0C10] border border-white/5 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
+                            <div key={event.id} className="bg-[#F5F5F1] border border-slate-100 p-3 rounded-xl hover:border-brand-primary/30 transition-colors">
                                 <div className="flex justify-between items-start mb-1">
                                     <div className="flex items-center gap-2">
                                       <span>{getIcon(event.type)}</span>
-                                      <span className="text-[9px] bg-[#1a1a1a] text-slate-400 px-2 py-0.5 rounded uppercase font-bold">{event.type}</span>
+                                      <span className="text-[9px] bg-slate-50 text-slate-500 px-2 py-0.5 rounded uppercase font-bold">{event.type}</span>
                                     </div>
                                     {isGroup && (
                                        <span className="text-[9px] bg-brand-primary/20 text-brand-primary px-1.5 py-0.5 rounded font-bold">x{count}</span>
                                     )}
                                 </div>
-                                <h4 className="font-bold text-white text-sm mb-1">{event.title} {isGroup && <span className="text-slate-500 font-normal">x{count} plantas</span>}</h4>
+                                <h4 className="font-bold text-slate-800 text-sm mb-1">{event.title} {isGroup && <span className="text-slate-500 font-normal">x{count} plantas</span>}</h4>
                                 {plantName && (
                                     <p className="text-xs text-brand-primary mb-1 break-words leading-relaxed">🌿 {plantName}</p>
                                 )}
@@ -292,7 +292,7 @@ export default function CalendarWidget({ logs, tasks, selectedDate, onDateSelect
                 ) : null}
 
                 {eventsForSelectedDate.length === 0 && (
-                    <div className="text-center py-8 text-slate-500 border border-dashed border-white/10 rounded-xl">
+                    <div className="text-center py-8 text-slate-500 border border-dashed border-slate-200 rounded-xl">
                         <p className="text-sm">Sin eventos.</p>
                     </div>
                 )}

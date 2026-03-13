@@ -47,10 +47,10 @@ export default function Toast({ message, type, isVisible, onClose }: ToastProps)
       `}
     >
       <div className={`
-        relative flex items-center gap-3 p-4 rounded-2xl shadow-2xl backdrop-blur-md border
+        relative flex items-center gap-3 p-4 rounded-2xl shadow-sm backdrop-blur-md border
         ${isSuccess 
-          ? 'bg-[#12141C]/90 border-brand-primary/30 shadow-[0_4px_20px_rgba(0,165,153,0.2)]' 
-          : 'bg-[#12141C]/90 border-red-500/30 shadow-[0_4px_20px_rgba(239,68,68,0.2)]'
+          ? 'bg-white/90 border-brand-primary/30 shadow-[0_4px_20px_rgba(0,165,153,0.2)]'
+          : 'bg-white/90 border-red-500/30 shadow-[0_4px_20px_rgba(239,68,68,0.2)]'
         }
       `}>
         {/* Icono */}
@@ -63,10 +63,10 @@ export default function Toast({ message, type, isVisible, onClose }: ToastProps)
 
         {/* Texto */}
         <div className="flex-1">
-          <p className={`text-sm font-bold ${isSuccess ? 'text-white' : 'text-red-100'}`}>
+          <p className={`text-sm font-bold ${isSuccess ? 'text-slate-800' : 'text-red-100'}`}>
             {isSuccess ? '¡Éxito!' : 'Algo salió mal'}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+          <p className="text-xs text-slate-500 mt-0.5 leading-snug">
             {message}
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function Toast({ message, type, isVisible, onClose }: ToastProps)
         {/* Botón Cerrar */}
         <button 
           onClick={handleClose}
-          className="p-1 rounded-full text-slate-500 hover:bg-white/10 hover:text-white transition-colors"
+          className="p-1 rounded-full text-slate-500 hover:bg-white/10 hover:text-slate-800 transition-colors"
         >
           <X size={16} />
         </button>

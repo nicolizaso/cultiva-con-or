@@ -134,12 +134,12 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#12141C] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-sm flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-white/5">
-          <h2 className="text-xl font-bold text-white tracking-wide">Crear acción o evento</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+        <div className="flex justify-between items-center p-6 border-b border-slate-100">
+          <h2 className="text-xl font-bold text-slate-800 tracking-wide">Crear acción o evento</h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -152,7 +152,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
             <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Objetivo</label>
             <div 
               onClick={() => setIsTargetOpen(!isTargetOpen)}
-              className="min-h-[50px] bg-[#0B0C10] border border-white/10 rounded-xl px-3 py-2 flex items-center flex-wrap gap-2 cursor-pointer hover:border-brand-primary/50 transition-colors"
+              className="min-h-[50px] bg-[#F5F5F1] border border-slate-200 rounded-xl px-3 py-2 flex items-center flex-wrap gap-2 cursor-pointer hover:border-brand-primary/50 transition-colors"
             >
               <Sprout className="text-slate-500 shrink-0 mr-1" size={18} />
               
@@ -165,7 +165,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                   {target.name}
                   <button 
                     onClick={(e) => { e.stopPropagation(); removeTarget(idx); }}
-                    className="hover:text-white"
+                    className="hover:text-slate-800"
                   >
                     <X size={12} />
                   </button>
@@ -178,9 +178,9 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
             </div>
 
             {isTargetOpen && (
-              <div className="absolute top-full left-0 w-full bg-[#1A1C25] border border-white/10 rounded-xl mt-2 z-20 shadow-xl max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-xl mt-2 z-20 shadow-sm max-h-60 overflow-y-auto">
                 {cycles.length > 0 && (
-                   <div className="p-2 border-b border-white/5">
+                   <div className="p-2 border-b border-slate-100">
                      <p className="text-[10px] uppercase font-bold text-slate-500 px-2 py-1">Ciclos</p>
                      {cycles.map(cycle => {
                        const isSelected = selectedTargets.some(t => t.id === cycle.id && t.type === 'cycle')
@@ -188,7 +188,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                          <div
                            key={`cycle-${cycle.id}`}
                            onClick={() => toggleTarget({ id: cycle.id, name: cycle.name, type: 'cycle' })}
-                           className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-300 hover:bg-white/5'}`}
+                           className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-700 hover:bg-white/5'}`}
                          >
                            <div className="flex items-center gap-2">
                              <RefreshCw size={14} className={isSelected ? 'text-brand-primary' : 'text-slate-500'} />
@@ -210,7 +210,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                          <div 
                            key={`space-${space.id}`}
                            onClick={() => toggleTarget({ id: space.id, name: space.name, type: 'space' })}
-                           className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-300 hover:bg-white/5'}`}
+                           className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-700 hover:bg-white/5'}`}
                          >
                            <span>{space.name}</span>
                            {isSelected && <Check size={14} />}
@@ -221,7 +221,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                 )}
                 
                 {plants.length > 0 && (
-                   <div className="p-2 border-t border-white/5">
+                   <div className="p-2 border-t border-slate-100">
                      <p className="text-[10px] uppercase font-bold text-slate-500 px-2 py-1">Plantas</p>
                      {plants.map(plant => {
                         const isSelected = selectedTargets.some(t => t.id === plant.id && t.type === 'plant')
@@ -229,7 +229,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                           <div 
                             key={`plant-${plant.id}`}
                             onClick={() => toggleTarget({ id: plant.id, name: plant.name, type: 'plant' })}
-                            className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-300 hover:bg-white/5'}`}
+                            className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm mb-1 transition-colors ${isSelected ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-700 hover:bg-white/5'}`}
                           >
                             <span>{plant.name}</span>
                             {isSelected && <Check size={14} />}
@@ -247,15 +247,15 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
             <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Tarea o Evento</label>
             <div 
               onClick={() => setIsTypeOpen(!isTypeOpen)}
-              className={`w-full bg-[#0B0C10] border rounded-xl py-3 px-3 flex items-center justify-between cursor-pointer transition-colors ${
-                 selectedTaskType ? `${selectedTaskType.border} ${selectedTaskType.bg}` : 'border-white/10 hover:border-brand-primary/50'
+              className={`w-full bg-[#F5F5F1] border rounded-xl py-3 px-3 flex items-center justify-between cursor-pointer transition-colors ${
+                 selectedTaskType ? `${selectedTaskType.border} ${selectedTaskType.bg}` : 'border-slate-200 hover:border-brand-primary/50'
               }`}
             >
               <div className="flex items-center gap-3">
                  {selectedTaskType ? (
                     <>
                       <selectedTaskType.icon className={selectedTaskType.color} size={18} />
-                      <span className={`text-sm font-bold ${selectedTaskType.id === 'muerta' ? 'text-white' : 'text-slate-200'}`}>
+                      <span className={`text-sm font-bold ${selectedTaskType.id === 'muerta' ? 'text-slate-800' : 'text-slate-800'}`}>
                         {selectedTaskType.label}
                       </span>
                     </>
@@ -270,7 +270,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
             </div>
 
             {isTypeOpen && (
-              <div className="absolute top-full left-0 w-full bg-[#1A1C25] border border-white/10 rounded-xl mt-2 z-20 shadow-xl max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-xl mt-2 z-20 shadow-sm max-h-60 overflow-y-auto">
                 <div className="p-2 grid grid-cols-1 gap-1">
                   {TASK_TYPES.map(type => (
                     <div 
@@ -278,10 +278,10 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                       onClick={() => { setSelectedTaskType(type); setIsTypeOpen(false); }}
                       className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-white/5 transition-colors"
                     >
-                      <div className={`p-1.5 rounded-md bg-[#0B0C10] border border-white/5 ${type.color}`}>
+                      <div className={`p-1.5 rounded-md bg-[#F5F5F1] border border-slate-100 ${type.color}`}>
                          <type.icon size={16} />
                       </div>
-                      <span className="text-sm text-slate-300">{type.label}</span>
+                      <span className="text-sm text-slate-700">{type.label}</span>
                     </div>
                   ))}
                 </div>
@@ -294,7 +294,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                  placeholder="Especifique la tarea..."
                  value={otherText}
                  onChange={(e) => setOtherText(e.target.value)}
-                 className="w-full mt-2 bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50 animate-in slide-in-from-top-1"
+                 className="w-full mt-2 bg-[#F5F5F1] border border-slate-200 rounded-xl py-2 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 animate-in slide-in-from-top-1"
                  autoFocus
                />
             )}
@@ -306,7 +306,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                    <select
                      value={applicationType}
                      onChange={(e) => setApplicationType(e.target.value)}
-                     className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-3 text-white text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                     className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
                    >
                      <option value="Riego">Riego</option>
                      <option value="Foliar">Foliar</option>
@@ -324,8 +324,8 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
             <DatePicker selectedDate={date} onChange={setDate} />
 
             {/* RECURRENCIA */}
-            <div className="mt-2 flex items-center justify-between bg-[#0B0C10] border border-white/10 rounded-xl p-3">
-               <span className="text-sm text-slate-300 font-bold">Repetir</span>
+            <div className="mt-2 flex items-center justify-between bg-[#F5F5F1] border border-slate-200 rounded-xl p-3">
+               <span className="text-sm text-slate-700 font-bold">Repetir</span>
                <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="sr-only peer" />
                   <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
@@ -339,7 +339,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                     <select
                       value={frequency}
                       onChange={(e) => setFrequency(e.target.value)}
-                      className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-2 px-3 text-white text-sm outline-none focus:border-brand-primary/50"
+                      className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-2 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50"
                     >
                       <option value="daily">Diario</option>
                       <option value="every2days">Cada 2 días</option>
@@ -364,18 +364,18 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 px-4 text-white text-sm outline-none focus:border-brand-primary/50 transition-colors resize-none"
+              className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-4 text-slate-800 text-sm outline-none focus:border-brand-primary/50 transition-colors resize-none"
             />
           </div>
 
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/5 bg-[#0B0C10]/50">
+        <div className="p-6 border-t border-slate-100 bg-[#F5F5F1]/50">
           <button 
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(0,165,153,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(0,165,153,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'GUARDAR EVENTO'}
           </button>

@@ -111,7 +111,7 @@ export default function TaskManagerModal() {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-500 hover:text-slate-800 transition-colors"
         title="Gestor de Tareas"
       >
         <ClipboardList size={20} />
@@ -120,12 +120,12 @@ export default function TaskManagerModal() {
       {/* Modal Overlay */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#12141C] border border-white/10 w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col h-[85vh] animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-200 w-full max-w-4xl rounded-2xl shadow-sm flex flex-col h-[85vh] animate-in zoom-in-95 duration-200">
 
             {/* Header */}
-            <div className="flex justify-between items-center p-6 border-b border-white/5">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100">
               <div>
-                <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-800 tracking-wide flex items-center gap-2">
                   <ClipboardList className="text-brand-primary" />
                   Gestión Masiva
                 </h2>
@@ -135,18 +135,18 @@ export default function TaskManagerModal() {
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 rounded-full hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+                className="p-2 rounded-full hover:bg-white/5 text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <X size={24} />
               </button>
             </div>
 
             {/* Filters & Actions Bar */}
-            <div className="p-4 border-b border-white/5 bg-[#0B0C10]/30 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div className="p-4 border-b border-slate-100 bg-[#F5F5F1]/30 flex flex-col md:flex-row gap-4 justify-between items-center">
 
                {/* Filters */}
                <div className="flex items-center gap-3 w-full md:w-auto">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-[#0B0C10] border border-white/10 rounded-xl text-xs text-slate-400 min-w-[140px]">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[#F5F5F1] border border-slate-200 rounded-xl text-xs text-slate-500 min-w-[140px]">
                      <Filter size={14} />
                      <select
                         className="bg-transparent outline-none w-full appearance-none"
@@ -160,7 +160,7 @@ export default function TaskManagerModal() {
                      </select>
                   </div>
 
-                  <div className="flex items-center gap-2 px-3 py-2 bg-[#0B0C10] border border-white/10 rounded-xl text-xs text-slate-400 min-w-[140px]">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[#F5F5F1] border border-slate-200 rounded-xl text-xs text-slate-500 min-w-[140px]">
                      <Filter size={14} />
                      <select
                         className="bg-transparent outline-none w-full appearance-none"
@@ -202,18 +202,18 @@ export default function TaskManagerModal() {
                  </div>
                ) : (
                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-[#0B0C10] sticky top-0 z-10 text-xs uppercase text-slate-500 font-bold tracking-wider">
+                    <thead className="bg-[#F5F5F1] sticky top-0 z-10 text-xs uppercase text-slate-500 font-bold tracking-wider">
                        <tr>
-                          <th className="p-4 w-12 text-center border-b border-white/5">
-                             <button onClick={handleSelectAll} className="hover:text-white transition-colors">
+                          <th className="p-4 w-12 text-center border-b border-slate-100">
+                             <button onClick={handleSelectAll} className="hover:text-slate-800 transition-colors">
                                 {selectedTasks.size === filteredTasks.length && filteredTasks.length > 0 ? <CheckSquare size={18} /> : <Square size={18} />}
                              </button>
                           </th>
-                          <th className="p-4 border-b border-white/5">Fecha</th>
-                          <th className="p-4 border-b border-white/5 w-1/3">Tarea</th>
-                          <th className="p-4 border-b border-white/5">Tipo</th>
-                          <th className="p-4 border-b border-white/5">Ciclo</th>
-                          <th className="p-4 border-b border-white/5 text-right">Acciones</th>
+                          <th className="p-4 border-b border-slate-100">Fecha</th>
+                          <th className="p-4 border-b border-slate-100 w-1/3">Tarea</th>
+                          <th className="p-4 border-b border-slate-100">Tipo</th>
+                          <th className="p-4 border-b border-slate-100">Ciclo</th>
+                          <th className="p-4 border-b border-slate-100 text-right">Acciones</th>
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -222,21 +222,21 @@ export default function TaskManagerModal() {
                           return (
                              <tr key={task.id} className={`hover:bg-white/[0.02] transition-colors ${isSelected ? 'bg-brand-primary/[0.03]' : ''}`}>
                                 <td className="p-4 text-center">
-                                   <button onClick={() => handleToggleSelect(task.id)} className={`transition-colors ${isSelected ? 'text-brand-primary' : 'text-slate-600 hover:text-slate-400'}`}>
+                                   <button onClick={() => handleToggleSelect(task.id)} className={`transition-colors ${isSelected ? 'text-brand-primary' : 'text-slate-600 hover:text-slate-500'}`}>
                                       {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
                                    </button>
                                 </td>
-                                <td className="p-4 text-sm text-slate-400 whitespace-nowrap">
+                                <td className="p-4 text-sm text-slate-500 whitespace-nowrap">
                                    {new Date(task.due_date).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
                                 </td>
                                 <td className="p-4">
                                    <div className="flex flex-col">
-                                      <span className="text-sm font-medium text-slate-200">{task.title}</span>
+                                      <span className="text-sm font-medium text-slate-800">{task.title}</span>
                                       {task.description && <span className="text-xs text-slate-500 truncate max-w-[200px]">{task.description}</span>}
                                    </div>
                                 </td>
                                 <td className="p-4">
-                                   <span className="px-2 py-1 rounded text-[10px] uppercase font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                                   <span className="px-2 py-1 rounded text-[10px] uppercase font-bold bg-slate-800 text-slate-500 border border-slate-200">
                                       {task.type}
                                    </span>
                                 </td>
@@ -252,7 +252,7 @@ export default function TaskManagerModal() {
                                 <td className="p-4 text-right">
                                    <button
                                       onClick={() => setEditingTask(task)}
-                                      className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                      className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-slate-800 transition-colors"
                                       title="Editar"
                                    >
                                       <Pencil size={16} />

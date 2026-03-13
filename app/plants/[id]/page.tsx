@@ -147,27 +147,27 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
     daysSinceWater = Math.round(diffMs / (1000 * 60 * 60 * 24));
   }
 
-  let waterCardClasses = "bg-[#12141C] border-white/5";
-  let waterTextClasses = "text-white";
+  let waterCardClasses = "bg-white border-slate-100";
+  let waterTextClasses = "text-slate-800";
   if (daysSinceWater !== null) {
     if (daysSinceWater >= 4) {
       waterCardClasses = "bg-red-500/5 border-red-500/50";
       waterTextClasses = "text-red-400";
     } else if (daysSinceWater === 3) {
-      waterCardClasses = "bg-[#12141C] border-yellow-500/40";
+      waterCardClasses = "bg-white border-yellow-500/40";
       waterTextClasses = "text-yellow-200";
     }
   }
 
   return (
-    <main className="min-h-screen bg-[#0B0C10] pb-24 text-slate-200 p-4 md:p-8 font-body">
+    <main className="min-h-screen bg-[#F5F5F1] pb-24 text-slate-800 p-4 md:p-8 font-body">
       
       <GlobalHeader userEmail={user?.email} title="Ficha Técnica" subtitle={plant.name} />
 
       {/* --- HERO SECTION --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {/* Foto Principal */}
-        <div className="relative aspect-square md:aspect-video rounded-3xl overflow-hidden border border-white/5 bg-[#12141C] group">
+        <div className="relative aspect-square md:aspect-video rounded-2xl overflow-hidden border border-slate-100 bg-white group">
           {plant.image_url ? (
             <Image src={plant.image_url} alt={plant.name} fill className="object-cover" />
           ) : (
@@ -178,7 +178,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
           <div className="absolute top-4 right-4">
             <Link
                 href={`/plants/${plant.id}/edit`}
-                className="bg-[#222] hover:bg-[#333] text-white p-2 rounded-lg border border-[#333] transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-2 rounded-lg border border-slate-200 transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
             >
                 <Edit size={14} /> Editar
             </Link>
@@ -199,16 +199,16 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                     </div>
                     <LogModal plantId={plant.id} plantName={plant.name} />
                 </div>
-                <h1 className="text-4xl md:text-5xl font-title font-light text-white mb-4">{plant.name}</h1>
+                <h1 className="text-4xl md:text-5xl font-title font-light text-slate-800 mb-4">{plant.name}</h1>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-[#12141C] p-4 rounded-2xl border border-white/5">
+                <div className="bg-white p-4 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-2 mb-1 text-slate-500">
                         <Calendar size={14} />
                         <span className="text-[10px] uppercase font-bold tracking-widest">Edad Total</span>
                     </div>
-                    <p className="text-2xl font-light text-white"><PlantMetricsDisplay plant={plant} type="totalAge" /> <span className="text-sm text-slate-500">días</span></p>
+                    <p className="text-2xl font-light text-slate-800"><PlantMetricsDisplay plant={plant} type="totalAge" /> <span className="text-sm text-slate-500">días</span></p>
                 </div>
                 <div className={`p-4 rounded-2xl border flex flex-col justify-center ${stageInfo.bgColor} ${stageInfo.textColor} ${stageInfo.borderColor}`}>
                     <div className={`flex items-center gap-2 mb-1 opacity-80`}>
@@ -239,9 +239,9 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
 
       {/* --- BITÁCORA (Timeline) --- */}
       <section className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+        <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
             <History className="text-brand-primary" size={20} />
-            <h2 className="text-lg font-title text-white">Bitácora de Seguimiento</h2>
+            <h2 className="text-lg font-title text-slate-800">Bitácora de Seguimiento</h2>
         </div>
 
         <TimelineSection

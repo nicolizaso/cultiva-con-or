@@ -66,7 +66,7 @@ export default function AddCycleModal() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-brand-primary/10 active:scale-95"
+        className="bg-brand-primary hover:bg-brand-primary-hover text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm shadow-brand-primary/10 active:scale-95"
       >
         <Plus size={18} strokeWidth={2.5} />
         NUEVO CICLO
@@ -74,10 +74,10 @@ export default function AddCycleModal() {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#12141C] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-sm overflow-hidden animate-in zoom-in-95 duration-200">
             
-            <div className="bg-[#0B0C10]/50 p-6 border-b border-white/5">
-              <h2 className="text-xl font-bold text-white tracking-wide">Iniciar Nuevo Ciclo</h2>
+            <div className="bg-[#F5F5F1]/50 p-6 border-b border-slate-100">
+              <h2 className="text-xl font-bold text-slate-800 tracking-wide">Iniciar Nuevo Ciclo</h2>
               <p className="text-slate-500 text-xs mt-1">Configura tu próximo cultivo</p>
             </div>
 
@@ -89,7 +89,7 @@ export default function AddCycleModal() {
                   type="text"
                   placeholder="Ej: Verano 2024"
                   required
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-brand-primary outline-none transition-colors"
+                  className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 text-sm focus:border-brand-primary outline-none transition-colors"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                 />
@@ -99,7 +99,7 @@ export default function AddCycleModal() {
                 <label className="block text-slate-500 mb-1.5 text-[10px] font-bold uppercase tracking-wider">Espacio Asignado</label>
                 <select 
                   required
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-brand-primary outline-none appearance-none transition-colors"
+                  className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 text-sm focus:border-brand-primary outline-none appearance-none transition-colors"
                   value={formData.spaceId}
                   onChange={(e) => setFormData({...formData, spaceId: e.target.value})}
                 >
@@ -122,24 +122,24 @@ export default function AddCycleModal() {
                 <input 
                   type="date"
                   required
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-brand-primary outline-none transition-colors scheme-dark"
+                  className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl p-3 text-slate-800 text-sm focus:border-brand-primary outline-none transition-colors scheme-light"
                   value={formData.startDate}
                   onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                 />
               </div>
 
-              <div className="flex gap-3 mt-8 pt-4 border-t border-white/5">
+              <div className="flex gap-3 mt-8 pt-4 border-t border-slate-100">
                 <button 
                   type="button" 
                   onClick={() => setIsOpen(false)} 
-                  className="flex-1 py-3 text-slate-400 hover:text-white font-bold text-xs uppercase transition-colors"
+                  className="flex-1 py-3 text-slate-500 hover:text-slate-800 font-bold text-xs uppercase transition-colors"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="flex-1 bg-brand-primary hover:bg-[#008f85] text-[#0B0C10] py-3 rounded-xl font-bold text-sm tracking-wide transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-white py-3 rounded-xl font-bold text-sm tracking-wide transition-all active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? "CREANDO..." : "CONFIRMAR"}
                 </button>

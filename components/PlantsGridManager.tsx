@@ -136,8 +136,8 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2 rounded-lg transition-colors ${
                     showFilters || hasFilters
-                    ? "bg-brand-primary text-brand-bg shadow-lg shadow-brand-primary/20"
-                    : "bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white"
+                    ? "bg-brand-primary text-brand-bg shadow-sm shadow-brand-primary/20"
+                    : "bg-white/5 hover:bg-white/10 text-slate-500 hover:text-slate-800"
                 }`}
                 title="Filtrar"
             >
@@ -149,7 +149,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
             {isSelectionMode && (
                 <button
                     onClick={toggleSelectAll}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold uppercase transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-700 text-xs font-bold uppercase transition-colors"
                 >
                     {isAllSelected ? <CheckSquare size={16}/> : <Square size={16}/>}
                     <span className="hidden md:inline">{isAllSelected ? "Deseleccionar" : "Todos"}</span>
@@ -160,8 +160,8 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
                 onClick={toggleSelectionMode}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${
                     isSelectionMode
-                    ? "bg-white/10 text-white border border-white/20"
-                    : "bg-white/5 hover:bg-white/10 text-slate-300 border border-transparent"
+                    ? "bg-white/10 text-slate-800 border border-slate-300"
+                    : "bg-white/5 hover:bg-white/10 text-slate-700 border border-transparent"
                 }`}
             >
                 {isSelectionMode ? "Cancelar" : "Seleccionar"}
@@ -171,7 +171,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
 
       {/* Collapsible Filter Section */}
       {showFilters && (
-        <div className="bg-[#12141C] p-4 rounded-2xl mb-6 animate-in fade-in slide-in-from-top-2 border border-white/5">
+        <div className="bg-white p-4 rounded-2xl mb-6 animate-in fade-in slide-in-from-top-2 border border-slate-100">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Space Filter */}
                 <div className="flex flex-col gap-1">
@@ -179,7 +179,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
                     <select
                         value={selectedSpaceId}
                         onChange={(e) => setSelectedSpaceId(e.target.value)}
-                        className="w-full bg-[#0B0C10] text-slate-300 text-sm border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
+                        className="w-full bg-[#F5F5F1] text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
                     >
                         <option value="all">Todos los espacios</option>
                         {spaces.map(space => (
@@ -194,7 +194,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
                     <select
                         value={selectedCycleId}
                         onChange={(e) => setSelectedCycleId(e.target.value)}
-                        className="w-full bg-[#0B0C10] text-slate-300 text-sm border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
+                        className="w-full bg-[#F5F5F1] text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-primary/50 transition-colors appearance-none cursor-pointer"
                     >
                         <option value="all">Todos los ciclos</option>
                         {cycles.map(cycle => (
@@ -208,7 +208,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
                 <div className="mt-4 flex justify-end">
                     <button
                         onClick={clearFilters}
-                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
                     >
                         <FilterX size={16} />
                         Limpiar Filtros
@@ -232,7 +232,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
             />
           ))
         ) : (
-          <div className="col-span-full text-center py-20 bg-[#12141C] rounded-3xl border border-dashed border-white/10">
+          <div className="col-span-full text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
             <p className="text-slate-500 font-body">
                 {hasFilters ? "No se encontraron plantas con estos criterios." : "No hay plantas registradas en ningún ciclo."}
             </p>
@@ -242,8 +242,8 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
 
       {/* Floating Action Bar */}
       {isSelectionMode && selectedIds.size > 0 && (
-          <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-[#12141C] border border-white/10 p-2 rounded-full shadow-2xl shadow-black/80 animate-in slide-in-from-bottom-4 fade-in">
-              <span className="pl-4 text-sm font-bold text-white whitespace-nowrap">
+          <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-white border border-slate-200 p-2 rounded-full shadow-sm shadow-black/80 animate-in slide-in-from-bottom-4 fade-in">
+              <span className="pl-4 text-sm font-bold text-slate-800 whitespace-nowrap">
                   {selectedIds.size} seleccionadas
               </span>
               <div className="w-px h-6 bg-white/10"></div>
@@ -260,7 +260,7 @@ export default function PlantsGridManager({ plants, cycles, spaces }: PlantsGrid
               </button>
               <button
                   onClick={() => { setSelectedIds(new Set()); setIsSelectionMode(false); }}
-                  className="bg-white/5 hover:bg-white/10 text-slate-400 p-2 rounded-full transition-colors"
+                  className="bg-white/5 hover:bg-white/10 text-slate-500 p-2 rounded-full transition-colors"
               >
                   <X size={20} />
               </button>
