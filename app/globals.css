@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  :root {
+    --color-brand-bg: #F5F5F1;
+    --color-brand-card: #FFFFFF;
+    --color-brand-card-hover: #F8FAFC;
+    --color-brand-text: #1E293B;
+    --color-brand-muted: #64748B;
+  }
+
+  .dark {
+    --color-brand-bg: #0B0C10;
+    --color-brand-card: #12141C;
+    --color-brand-card-hover: #1A1D27;
+    --color-brand-text: #F8FAFC;
+    --color-brand-muted: #94A3B8;
+  }
+}
+
 /* DEFINICIÓN DEL TEMA CULTIVAPP */
 @theme {
   /* 1. TIPOGRAFÍA (Se mantiene igual) */
@@ -14,15 +34,13 @@
   --color-brand-primary-glow: rgba(27, 48, 34, 0.5);
   
   /* Fondos Oscuros */
-  --color-brand-bg: #F5F5F1;   /* Fondo principal (Gris muy oscuro) */
-  --color-brand-card: #ffffff; /*
-
- Fondo de tarjetas (Gris medio) */
-  --color-brand-card-hover: #f8fafc;
+  --color-brand-bg: var(--color-brand-bg);   /* Fondo principal */
+  --color-brand-card: var(--color-brand-card); /* Fondo de tarjetas */
+  --color-brand-card-hover: var(--color-brand-card-hover);
   
   /* Texto */
-  --color-brand-text: #1e293b; /* Blanco hueso para leer bien */
-  --color-brand-muted: #64748b; /* Gris claro para textos secundarios */
+  --color-brand-text: var(--color-brand-text); /* Blanco hueso para leer bien */
+  --color-brand-muted: var(--color-brand-muted); /* Gris claro para textos secundarios */
   
   /* Sombras y bordes mejorados */
   --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

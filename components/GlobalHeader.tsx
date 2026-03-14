@@ -1,4 +1,5 @@
 import UserMenu from "@/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 // Importamos el icono Sprout (Brote)
 import { Sprout } from "lucide-react";
 
@@ -17,19 +18,22 @@ export default function GlobalHeader({ title, subtitle, userEmail }: GlobalHeade
             {/* Icono Vectorial Institucional */}
             <Sprout className="text-brand-primary w-6 h-6" strokeWidth={2.5} />
             
-            <span className="font-title text-slate-800 text-lg tracking-wider uppercase">
+            <span className="font-title text-brand-text text-lg tracking-wider uppercase">
                 Cultivapp
             </span>
         </div>
         
         {title && (
-            <h1 className="text-sm font-bold font-body text-slate-500 hidden md:block">
+            <h1 className="text-sm font-bold font-body text-brand-muted hidden md:block">
                 {title} {subtitle && <span className="font-normal opacity-50">| {subtitle}</span>}
             </h1>
         )}
       </div>
 
-      <UserMenu email={userEmail} />
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <UserMenu email={userEmail} />
+      </div>
     </header>
   );
 }
