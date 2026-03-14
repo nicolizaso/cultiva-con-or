@@ -101,7 +101,7 @@ export default function PlantCard({
         return <div onClick={handleCardClick} className="flex-1 flex flex-col p-3 min-w-0">{children}</div>;
     }
     return (
-        <Link href={`/plants/${id}`} className="flex-1 flex flex-col p-3 min-w-0 hover:bg-white/5 transition-colors">
+        <Link href={`/plants/${id}`} className="flex-1 flex flex-col p-3 min-w-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
             {children}
         </Link>
     );
@@ -109,10 +109,10 @@ export default function PlantCard({
 
   return (
     <motion.div 
-      className={`group relative flex flex-row bg-white border rounded-xl overflow-hidden h-28 transition-all duration-300 ${
+      className={`group relative flex flex-row bg-brand-card border rounded-xl overflow-hidden h-28 transition-all duration-300 ${
         selectionMode && isSelected
           ? 'border-brand-primary ring-1 ring-brand-primary bg-brand-primary/5'
-          : 'border-slate-100 hover:border-brand-primary'
+          : 'border-slate-100 dark:border-slate-800 hover:border-brand-primary dark:hover:border-brand-primary'
       }`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -120,7 +120,7 @@ export default function PlantCard({
       onClick={handleCardClick}
     >
         {/* Left Side: Image/Icon */}
-        <div className="w-24 md:w-28 relative shrink-0 border-r border-slate-100 bg-black/20">
+        <div className="w-24 md:w-28 relative shrink-0 border-r border-slate-100 dark:border-slate-800 bg-black/20">
             {imageUrl ? (
                 <Image
                     src={imageUrl}
@@ -153,9 +153,9 @@ export default function PlantCard({
                 {/* Header: Name + Strain */}
                 <div className="flex justify-between items-start gap-2 pr-6">
                     <div className="min-w-0">
-                        <h3 className="font-bold text-slate-800 text-base leading-tight truncate">{name}</h3>
+                        <h3 className="font-bold text-brand-text text-base leading-tight truncate">{name}</h3>
                         {strain && (
-                            <p className="text-xs text-slate-500 truncate mt-0.5">{strain}</p>
+                            <p className="text-xs text-brand-muted truncate mt-0.5">{strain}</p>
                         )}
                     </div>
                 </div>
@@ -168,18 +168,18 @@ export default function PlantCard({
                 </div>
 
                 {/* Metrics: Age & Cycle */}
-                <div className="mt-auto pt-2 flex flex-col gap-1 text-xs text-slate-500">
+                <div className="mt-auto pt-2 flex flex-col gap-1 text-xs text-brand-muted">
                     <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 font-medium text-slate-700">
+                        <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
                             📅 {isMounted ? totalAge : <span className="opacity-0">0</span>} días
                         </span>
                         {cycleName && (
-                            <span className="truncate border-l border-slate-200 pl-3">
+                            <span className="truncate border-l border-slate-200 dark:border-slate-700 pl-3">
                                 {cycleName}
                             </span>
                         )}
                     </div>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-brand-muted">
                        en etapa de {displayStage} hace {isMounted ? daysInCurrentStage : <span className="opacity-0">0</span>} días
                     </span>
                 </div>
