@@ -11,7 +11,10 @@ import { useToast } from '@/app/context/ToastContext'
 import { TASK_TYPES } from '@/app/lib/constants'
 
 // Interfaces
-interface Plant { id: string; name: string; }
+import { Fertilizer, FertilizerCombo } from '@/app/lib/types'
+import { getFertilizers, getFertilizerCombos } from '@/app/actions/fertilizers'
+
+interface Plant { id: string; name: string; days_in_stage?: number; }
 interface Space { id: number; name: string; }
 
 interface AddTaskModalProps {
@@ -46,6 +49,12 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
   const [applicationType, setApplicationType] = useState('Riego')
   const [targetStage, setTargetStage] = useState('Vegetativo')
 
+  // Nutrición (Fertilizantes)
+  const [fertilizers, setFertilizers] = useState<Fertilizer[]>([])
+  const [combos, setCombos] = useState<FertilizerCombo[]>([])
+  const [selectedNutrition, setSelectedNutrition] = useState<{ type: 'product' | 'combo', id: number } | null>(null)
+  const [isNutritionLoading, setIsNutritionLoading] = useState(false)
+
   // Estados de recurrencia
   const [isRecurring, setIsRecurring] = useState(false)
   const [frequency, setFrequency] = useState('daily')
@@ -70,6 +79,96 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  // Load nutrition data when task type becomes "fertilizante"
+  useEffect(() => {
+    if (selectedTaskType?.id === 'fertilizante') {
+      const loadNutrition = async () => {
+        setIsNutritionLoading(true)
+        try {
+          const [fertRes, combosRes] = await Promise.all([getFertilizers(), getFertilizerCombos()])
+          if (fertRes.data) setFertilizers(fertRes.data)
+          if (combosRes.data) setCombos(combosRes.data)
+        } catch (error) {
+          console.error("Failed to load nutrition data", error)
+        } finally {
+          setIsNutritionLoading(false)
+        }
+      }
+      loadNutrition()
+    } else {
+      setSelectedNutrition(null)
+    }
+  }, [selectedTaskType])
+
+  // Calculate dose and update description when nutrition is selected
+  useEffect(() => {
+    if (!selectedNutrition || selectedTargets.length === 0) return
+
+    const target = selectedTargets[0]
+    let weekInStage = 1
+
+    if (target.type === 'plant') {
+      const plantData = plants.find(p => p.id === target.id)
+      if (plantData && plantData.days_in_stage) {
+        weekInStage = Math.floor(plantData.days_in_stage / 7) + 1
+      }
+    }
+
+    const generateRecipe = () => {
+      let recipeStr = 'Preparar: '
+      const items: string[] = []
+
+      if (selectedNutrition.type === 'product') {
+        const product = fertilizers.find(f => f.id === selectedNutrition.id)
+        if (product) {
+          if (product.dose_type === 'fija') {
+            items.push(`${product.name}: ${product.dose_fixed}ml/L`)
+          } else if (product.dose_weekly) {
+            // Find the closest week, or max week if weekInStage is larger
+            const weekDose = product.dose_weekly.find(w => w.week === weekInStage)
+              || [...product.dose_weekly].sort((a,b)=>b.week-a.week)[0]
+            items.push(`${product.name}: ${weekDose?.dose || 0}ml/L (Semana ${weekInStage})`)
+          }
+        }
+      } else if (selectedNutrition.type === 'combo') {
+        const combo = combos.find(c => c.id === selectedNutrition.id)
+        if (combo && combo.products) {
+          combo.products.forEach(p => {
+            const product = fertilizers.find(f => f.id === p.fertilizer_id)
+            if (product) {
+              if (product.dose_type === 'fija') {
+                items.push(`${product.name}: ${product.dose_fixed}ml/L`)
+              } else if (product.dose_weekly) {
+                const weekDose = product.dose_weekly.find(w => w.week === weekInStage)
+                  || [...product.dose_weekly].sort((a,b)=>b.week-a.week)[0]
+                items.push(`${product.name}: ${weekDose?.dose || 0}ml/L (Semana ${weekInStage})`)
+              }
+            } else {
+              items.push(`${p.name}: ?ml/L`)
+            }
+          })
+        }
+      }
+
+      return recipeStr + items.join(' + ')
+    }
+
+    const recipe = generateRecipe()
+    setDescription(prev => {
+      // Find if there's an existing 'Preparar:' line and replace it
+      const lines = prev.split('\n');
+      const recipeIndex = lines.findIndex(l => l.startsWith('Preparar:'));
+
+      if (recipeIndex !== -1) {
+        lines[recipeIndex] = recipe;
+        return lines.join('\n');
+      } else {
+        if (!prev) return recipe;
+        return `${recipe}\n\n${prev}`;
+      }
+    })
+  }, [selectedNutrition, selectedTargets, fertilizers, combos, plants])
 
   if (!isOpen) return null
 
@@ -302,19 +401,53 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
             )}
 
             {selectedTaskType?.id === 'fertilizante' && (
-               <div className="mt-2 animate-in slide-in-from-top-1">
-                 <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Tipo de Aplicación</label>
-                 <div className="relative">
-                   <select
-                     value={applicationType}
-                     onChange={(e) => setApplicationType(e.target.value)}
-                     className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
-                   >
-                     <option value="Riego">Riego</option>
-                     <option value="Foliar">Foliar</option>
-                     <option value="Directo al Sustrato">Directo al Sustrato</option>
-                   </select>
-                   <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+               <div className="mt-2 space-y-3 animate-in slide-in-from-top-1">
+                 <div>
+                   <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Seleccionar Combo o Producto (Opcional)</label>
+                   <div className="relative mt-1">
+                     <select
+                       value={selectedNutrition ? `${selectedNutrition.type}-${selectedNutrition.id}` : ''}
+                       onChange={(e) => {
+                         const val = e.target.value;
+                         if (!val) {
+                           setSelectedNutrition(null);
+                         } else {
+                           const [type, id] = val.split('-');
+                           setSelectedNutrition({ type: type as 'product' | 'combo', id: parseInt(id) });
+                         }
+                       }}
+                       className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                     >
+                       <option value="">Seleccionar...</option>
+                       {combos.length > 0 && <optgroup label="Combos Nutricionales">
+                         {combos.map(c => <option key={`combo-${c.id}`} value={`combo-${c.id}`}>{c.name}</option>)}
+                       </optgroup>}
+                       {fertilizers.length > 0 && <optgroup label="Productos Individuales">
+                         {fertilizers.map(f => <option key={`product-${f.id}`} value={`product-${f.id}`}>{f.name}</option>)}
+                       </optgroup>}
+                     </select>
+                     {isNutritionLoading ? (
+                       <Loader2 size={16} className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 animate-spin pointer-events-none" />
+                     ) : (
+                       <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                     )}
+                   </div>
+                 </div>
+
+                 <div>
+                   <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Tipo de Aplicación</label>
+                   <div className="relative mt-1">
+                     <select
+                       value={applicationType}
+                       onChange={(e) => setApplicationType(e.target.value)}
+                       className="w-full bg-[#F5F5F1] border border-slate-200 rounded-xl py-3 px-3 text-slate-800 text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                     >
+                       <option value="Riego">Riego</option>
+                       <option value="Foliar">Foliar</option>
+                       <option value="Directo al Sustrato">Directo al Sustrato</option>
+                     </select>
+                     <ChevronDown size={16} className="text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                   </div>
                  </div>
                </div>
             )}

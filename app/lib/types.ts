@@ -114,3 +114,23 @@ export interface CycleImage {
   created_at: string; // ISO Timestamp
   description?: string;
 }
+
+export interface Fertilizer {
+  id: number;
+  user_id: string;
+  name: string;
+  brand: string;
+  stage: 'enraizamiento' | 'vegetativo' | 'floracion' | 'lavado' | 'todo';
+  dose_type: 'fija' | 'semanal';
+  dose_fixed?: number;
+  dose_weekly?: { week: number; dose: number }[];
+  created_at: string;
+}
+
+export interface FertilizerCombo {
+  id: number;
+  user_id: string;
+  name: string;
+  products: { fertilizer_id: number; name: string }[];
+  created_at: string;
+}
