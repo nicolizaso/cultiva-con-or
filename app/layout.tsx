@@ -39,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+      <body className={`${inter.variable} ${playfair.variable} antialiased bg-background text-foreground transition-colors duration-300`}>
         <ThemeProvider>
           {/* Envolvemos la app en el ToastProvider */}
           <ToastProvider>

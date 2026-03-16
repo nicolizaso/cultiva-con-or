@@ -38,8 +38,8 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
                 onClick={() => setSelectedCycleId('all')}
                 className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors
                   ${selectedCycleId === 'all'
-                    ? 'bg-brand-primary text-black'
-                    : 'bg-white text-slate-500 border border-slate-100 hover:border-brand-primary/50 hover:text-slate-800'}
+                    ? 'bg-brand-primary text-foreground'
+                    : 'bg-card text-muted border border-card-border hover:border-brand-primary/50 hover:text-foreground'}
                 `}
               >
                 Todos
@@ -50,8 +50,8 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
                   onClick={() => setSelectedCycleId(cycle.id)}
                   className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors
                     ${selectedCycleId === cycle.id
-                      ? 'bg-brand-primary text-black'
-                      : 'bg-white text-slate-500 border border-slate-100 hover:border-brand-primary/50 hover:text-slate-800'}
+                      ? 'bg-brand-primary text-foreground'
+                      : 'bg-card text-muted border border-card-border hover:border-brand-primary/50 hover:text-foreground'}
                   `}
                 >
                   {cycle.name}
@@ -63,7 +63,7 @@ export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] 
           {/* Agenda Button */}
           <button
             onClick={() => setIsAgendaOpen(true)}
-            className="flex items-center gap-2 bg-white hover:bg-white/5 border border-slate-200 text-brand-primary px-4 py-2 rounded-full transition-colors mb-4"
+            className="flex items-center gap-2 bg-card hover:bg-card-border border border-card-border text-brand-primary px-4 py-2 rounded-full transition-colors mb-4"
           >
             <ClipboardList size={18} />
             <span className="text-xs font-bold uppercase hidden md:inline">Agenda</span>

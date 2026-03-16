@@ -33,7 +33,7 @@ export default async function TasksCard() {
            <div className="p-1.5 rounded-lg bg-brand-primary/10">
               <CalendarIcon size={16} className="text-brand-primary" />
            </div>
-           <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Próximas Tareas</span>
+           <span className="text-xs font-bold text-foreground dark:text-slate-300 uppercase tracking-wider">Próximas Tareas</span>
         </div>
         <Link 
           href="/calendar" 
@@ -52,7 +52,7 @@ export default async function TasksCard() {
             <TaskPill key={task.id} task={task} readOnly={true} />
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-slate-600 dark:text-slate-400 py-6 gap-2">
+          <div className="flex flex-col items-center justify-center h-full text-muted dark:text-muted py-6 gap-2">
             <CheckCircle2 size={32} className="opacity-20" />
             <p className="text-xs font-medium text-center">¡Estás al día!</p>
             <p className="text-[10px] text-center opacity-60">No hay tareas pendientes.</p>
@@ -62,7 +62,7 @@ export default async function TasksCard() {
       
       {/* Nota al pie */}
       {tasks.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+        <div className="mt-4 pt-3 border-t border-card-border dark:border-slate-800 text-center">
            <p className="text-[10px] text-brand-muted">
              Tienes {tasks.length} pendiente{tasks.length !== 1 ? 's' : ''} visible{tasks.length !== 1 ? 's' : ''}.
            </p>

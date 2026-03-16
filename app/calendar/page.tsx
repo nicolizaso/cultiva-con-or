@@ -68,7 +68,7 @@ export default async function CalendarPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#F5F5F1] text-slate-800 p-4 md:p-8 pb-24 font-body">
+    <main className="min-h-screen bg-background text-foreground p-4 md:p-8 pb-24 font-body">
       <GlobalHeader userEmail={user?.email} title="Agenda" subtitle="Planificación" />
 
       <CalendarView
