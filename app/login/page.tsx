@@ -58,7 +58,7 @@ export default function LoginPage() {
           <button
             onClick={() => { setIsLogin(true); setMsg(null); }}
             className={`flex-1 text-xs font-bold py-3 rounded-lg transition-all ${
-              isLogin ? 'bg-slate-100 text-brand-text shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              isLogin ? 'bg-slate-100 text-brand-text shadow-sm' : 'text-muted hover:text-foreground'
             }`}
           >
             INGRESAR
@@ -66,7 +66,7 @@ export default function LoginPage() {
           <button
             onClick={() => { setIsLogin(false); setMsg(null); }}
             className={`flex-1 text-xs font-bold py-3 rounded-lg transition-all ${
-              !isLogin ? 'bg-slate-100 text-brand-text shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              !isLogin ? 'bg-slate-100 text-brand-text shadow-sm' : 'text-muted hover:text-foreground'
             }`}
           >
             REGISTRARSE
@@ -85,9 +85,9 @@ export default function LoginPage() {
           {/* Campo Username (Solo Registro) */}
           {!isLogin && (
             <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Usuario</label>
+              <label className="text-[10px] uppercase font-bold text-muted ml-1">Usuario</label>
               <div className="relative">
-                <User className="absolute left-3 top-3.5 text-slate-500" size={16} />
+                <User className="absolute left-3 top-3.5 text-muted" size={16} />
                 <input
                   name="username"
                   type="text"
@@ -101,11 +101,11 @@ export default function LoginPage() {
 
           {/* Campo Email / Usuario Login */}
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">
+            <label className="text-[10px] uppercase font-bold text-muted ml-1">
               {isLogin ? 'Email o Usuario' : 'Email'}
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3.5 text-slate-500" size={16} />
+              <Mail className="absolute left-3 top-3.5 text-muted" size={16} />
               <input
                 name="email"
                 type="text"
@@ -118,9 +118,9 @@ export default function LoginPage() {
 
           {/* Campo Password */}
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Contraseña</label>
+            <label className="text-[10px] uppercase font-bold text-muted ml-1">Contraseña</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3.5 text-slate-500" size={16} />
+              <Lock className="absolute left-3 top-3.5 text-muted" size={16} />
               <input
                 name="password"
                 type="password"
@@ -134,9 +134,9 @@ export default function LoginPage() {
           {/* Campo Repetir Password (Solo Registro) */}
           {!isLogin && (
             <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Repetir Contraseña</label>
+              <label className="text-[10px] uppercase font-bold text-muted ml-1">Repetir Contraseña</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3.5 text-slate-500" size={16} />
+                <Lock className="absolute left-3 top-3.5 text-muted" size={16} />
                 <input
                   name="confirmPassword"
                   type="password"
