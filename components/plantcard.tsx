@@ -109,10 +109,10 @@ export default function PlantCard({
 
   return (
     <motion.div 
-      className={`group relative flex flex-row bg-brand-card border rounded-xl overflow-hidden h-28 transition-all duration-300 ${
+      className={`group relative flex flex-row bg-white dark:bg-[#12141C] border rounded-xl overflow-hidden h-28 transition-all duration-300 ${
         selectionMode && isSelected
           ? 'border-brand-primary ring-1 ring-brand-primary bg-brand-primary/5'
-          : 'border-slate-100 dark:border-slate-800 hover:border-brand-primary dark:hover:border-brand-primary'
+          : 'border-black/5 dark:border-white/5 hover:border-brand-primary dark:hover:border-brand-primary'
       }`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}

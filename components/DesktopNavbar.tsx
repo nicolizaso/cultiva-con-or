@@ -18,7 +18,7 @@ export default function DesktopNavbar() {
   if (pathname === "/login") return null;
 
   return (
-    <nav className="hidden md:flex justify-between items-center px-8 py-4 bg-white border-b border-slate-100 sticky top-0 z-50">
+    <nav className="hidden md:flex justify-between items-center px-8 py-4 bg-white/80 dark:bg-[#0B0C10]/80 backdrop-blur border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50">
       {/* Logo Section */}
       <Link href="/" className="flex items-center gap-2 group">
         <Sprout className="text-brand-primary w-6 h-6 transition-transform group-hover:rotate-12" strokeWidth={2.5} />
