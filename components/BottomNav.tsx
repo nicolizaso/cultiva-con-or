@@ -22,7 +22,7 @@ export default function BottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       
-      <nav className="bg-[#F5F5F1]/95 backdrop-blur-xl border-t border-slate-200 pb-safe pt-2 px-2 flex justify-around items-end shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+      <nav className="bg-white/80 dark:bg-[#0B0C10]/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-safe pt-2 px-2 flex justify-around items-end shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
         
         {links.map((link) => {
           const isActive = pathname === link.href;
@@ -65,7 +65,7 @@ export default function BottomNav() {
         })}
       </nav>
       
-      <div className="h-6 bg-[#F5F5F1]/95 md:hidden"></div>
+      <div className="h-6 bg-white/80 dark:bg-[#0B0C10]/80 backdrop-blur md:hidden"></div>
     </div>
   );
 }

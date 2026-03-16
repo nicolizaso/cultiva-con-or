@@ -43,8 +43,8 @@ export default function CycleCard({ cycle }: { cycle: CycleWithSpace }) {
         onClick={handleCardClick}
         className={`group relative rounded-2xl p-6 border transition-all duration-300 cursor-pointer overflow-hidden ${
         cycle.is_active 
-        ? 'bg-brand-card border-slate-100 dark:border-slate-800 hover:border-brand-primary/30 dark:hover:border-brand-primary/30'
-        : 'bg-brand-bg border-slate-100 dark:border-slate-800 opacity-60 hover:opacity-100'
+        ? 'bg-white dark:bg-[#12141C] border-black/5 dark:border-white/5 hover:border-brand-primary/30 dark:hover:border-brand-primary/30'
+        : 'bg-brand-bg border-black/5 dark:border-white/5 opacity-60 hover:opacity-100'
     }`}>
       
       {latestImage && (

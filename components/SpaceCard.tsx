@@ -84,7 +84,7 @@ export default function SpaceCard({ space, onClick }: SpaceCardProps) {
   return (
     <div
       onClick={onClick}
-      className={`group bg-brand-card border border-slate-100 dark:border-slate-800 rounded-2xl p-6 hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
+      className={`group bg-white dark:bg-[#12141C] border border-black/5 dark:border-white/5 rounded-2xl p-6 hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
     >
         
         {/* Fondo decorativo */}
