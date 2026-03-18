@@ -12,7 +12,7 @@ interface CalendarViewProps {
   tasks: Task[]
   plants: any[]
   spaces: any[]
-  cycles?: { id: number; name: string }[]
+  cycles?: { id: number; name: string; space_id?: number }[]
 }
 
 export default function CalendarView({ logs, tasks, plants, spaces, cycles = [] }: CalendarViewProps) {

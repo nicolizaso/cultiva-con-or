@@ -14,7 +14,7 @@ import { TASK_TYPES } from '@/app/lib/constants'
 import { Fertilizer, FertilizerCombo } from '@/app/lib/types'
 import { getFertilizers, getFertilizerCombos } from '@/app/actions/fertilizers'
 
-interface Plant { id: string; name: string; days_in_stage?: number; }
+interface Plant { id: string; name: string; days_in_stage?: number; space_id?: number; }
 interface Space { id: number; name: string; }
 
 interface AddTaskModalProps {
@@ -22,7 +22,7 @@ interface AddTaskModalProps {
   onClose: () => void
   plants: Plant[]
   spaces: Space[]
-  cycles?: { id: number; name: string }[]
+  cycles?: { id: number; name: string; space_id?: number }[]
   initialDate?: Date
 }
 
@@ -48,6 +48,7 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
   const [otherText, setOtherText] = useState('')
   const [applicationType, setApplicationType] = useState('Riego')
   const [targetStage, setTargetStage] = useState('Vegetativo')
+  const [targetSpaceId, setTargetSpaceId] = useState<number | ''>('')
 
   // Nutrición (Fertilizantes)
   const [fertilizers, setFertilizers] = useState<Fertilizer[]>([])
@@ -471,6 +472,39 @@ export default function AddTaskModal({ isOpen, onClose, plants, spaces, cycles =
                    </select>
                    <ChevronDown size={16} className="text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                  </div>
+               </div>
+            )}
+
+            {selectedTaskType?.id === 'ambiente' && (
+               <div className="mt-2 animate-in slide-in-from-top-1">
+                 <label className="text-[10px] uppercase font-bold text-muted ml-1">Espacio Destino</label>
+                 <div className="relative">
+                   <select
+                     value={targetSpaceId}
+                     onChange={(e) => setTargetSpaceId(e.target.value ? Number(e.target.value) : '')}
+                     className="w-full bg-background border border-card-border rounded-xl py-3 px-3 text-foreground text-sm outline-none focus:border-brand-primary/50 appearance-none pr-10"
+                   >
+                     <option value="">Seleccionar espacio...</option>
+                     {spaces.map(space => (
+                       <option key={`target-space-${space.id}`} value={space.id}>{space.name}</option>
+                     ))}
+                   </select>
+                   <ChevronDown size={16} className="text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 </div>
+                 {/* Warning verification logic */}
+                 {targetSpaceId !== '' && selectedTargets.some(t => {
+                   if (t.type === 'plant') {
+                     const p = plants.find(plant => plant.id === t.id);
+                     return p?.space_id === Number(targetSpaceId);
+                   }
+                   if (t.type === 'cycle') {
+                     const c = cycles.find(cycle => cycle.id === t.id);
+                     return c?.space_id === Number(targetSpaceId);
+                   }
+                   return false;
+                 }) && (
+                   <p className="text-amber-500/80 text-xs mt-1 animate-in slide-in-from-top-1">⚠️ El objetivo ya se encuentra en este espacio.</p>
+                 )}
                </div>
             )}
           </div>

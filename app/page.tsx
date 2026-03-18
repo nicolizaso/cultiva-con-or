@@ -74,7 +74,7 @@ export default async function Home() {
   const username = profile?.username;
 
   const activeCycles = (cyclesData || []) as unknown as CycleWithPlantsAndSpace[];
-  const mappedCyclesList = activeCycles.map(c => ({ id: c.id, name: c.name }));
+  const mappedCyclesList = activeCycles.map(c => ({ id: c.id, name: c.name, space_id: c.space_id }));
 
   const allTodayTasks = (tasksData || []).map((t: any) => {
     const { cycleIds, cycleNames } = mapTaskCycles(t, mappedCyclesList);
@@ -94,10 +94,10 @@ export default async function Home() {
     if (c.spaces) activeSpacesMap.set(c.spaces.id, c.spaces);
   });
   const activeSpacesCount = activeSpacesMap.size;
-  const allPlants: { id: string, name: string }[] = [];
+  const allPlants: { id: string, name: string, space_id?: number }[] = [];
   activeCycles.forEach(cycle => {
     cycle.plants?.forEach(p => {
-      allPlants.push({ id: String(p.id), name: p.name });
+      allPlants.push({ id: String(p.id), name: p.name, space_id: cycle.space_id });
     });
   });
 

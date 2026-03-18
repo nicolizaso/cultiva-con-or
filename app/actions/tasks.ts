@@ -10,7 +10,7 @@ export async function createTask(formData: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Debes iniciar sesión.' }
 
-  const { targets, taskType, applicationType, targetStage, date, description, otherText, isRecurring, frequency, endDate } = formData
+  const { targets, taskType, applicationType, targetStage, targetSpaceId, date, description, otherText, isRecurring, frequency, endDate } = formData
   if (!targets || targets.length === 0) return { error: 'Selecciona un objetivo.' }
 
   const title = taskType.id === 'otro' ? otherText : taskType.label
@@ -93,6 +93,7 @@ export async function createTask(formData: any) {
       type: taskType.id,
       application_type: taskType.id === 'fertilizante' ? applicationType : null,
       target_stage: taskType.id === 'cambio_etapa' ? targetStage : null,
+      target_space_id: taskType.id === 'ambiente' && targetSpaceId ? targetSpaceId : null,
       status: 'pending',
       recurrence_id: recurrenceId,
       cycle_id: null
@@ -276,10 +277,10 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
       .eq('id', taskId)
       .single()
 
-    if (task && task.task_plants && task.task_plants.length > 0) {
-      const plantIds = task.task_plants.map((tp: any) => tp.plant_id)
+    if (task) {
+      const plantIds = task.task_plants ? task.task_plants.map((tp: any) => tp.plant_id) : []
 
-      if (task.type === 'riego' || (task.type === 'fertilizante' && task.application_type === 'Riego')) {
+      if (plantIds.length > 0 && (task.type === 'riego' || (task.type === 'fertilizante' && task.application_type === 'Riego'))) {
         const { error: waterError } = await supabase
           .from('plants')
           .update({ last_water: new Date().toISOString() })
@@ -311,6 +312,35 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
             .in('id', plantIds)
 
           if (stageError) console.error('Error updating stage based on target_stage:', stageError)
+        }
+      }
+
+      // Nueva lógica para cambiar ambiente
+      if (task.type === 'ambiente' && task.target_space_id) {
+        // Mover las plantas
+        if (plantIds.length > 0) {
+          const { error: movePlantsError } = await supabase
+            .from('plants')
+            .update({ space_id: task.target_space_id })
+            .in('id', plantIds)
+
+          if (movePlantsError) console.error('Error moving plants to new space:', movePlantsError)
+        }
+
+        // Mover los ciclos vinculados a la tarea (necesitamos obtenerlos primero)
+        const { data: taskCyclesData } = await supabase
+          .from('task_cycles')
+          .select('cycle_id')
+          .eq('task_id', taskId)
+
+        if (taskCyclesData && taskCyclesData.length > 0) {
+          const cycleIds = taskCyclesData.map((tc: any) => tc.cycle_id)
+          const { error: moveCyclesError } = await supabase
+            .from('cycles')
+            .update({ space_id: task.target_space_id })
+            .in('id', cycleIds)
+
+          if (moveCyclesError) console.error('Error moving cycles to new space:', moveCyclesError)
         }
       }
     }
