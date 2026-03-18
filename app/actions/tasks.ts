@@ -272,6 +272,9 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
         task_plants (
           plant_id,
           plants ( id, cycle_id )
+        ),
+        task_cycles (
+          cycle_id
         )
       `)
       .eq('id', taskId)
@@ -317,30 +320,35 @@ export async function toggleTaskStatus(taskId: string | number, newStatus: 'pend
 
       // Nueva lógica para cambiar ambiente
       if (task.type === 'ambiente' && task.target_space_id) {
-        // Mover las plantas
-        if (plantIds.length > 0) {
+        const environmentPlantIds = task.task_plants?.map((tp: any) => tp.plant_id) || [];
+        const cycleIds = task.task_cycles?.map((tc: any) => tc.cycle_id) || [];
+
+        // 1. Mudar Plantas Individuales
+        if (environmentPlantIds.length > 0) {
           const { error: movePlantsError } = await supabase
             .from('plants')
             .update({ space_id: task.target_space_id })
-            .in('id', plantIds)
+            .in('id', environmentPlantIds)
 
           if (movePlantsError) console.error('Error moving plants to new space:', movePlantsError)
         }
 
-        // Mover los ciclos vinculados a la tarea (necesitamos obtenerlos primero)
-        const { data: taskCyclesData } = await supabase
-          .from('task_cycles')
-          .select('cycle_id')
-          .eq('task_id', taskId)
-
-        if (taskCyclesData && taskCyclesData.length > 0) {
-          const cycleIds = taskCyclesData.map((tc: any) => tc.cycle_id)
+        // 2. Mudar Ciclos Enteros
+        if (cycleIds.length > 0) {
           const { error: moveCyclesError } = await supabase
             .from('cycles')
             .update({ space_id: task.target_space_id })
             .in('id', cycleIds)
 
           if (moveCyclesError) console.error('Error moving cycles to new space:', moveCyclesError)
+
+          // Mover también todas las plantas de ese ciclo
+          const { error: movePlantsCycleError } = await supabase
+            .from('plants')
+            .update({ space_id: task.target_space_id })
+            .in('cycle_id', cycleIds)
+
+          if (movePlantsCycleError) console.error('Error moving plants from cycle to new space:', movePlantsCycleError)
         }
       }
     }
