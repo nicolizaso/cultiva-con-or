@@ -77,6 +77,7 @@ export interface Task {
   type: string; // 'riego', 'poda', etc.
   application_type?: string;
   target_stage?: string;
+  target_space_id?: number | null;
   description?: string;
   recurrence_id?: string;
   task_plants?: {
